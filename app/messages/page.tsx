@@ -42,9 +42,7 @@ export default function MessagesPage() {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showEmojiPicker]);
 
   useEffect(() => {
@@ -171,15 +169,15 @@ export default function MessagesPage() {
             )}
 
             <div className="flex gap-3 items-center">
-              {/* Bouton photo - icône mieux centrée */}
+              {/* Bouton Photo - icône parfaitement centrée */}
               <label className="cursor-pointer flex-shrink-0">
                 <input type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
-                <div className="w-11 h-11 bg-zinc-900 hover:bg-zinc-800 border border-rose-500/40 hover:border-rose-400 rounded-2xl flex items-center justify-center text-3xl transition-all active:scale-95">
-                  📸
+                <div className="w-11 h-11 bg-zinc-900 hover:bg-zinc-800 border border-rose-500/40 hover:border-rose-400 rounded-2xl flex items-center justify-center transition-all active:scale-95">
+                  <span className="text-2xl leading-none">📷</span>
                 </div>
               </label>
 
-              {/* Bouton emoji */}
+              {/* Bouton Emoji */}
               <button
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 className="w-11 h-11 bg-zinc-900 hover:bg-zinc-800 border border-rose-500/40 hover:border-rose-400 rounded-2xl flex items-center justify-center text-3xl transition-all active:scale-95"
@@ -206,7 +204,7 @@ export default function MessagesPage() {
               </button>
             </div>
 
-            {/* Emoji Picker avec fermeture au clic extérieur */}
+            {/* Emoji Picker */}
             {showEmojiPicker && (
               <div 
                 ref={emojiPickerRef}
@@ -224,7 +222,7 @@ export default function MessagesPage() {
               </div>
             )}
 
-            {/* Bouton traduction */}
+            {/* Traduction */}
             <button
               onClick={() => setShowTranslation(!showTranslation)}
               className="mt-4 w-full py-3 text-xs text-rose-400 hover:text-rose-300 border border-rose-500/30 hover:border-rose-400 rounded-2xl transition"
