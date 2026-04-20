@@ -14,6 +14,7 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     const init = async () => {
@@ -24,15 +25,10 @@ export default function MessagesPage() {
       }
       setUser(user);
 
-      // Charger tous les messages de l'utilisateur (envoyés ou reçus)
+      // Charger les messages
       const { data } = await supabase
         .from('messages')
-        .select(`
-          *,
-          sender:sender_id (email),
-          receiver:receiver_id (email)
-        `)
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .select('*')
         .order('created_at', { ascending: true });
 
       if (data) setMessages(data);
@@ -43,36 +39,38 @@ export default function MessagesPage() {
   }, []);
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !user || sending) return;
+    if (!newMessage.trim() || !user) return;
 
     setSending(true);
+    setErrorMsg('');
 
     const { error } = await supabase
       .from('messages')
       .insert({
         sender_id: user.id,
-        receiver_id: user.id, // Pour l'instant on s'envoie à soi-même (à améliorer plus tard)
+        receiver_id: user.id,   // Pour l'instant on s'envoie à soi-même
         content: newMessage.trim()
       });
 
-    if (!error) {
+    if (error) {
+      console.error(error);
+      setErrorMsg("Erreur : " + error.message);
+    } else {
+      // Ajouter localement pour affichage immédiat
       setMessages([...messages, {
         id: Date.now(),
         sender_id: user.id,
         content: newMessage.trim(),
-        created_at: new Date().toISOString(),
-        sender: { email: user.email }
+        created_at: new Date().toISOString()
       }]);
       setNewMessage('');
-    } else {
-      alert("Erreur lors de l'envoi");
     }
 
     setSending(false);
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-black text-white flex items-center justify-center">Chargement de la messagerie...</div>;
+    return <div className="min-h-screen bg-black text-white flex items-center justify-center">Chargement...</div>;
   }
 
   return (
@@ -100,6 +98,8 @@ export default function MessagesPage() {
               ))
             )}
           </div>
+
+          {errorMsg && <p className="text-red-400 text-center py-2">{errorMsg}</p>}
 
           <div className="border-t border-zinc-700 p-4">
             <div className="flex gap-3">
