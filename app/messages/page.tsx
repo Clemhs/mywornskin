@@ -11,6 +11,7 @@ const supabase = createClient(
 
 export default function MessagesPage() {
   const [user, setUser] = useState<any>(null);
+  const [conversations, setConversations] = useState<any[]>([]); // Liste des conversations futures
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -30,18 +31,14 @@ export default function MessagesPage() {
     setShowEmojiPicker(false);
   };
 
-  // Fermer le picker en cliquant à l'extérieur
+  // Fermer emoji picker en cliquant dehors
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
         setShowEmojiPicker(false);
       }
     };
-
-    if (showEmojiPicker) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
+    if (showEmojiPicker) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showEmojiPicker]);
 
@@ -54,6 +51,7 @@ export default function MessagesPage() {
       }
       setUser(user);
 
+      // Pour l'instant on garde les messages existants (on ajoutera les conversations plus tard)
       const { data } = await supabase
         .from('messages')
         .select('*')
@@ -114,17 +112,24 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">Messagerie Privée</h1>
-          <span className="text-rose-400 flex items-center gap-1.5">
-            <span className="w-2 h-2 bg-rose-400 rounded-full animate-pulse"></span>
-            En ligne
-          </span>
+    <div className="min-h-screen bg-black text-white flex">
+      {/* === LISTE DES CONVERSATIONS (Option 1) === */}
+      <div className="w-80 border-r border-rose-900/60 bg-zinc-950 flex flex-col">
+        <div className="p-5 border-b border-rose-900/60">
+          <h2 className="text-xl font-bold">Conversations</h2>
         </div>
+        <div className="flex-1 overflow-y-auto p-3">
+          <div className="bg-zinc-900 rounded-2xl p-4 text-center text-gray-400 text-sm">
+            Liste des conversations à venir<br />
+            (créateurs avec qui tu discutes)
+          </div>
+          {/* Ici on ajoutera plus tard la vraie liste des utilisateurs */}
+        </div>
+      </div>
 
-        <div className="relative bg-zinc-950 border-2 border-rose-800/80 rounded-3xl h-[74vh] flex flex-col overflow-hidden shadow-2xl shadow-black/80">
+      {/* === ZONE DE DISCUSSION PRINCIPALE === */}
+      <div className="flex-1 flex flex-col h-screen">
+        <div className="relative flex-1 bg-zinc-950 border-2 border-rose-800/80 rounded-3xl m-6 overflow-hidden shadow-2xl shadow-black/80 flex flex-col">
           
           {/* Header */}
           <div className="p-5 border-b border-rose-900/60 flex items-center gap-4 bg-black/70">
@@ -169,11 +174,14 @@ export default function MessagesPage() {
             )}
 
             <div className="flex gap-3 items-center">
-              {/* Bouton Photo - icône parfaitement centrée */}
+              {/* Bouton Photo - icône SVG centrée parfaitement */}
               <label className="cursor-pointer flex-shrink-0">
                 <input type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
                 <div className="w-11 h-11 bg-zinc-900 hover:bg-zinc-800 border border-rose-500/40 hover:border-rose-400 rounded-2xl flex items-center justify-center transition-all active:scale-95">
-                  <span className="text-2xl leading-none">📷</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2 2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 012-2 2 2 0 01-2-2 2 2 0 012-2zM15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 3v2m0 16v2m9-9H3" />
+                  </svg>
                 </div>
               </label>
 
@@ -222,12 +230,12 @@ export default function MessagesPage() {
               </div>
             )}
 
-            {/* Traduction */}
+            {/* Bouton Traduction avec drapeaux */}
             <button
               onClick={() => setShowTranslation(!showTranslation)}
-              className="mt-4 w-full py-3 text-xs text-rose-400 hover:text-rose-300 border border-rose-500/30 hover:border-rose-400 rounded-2xl transition"
+              className="mt-4 w-full py-3 text-xs text-rose-400 hover:text-rose-300 border border-rose-500/30 hover:border-rose-400 rounded-2xl transition flex items-center justify-center gap-2"
             >
-              {showTranslation ? "Masquer la traduction" : "🌐 Traduire tous les messages dans votre langue"}
+              🌍 🇫🇷 🇬🇧 🇪🇸 🇩🇪 Traduire tous les messages dans votre langue
             </button>
           </div>
         </div>
