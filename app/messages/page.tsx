@@ -93,69 +93,88 @@ export default function MessagesPage() {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Chargement...</div>;
+  if (loading) {
+    return <div className="min-h-screen bg-black flex items-center justify-center text-white">Chargement...</div>;
+  }
 
   const currentConv = conversations[activeConversation];
 
   return (
     <div className="min-h-screen bg-black text-white flex">
       {/* === COLONNE GAUCHE - CONVERSATIONS === */}
-      <div className="w-80 bg-gradient-to-b from-zinc-950 via-black to-rose-950/80 border-r border-rose-900/70 flex flex-col overflow-hidden">
-        <div className="p-6 border-b border-rose-800/50 bg-black/60">
-          <h2 className="text-2xl font-bold tracking-tight text-white">Conversations</h2>
+      <div className="w-80 bg-zinc-950 border-r border-rose-950/70 flex flex-col overflow-hidden relative">
+        {/* Dégradé artistique subtil en bas */}
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-rose-950/30 to-transparent pointer-events-none" />
+
+        <div className="p-7 border-b border-rose-950/50">
+          <h2 className="text-2xl font-bold tracking-tighter">Conversations</h2>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-3">
+        <div className="flex-1 overflow-y-auto py-4 space-y-2">
           {conversations.map((conv, index) => (
             <div
               key={conv.id}
               onClick={() => setActiveConversation(index)}
-              className={`mx-3 mb-2 rounded-3xl flex items-center gap-4 p-4 cursor-pointer transition-all hover:bg-white/5 ${activeConversation === index ? 'bg-rose-950/40 ring-1 ring-rose-500/40' : ''}`}
+              className={`mx-4 rounded-3xl flex items-center gap-4 p-4 cursor-pointer transition-all duration-300 hover:bg-white/5 group
+                ${activeConversation === index 
+                  ? 'bg-gradient-to-r from-rose-950/40 to-transparent border-l-2 border-rose-400' 
+                  : 'hover:border-l-2 hover:border-rose-900/50'
+                }`}
             >
               <div className="relative flex-shrink-0">
-                <Image src={conv.avatar} alt={conv.name} width={56} height={56} className="rounded-2xl object-cover ring-1 ring-rose-400/20" />
+                <Image 
+                  src={conv.avatar} 
+                  alt={conv.name} 
+                  width={54} 
+                  height={54} 
+                  className="rounded-2xl object-cover ring-1 ring-rose-400/10 group-hover:ring-rose-400/30 transition-all" 
+                />
                 {conv.online && (
-                  <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-400 border-[2.5px] border-zinc-950 rounded-full"></div>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-400 border-2 border-zinc-950 rounded-full animate-pulse" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-white truncate">{conv.name}</p>
-                <p className="text-sm text-gray-400 truncate">{conv.lastMsg}</p>
+                <p className="font-medium text-white truncate">{conv.name}</p>
+                <p className="text-sm text-gray-400 truncate mt-0.5">{conv.lastMsg}</p>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* === ZONE DE DISCUSSION === */}
+      {/* === ZONE DE DISCUSSION PRINCIPALE === */}
       <div className="flex-1 flex flex-col h-screen p-6">
-        <div className="flex-1 bg-zinc-950 border-2 border-rose-800/70 rounded-3xl overflow-hidden shadow-2xl flex flex-col relative">
+        <div className="flex-1 bg-zinc-950 border border-rose-900/60 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
           
           {/* Header */}
-          <div className="p-6 border-b border-rose-900/60 flex items-center gap-5 bg-black/70">
+          <div className="p-6 border-b border-rose-900/50 flex items-center gap-5 bg-black/60">
             <div className="relative">
-              <Image src={currentConv.avatar} alt={currentConv.name} width={58} height={58} className="rounded-2xl object-cover ring-1 ring-rose-500/30" />
-              {currentConv.online && <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-400 border-4 border-zinc-950 rounded-full"></div>}
+              <Image src={currentConv.avatar} alt={currentConv.name} width={58} height={58} className="rounded-2xl object-cover ring-1 ring-rose-400/20" />
+              {currentConv.online && <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-400 border-[3px] border-zinc-950 rounded-full" />}
             </div>
             <div>
-              <p className="font-bold text-2xl">{currentConv.name}</p>
-              <p className="text-rose-400 text-sm flex items-center gap-2">
-                <span className="inline-block w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse"></span>
+              <p className="font-bold text-2xl tracking-tight">{currentConv.name}</p>
+              <p className="text-rose-400/90 text-sm flex items-center gap-2">
+                <span className="inline-block w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse" />
                 En ligne maintenant
               </p>
             </div>
           </div>
 
-          {/* Messages */}
+          {/* Messages avec animation d'entrée */}
           <div className="flex-1 p-8 overflow-y-auto space-y-8 bg-black/90">
             {messages.length === 0 && (
-              <div className="h-full flex items-center justify-center text-gray-500">
-                Commence une conversation avec {currentConv.name}...
+              <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                <p className="text-xl">Commence une conversation avec {currentConv.name}</p>
               </div>
             )}
 
-            {messages.map((msg: any) => (
-              <div key={msg.id} className="flex justify-end">
+            {messages.map((msg: any, index) => (
+              <div 
+                key={msg.id} 
+                className="flex justify-end animate-in fade-in slide-in-from-bottom-4 duration-300"
+                style={{ animationDelay: `${index * 30}ms` }}
+              >
                 <div className="max-w-[75%]">
                   <div className="bg-white text-black rounded-3xl px-7 py-4 rounded-br-none shadow-md">
                     <p className="text-[15.5px] leading-relaxed">{msg.content}</p>
@@ -169,7 +188,7 @@ export default function MessagesPage() {
           </div>
 
           {/* Zone d'écriture */}
-          <div className="p-6 border-t border-rose-900/60 bg-zinc-950 relative">
+          <div className="p-6 border-t border-rose-900/50 bg-zinc-950 relative">
             {errorMsg && <div className="mb-4 text-red-400 text-center text-sm">{errorMsg}</div>}
 
             {imagePreview && (
@@ -180,11 +199,11 @@ export default function MessagesPage() {
             )}
 
             <div className="flex gap-4 items-center">
-              {/* Bouton Photo - icône claire et centrée */}
+              {/* Bouton Photo */}
               <label className="cursor-pointer">
                 <input type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
                 <div className="w-12 h-12 bg-zinc-900 hover:bg-zinc-800 border border-rose-400/30 hover:border-rose-400 rounded-2xl flex items-center justify-center transition-all active:scale-95">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2 2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 012-2 2 2 0 01-2-2 2 2 0 012-2zM15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 3v2m0 16v2m9-9H3" />
                   </svg>
