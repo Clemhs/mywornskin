@@ -45,8 +45,8 @@ export default function Home() {
 
   const changeLanguage = (lang: 'fr' | 'en' | 'es' | 'de') => {
     setCurrentLang(lang);
-    // Plus tard on ajoutera la vraie traduction i18n
-    alert(`Langue changée en ${lang.toUpperCase()} (traduction complète à venir)`);
+    // Pour l'instant on affiche juste un message (on ajoutera la vraie traduction plus tard)
+    alert(`🌍 Langue changée en ${lang.toUpperCase()} (traduction complète à venir)`);
   };
 
   if (loading) {
@@ -56,34 +56,35 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
       {/* Hero Section */}
-      <div className="relative h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(at_center,#3a1f4a_0%,#0a0a0a_70%)]"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 via-purple-500/5 to-transparent"></div>
+      <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-950 via-black to-black">
+        {/* Effet de fond subtil */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(236,72,153,0.08)_0%,transparent_60%)]"></div>
 
-        <div className="relative z-10 text-center px-6 max-w-5xl">
-          {/* Sélecteur de langue */}
-          <div className="absolute top-8 right-8 flex gap-2 z-50">
-            {languages.map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => changeLanguage(lang.code as 'fr' | 'en' | 'es' | 'de')}
-                className={`px-5 py-2 text-sm font-medium tracking-widest rounded-full transition-all border ${
-                  currentLang === lang.code 
-                    ? 'bg-white text-black border-white' 
-                    : 'border-white/30 hover:border-white/70'
-                }`}
-              >
-                {lang.label}
-              </button>
-            ))}
+        {/* Sélecteur de langue - bien placé en haut à droite */}
+        <div className="absolute top-8 right-8 z-50 flex gap-2">
+          {languages.map((lang) => (
+            <button
+              key={lang.code}
+              onClick={() => changeLanguage(lang.code as 'fr' | 'en' | 'es' | 'de')}
+              className={`px-6 py-2.5 text-sm font-medium tracking-widest rounded-2xl transition-all border ${
+                currentLang === lang.code 
+                  ? 'bg-white text-black border-white' 
+                  : 'border-white/30 hover:border-white/70 hover:bg-white/10'
+              }`}
+            >
+              {lang.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative z-10 text-center px-6 max-w-4xl">
+          <div className="mb-10">
+            <span className="inline-block px-8 py-3 bg-white/5 backdrop-blur-2xl rounded-3xl border border-white/10 text-sm tracking-[4px] uppercase">
+              INTIME • PORTÉ • DÉSIRÉ
+            </span>
           </div>
 
-          <div className="mb-8 inline-flex items-center gap-3 bg-white/5 backdrop-blur-xl px-8 py-3 rounded-full border border-white/10">
-            <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse"></div>
-            <span className="text-sm tracking-[3px] uppercase">Intime • Porté • Désiré</span>
-          </div>
-
-          <h1 className="text-[92px] md:text-[120px] font-bold tracking-[-4px] leading-none mb-6">
+          <h1 className="text-8xl md:text-[110px] font-bold tracking-[-3px] leading-none mb-8">
             MyWornSkin
           </h1>
 
@@ -92,20 +93,20 @@ export default function Home() {
             Des corps qui se racontent.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+          <div className="flex flex-col sm:flex-row gap-5 justify-center">
             {user ? (
               <>
                 {hasSubscription ? (
                   <Link 
                     href="/exclusive"
-                    className="group relative bg-white text-black font-semibold py-6 px-16 rounded-3xl text-2xl overflow-hidden hover:scale-105 transition-all duration-300"
+                    className="bg-white text-black font-semibold py-6 px-16 rounded-3xl text-xl hover:bg-gray-100 transition-all active:scale-95"
                   >
                     Accéder à l'exclusif
                   </Link>
                 ) : (
                   <Link 
                     href="/subscribe"
-                    className="group relative bg-white text-black font-semibold py-6 px-16 rounded-3xl text-2xl overflow-hidden hover:scale-105 transition-all duration-300"
+                    className="bg-white text-black font-semibold py-6 px-16 rounded-3xl text-xl hover:bg-gray-100 transition-all active:scale-95"
                   >
                     S'abonner
                   </Link>
@@ -113,7 +114,7 @@ export default function Home() {
 
                 <Link 
                   href="/messages"
-                  className="border border-white/60 hover:border-white font-semibold py-6 px-16 rounded-3xl text-2xl transition-all hover:bg-white/5"
+                  className="border border-white/60 hover:border-white font-semibold py-6 px-16 rounded-3xl text-xl transition-all hover:bg-white/5"
                 >
                   Messagerie privée
                 </Link>
@@ -121,12 +122,18 @@ export default function Home() {
             ) : (
               <Link 
                 href="/auth"
-                className="group relative bg-white text-black font-semibold py-6 px-16 rounded-3xl text-2xl overflow-hidden hover:scale-105 transition-all duration-300"
+                className="bg-white text-black font-semibold py-6 px-16 rounded-3xl text-xl hover:bg-gray-100 transition-all active:scale-95"
               >
                 Se connecter
               </Link>
             )}
           </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-xs tracking-widest text-gray-500 flex flex-col items-center">
+          SCROLL POUR DÉCOUVRIR
+          <div className="w-px h-12 bg-gradient-to-b from-transparent via-gray-400 to-transparent mt-3"></div>
         </div>
       </div>
 
