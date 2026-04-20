@@ -73,6 +73,15 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Footer
     'footer_text': 'MyWornSkin © 2026 — Vêtements portés avec passion',
+
+    // Autres utiles
+    'back': 'Retour',
+    'delete': 'Supprimer',
+    'edit': 'Modifier',
+    'save': 'Enregistrer',
+    'confirm': 'Confirmer',
+    'yes': 'Oui',
+    'no': 'Non',
   },
 
   en: {
@@ -122,6 +131,13 @@ const translations: Record<Language, Record<string, string>> = {
     'email': 'Email',
     'password': 'Password',
     'footer_text': 'MyWornSkin © 2026 — Worn clothes with passion',
+    'back': 'Back',
+    'delete': 'Delete',
+    'edit': 'Edit',
+    'save': 'Save',
+    'confirm': 'Confirm',
+    'yes': 'Yes',
+    'no': 'No',
   },
 
   es: {
@@ -171,6 +187,13 @@ const translations: Record<Language, Record<string, string>> = {
     'email': 'Correo electrónico',
     'password': 'Contraseña',
     'footer_text': 'MyWornSkin © 2026 — Ropa usada con pasión',
+    'back': 'Volver',
+    'delete': 'Eliminar',
+    'edit': 'Editar',
+    'save': 'Guardar',
+    'confirm': 'Confirmar',
+    'yes': 'Sí',
+    'no': 'No',
   },
 
   de: {
@@ -220,6 +243,13 @@ const translations: Record<Language, Record<string, string>> = {
     'email': 'E-Mail',
     'password': 'Passwort',
     'footer_text': 'MyWornSkin © 2026 — Getragene Kleidung mit Leidenschaft',
+    'back': 'Zurück',
+    'delete': 'Löschen',
+    'edit': 'Bearbeiten',
+    'save': 'Speichern',
+    'confirm': 'Bestätigen',
+    'yes': 'Ja',
+    'no': 'Nein',
   },
 };
 
