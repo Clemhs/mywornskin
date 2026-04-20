@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-04-01',
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-04-01' });
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,54 +16,45 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err: any) {
-    console.error(`Webhook signature verification failed: ${err.message}`);
+    console.error('Webhook signature error:', err.message);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
-  console.log(`Événement Stripe reçu : ${event.type}`);
+  console.log(`Webhook reçu : ${event.type}`);
 
   try {
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.metadata?.userId;
-        const subscriptionId = session.subscription as string;
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const userId = session.metadata?.userId;
+      const subscriptionId = session.subscription as string;
 
-        if (userId && subscriptionId) {
-          await supabase.from('subscriptions').insert({
-            user_id: userId,
-            stripe_subscription_id: subscriptionId,
-            status: 'active',
-            created_at: new Date().toISOString(),
-          });
-          console.log(`Abonnement créé pour user ${userId}`);
-        }
-        break;
+      if (userId && subscriptionId) {
+        await supabase.from('subscriptions').upsert({
+          user_id: userId,
+          stripe_subscription_id: subscriptionId,
+          status: 'active',
+          updated_at: new Date().toISOString(),
+        });
+        console.log(`Abonnement activé pour user: ${userId}`);
       }
+    }
 
-      case 'customer.subscription.updated':
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription;
-        await supabase
-          .from('subscriptions')
-          .update({ 
-            status: subscription.status,
-            updated_at: new Date().toISOString()
-          })
-          .eq('stripe_subscription_id', subscription.id);
-        break;
-      }
+    if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
+      const subscription = event.data.object as Stripe.Subscription;
+      await supabase
+        .from('subscriptions')
+        .update({ 
+          status: subscription.status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('stripe_subscription_id', subscription.id);
     }
 
     return NextResponse.json({ received: true });
   } catch (error: any) {
-    console.error('Erreur webhook:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Webhook processing error:', error);
+    return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
   }
 }
