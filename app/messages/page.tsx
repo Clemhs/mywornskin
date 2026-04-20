@@ -20,7 +20,6 @@ export default function MessagesPage() {
   const [showTranslations, setShowTranslations] = useState(false);
   const [translations, setTranslations] = useState<Record<number, string>>({});
 
-  // Avatar par défaut (on pourra le remplacer par une vraie photo plus tard)
   const defaultAvatar = "https://picsum.photos/id/64/128/128";
 
   useEffect(() => {
@@ -50,10 +49,8 @@ export default function MessagesPage() {
     setSending(true);
 
     let imageUrl = null;
-
-    // Si une image est sélectionnée, on l'upload (simulation pour l'instant)
     if (selectedImage) {
-      imageUrl = URL.createObjectURL(selectedImage); // Simulation
+      imageUrl = URL.createObjectURL(selectedImage);
     }
 
     const { error } = await supabase
@@ -77,7 +74,7 @@ export default function MessagesPage() {
       setSelectedImage(null);
       setImagePreview(null);
     } else {
-      alert("Erreur lors de l'envoi");
+      alert("Erreur lors de l'envoi du message");
     }
 
     setSending(false);
@@ -91,7 +88,6 @@ export default function MessagesPage() {
     }
   };
 
-  // Traduction simulée
   const translateAllMessages = () => {
     const newTranslations: Record<number, string> = {};
 
@@ -126,7 +122,7 @@ export default function MessagesPage() {
         </div>
 
         <div className="bg-zinc-900 rounded-3xl h-[70vh] flex flex-col overflow-hidden shadow-2xl">
-          {/* Header avec avatar */}
+          {/* Header */}
           <div className="border-b border-zinc-700 p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/20">
               <Image src={defaultAvatar} alt="Avatar" width={48} height={48} className="object-cover" />
@@ -137,7 +133,7 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          {/* Zone des messages */}
+          {/* Messages Area */}
           <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-zinc-950">
             {messages.length === 0 ? (
               <p className="text-center text-gray-500 mt-20">Aucun message pour l'instant...</p>
@@ -164,9 +160,74 @@ export default function MessagesPage() {
 
           {/* Bouton traduction globale */}
           {!showTranslations && messages.length > 0 && (
-            <div className="px-6 pb-3">
+            <div className="px-6 pb-4">
               <button
                 onClick={translateAllMessages}
                 className="w-full py-3 text-sm text-blue-400 hover:text-blue-300 border border-blue-500/30 hover:border-blue-500/50 rounded-2xl transition"
               >
-                Trad
+                Traduire tous les messages dans votre langue
+              </button>
+            </div>
+          )}
+
+          {/* Input Area */}
+          <div className="border-t border-zinc-700 p-4 bg-zinc-900">
+            {imagePreview && (
+              <div className="mb-3 flex gap-3 items-center">
+                <div className="relative">
+                  <Image src={imagePreview} alt="Preview" width={80} height={80} className="rounded-2xl object-cover" />
+                  <button 
+                    onClick={() => { setSelectedImage(null); setImagePreview(null); }}
+                    className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <label className="cursor-pointer">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
+                <div className="w-12 h-12 bg-zinc-800 hover:bg-zinc-700 rounded-2xl flex items-center justify-center text-2xl transition">
+                  📷
+                </div>
+              </label>
+
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                placeholder="Écris ton message ici..."
+                className="flex-1 bg-zinc-800 text-white rounded-3xl px-6 py-4 focus:outline-none text-[15px]"
+                disabled={sending}
+              />
+
+              <button
+                onClick={sendMessage}
+                disabled={sending || (!newMessage.trim() && !selectedImage)}
+                className="bg-white text-black px-8 rounded-3xl font-bold hover:bg-gray-200 disabled:opacity-50 transition"
+              >
+                {sending ? "..." : "Envoyer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  }
+}
