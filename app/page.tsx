@@ -41,7 +41,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Hero Section */}
+      {/* Hero */}
       <div className="pt-20 pb-16 text-center px-6">
         <h1 className="text-6xl font-bold mb-6">MyWornSkin</h1>
         <p className="text-2xl text-gray-300 max-w-2xl mx-auto">
@@ -49,43 +49,51 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 pb-20">
-        {user ? (
-          <div className="text-center mb-12">
-            <p className="text-green-400 text-lg">
-              Connecté en tant que {user.email}
-            </p>
+      <div className="max-w-4xl mx-auto px-6 pb-20 space-y-12">
+        {user && (
+          <div className="text-center">
+            <p className="text-green-400">Connecté • {user.email}</p>
             
-            {hasSubscription ? (
-              <div className="mt-8">
-                <p className="text-xl mb-4">✅ Tu as un abonnement actif</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+              {hasSubscription ? (
                 <Link 
                   href="/exclusive"
-                  className="inline-block bg-white text-black font-bold py-4 px-12 rounded-2xl text-xl hover:bg-gray-200 transition"
+                  className="bg-white text-black font-bold py-4 px-10 rounded-2xl text-lg hover:bg-gray-200 transition"
                 >
-                  Accéder au contenu exclusif
+                  Accéder au contenu exclusif 💋
                 </Link>
-              </div>
-            ) : (
+              ) : (
+                <Link 
+                  href="/subscribe"
+                  className="bg-white text-black font-bold py-4 px-10 rounded-2xl text-lg hover:bg-gray-200 transition"
+                >
+                  S'abonner maintenant
+                </Link>
+              )}
+
               <Link 
-                href="/subscribe"
-                className="inline-block bg-white text-black font-bold py-4 px-12 rounded-2xl text-xl hover:bg-gray-200 transition mt-6"
+                href="/messages"
+                className="border border-white/60 hover:border-white font-bold py-4 px-10 rounded-2xl text-lg transition"
               >
-                S'abonner maintenant
+                Messagerie privée
               </Link>
-            )}
+            </div>
           </div>
-        ) : (
-          <Link href="/auth" className="block text-center text-xl underline">
-            Se connecter
-          </Link>
         )}
 
-        {/* Section Sell */}
-        <div className="mt-20 text-center">
+        {!user && (
+          <div className="text-center">
+            <Link href="/auth" className="text-xl underline">
+              Se connecter pour accéder à tout
+            </Link>
+          </div>
+        )}
+
+        {/* Sell Section */}
+        <div className="text-center pt-12 border-t border-white/10">
           <Link 
             href="/sell"
-            className="inline-block border border-white/50 hover:border-white px-10 py-4 rounded-2xl text-lg transition"
+            className="inline-block border border-white/50 hover:border-white px-12 py-5 rounded-2xl text-lg transition"
           >
             Vendre mes vêtements portés →
           </Link>
