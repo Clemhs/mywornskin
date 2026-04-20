@@ -38,7 +38,7 @@ export default function MessagesPage() {
   }, []);
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !user || sending) return;
+    if (!newMessage.trim() || !user) return;
 
     setSending(true);
     setErrorMsg('');
@@ -46,13 +46,13 @@ export default function MessagesPage() {
     const { error } = await supabase
       .from('messages')
       .insert({
-        sender_id: user.id,           // Utilise l'ID réel de l'utilisateur connecté
-        receiver_id: user.id,         // Pour l'instant on s'envoie à soi-même
+        sender_id: user.id,
+        receiver_id: user.id,
         content: newMessage.trim()
       });
 
     if (error) {
-      console.error('Insert error:', error);
+      console.error(error);
       setErrorMsg("Erreur : " + error.message);
     } else {
       setMessages([...messages, {
