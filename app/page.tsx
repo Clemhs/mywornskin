@@ -6,8 +6,8 @@ export default function Home() {
   const { language, setLanguage, t } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden">
-      {/* Boutons de langue en haut à droite */}
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      {/* Boutons de langue */}
       <div className="absolute top-8 right-8 flex gap-3 z-50">
         {(['fr', 'en', 'es', 'de'] as const).map((lang) => (
           <button
@@ -24,10 +24,10 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Contenu principal */}
-      <div className="flex flex-col items-center justify-center min-h-screen px-6 text-center">
-        <div className="max-w-4xl">
-          <h1 className="text-7xl md:text-8xl font-bold tracking-tighter mb-6">
+      {/* Hero Section */}
+      <div className="flex flex-col items-center justify-center min-h-screen px-6 text-center relative">
+        <div className="max-w-5xl mx-auto">
+          <h1 className="text-6xl md:text-8xl font-bold tracking-tighter mb-6 leading-none">
             {t('welcome')}
           </h1>
           
@@ -35,21 +35,21 @@ export default function Home() {
             {t('discover')}
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <button className="bg-rose-600 hover:bg-rose-500 transition px-12 py-5 rounded-3xl text-xl font-semibold">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <button className="bg-rose-600 hover:bg-rose-500 transition-all px-14 py-6 rounded-3xl text-xl font-semibold w-full sm:w-auto">
               {t('subscribe')}
             </button>
             
-            <button className="bg-transparent border-2 border-white/70 hover:border-white transition px-12 py-5 rounded-3xl text-xl font-semibold">
+            <button className="border-2 border-white/70 hover:border-white transition-all px-14 py-6 rounded-3xl text-xl font-semibold w-full sm:w-auto">
               {t('sell')}
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Petit footer décoratif */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-xs text-gray-500">
-        MyWornSkin © 2026 — Vêtements portés avec histoire
+        {/* Petit texte décoratif */}
+        <div className="absolute bottom-12 text-xs text-gray-500 tracking-widest">
+          MYWORNSKIN — Vêtements portés avec une histoire
+        </div>
       </div>
     </div>
   );
