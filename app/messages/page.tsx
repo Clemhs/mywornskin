@@ -21,9 +21,7 @@ export default function MessagesPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [showTranslation, setShowTranslation] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
 
@@ -80,10 +78,9 @@ export default function MessagesPage() {
     setSending(true);
     setErrorMsg('');
 
-    let imageUrl: string | null = null;
+    let imageUrl = null;
 
     if (selectedImage) {
-      setUploading(true);
       const fileExt = selectedImage.name.split('.').pop();
       const fileName = `msg-${Date.now()}.${fileExt}`;
 
@@ -94,10 +91,7 @@ export default function MessagesPage() {
       if (!uploadError) {
         const { data } = supabase.storage.from('message-images').getPublicUrl(fileName);
         imageUrl = data.publicUrl;
-      } else {
-        setErrorMsg(t('error'));
       }
-      setUploading(false);
     }
 
     const { error } = await supabase.from('messages').insert({
@@ -107,9 +101,7 @@ export default function MessagesPage() {
       image_url: imageUrl,
     });
 
-    if (error) {
-      setErrorMsg(t('error'));
-    } else {
+    if (!error) {
       setMessages(prev => [...prev, {
         id: Date.now(),
         sender_id: user.id,
@@ -120,6 +112,8 @@ export default function MessagesPage() {
       setNewMessage('');
       setSelectedImage(null);
       setImagePreview(null);
+    } else {
+      setErrorMsg("Erreur lors de l'envoi");
     }
 
     setSending(false);
@@ -164,14 +158,13 @@ export default function MessagesPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">{conv.name}</p>
-                <p className="text-sm text-gray-400 truncate">Clique pour discuter</p>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Zone principale */}
+      {/* Zone discussion */}
       <div className="flex-1 flex flex-col h-screen">
         <div className="md:hidden p-4 border-b border-rose-900/60 flex items-center gap-4 bg-black/80">
           <button onClick={() => setShowSidebar(true)} className="text-3xl">☰</button>
@@ -198,7 +191,7 @@ export default function MessagesPage() {
             <div key={msg.id} className="flex justify-end">
               <div className="max-w-[85%] md:max-w-[78%]">
                 <div className="bg-white text-black rounded-3xl px-6 py-4 rounded-br-none shadow">
-                  {msg.content && <p className="text-[15.5px]">{msg.content}</p>}
+                  {msg.content && <p>{msg.content}</p>}
                   {msg.image_url && <Image src={msg.image_url} alt="photo" width={320} height={240} className="rounded-2xl mt-3" />}
                 </div>
                 <p className="text-xs text-gray-500 mt-2 pr-4 text-right">
@@ -260,13 +253,6 @@ export default function MessagesPage() {
               ))}
             </div>
           )}
-
-          <button
-            onClick={() => setShowTranslation(!showTranslation)}
-            className="mt-4 w-full py-3 text-sm border border-rose-500/30 hover:border-rose-400 rounded-2xl text-rose-400 hover:text-rose-300 transition flex items-center justify-center gap-3"
-          >
-            🌍 🇫🇷 🇬🇧 🇪🇸 🇩🇪 {t('translate_messages')}
-          </button>
         </div>
       </div>
     </div>
