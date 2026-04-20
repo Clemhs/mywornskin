@@ -9,10 +9,6 @@ export async function POST(request: NextRequest) {
   try {
     const { priceId } = await request.json();
 
-    if (!priceId) {
-      return NextResponse.json({ error: "Price ID manquant" }, { status: 400 });
-    }
-
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -28,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ sessionId: session.id });
   } catch (error: any) {
-    console.error("Stripe error:", error.message);
+    console.error("Stripe checkout error:", error.message);
     return NextResponse.json({ 
       error: error.message 
     }, { status: 500 });
