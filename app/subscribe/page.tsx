@@ -18,8 +18,11 @@ export default function SubscribePage() {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) window.location.href = '/auth';
-      else setUser(user);
+      if (!user) {
+        window.location.href = '/auth';
+      } else {
+        setUser(user);
+      }
     };
     checkUser();
   }, []);
@@ -28,29 +31,25 @@ export default function SubscribePage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          priceId: 'price_1TOI3sBnvnJqvQspTEI77qKP', // ton Price ID
-          userId: user.id
-        }),
+      const stripe = await stripePromise;
+      if (!stripe) throw new Error("Stripe n'a pas chargé");
+
+      const { error } = await stripe.redirectToCheckout({
+        lineItems: [{ price: 'price_1TOI3sBnvnJqvQspTEI77qKP', quantity: 1 }],
+        mode: 'subscription',
+        successUrl: 'https://mywornskin.vercel.app/success?session_id={CHECKOUT_SESSION_ID}',
+        cancelUrl: 'https://mywornskin.vercel.app/subscribe',
       });
 
-      const { sessionId } = await response.json();
-
-      const stripe = await stripePromise;
-      if (stripe) {
-        stripe.redirectToCheckout({ sessionId });
-      }
-    } catch (error) {
-      alert("Erreur lors de la création de la session de paiement");
+      if (error) throw error;
+    } catch (error: any) {
+      alert("Erreur : " + error.message);
     }
 
     setLoading(false);
   };
 
-  if (!user) return <div className="text-center py-20">Chargement...</div>;
+  if (!user) return <div className="text-center py-20">Redirection en cours...</div>;
 
   return (
     <div className="min-h-screen bg-black text-white py-12">
@@ -76,7 +75,7 @@ export default function SubscribePage() {
             disabled={loading}
             className="w-full bg-white text-black font-bold py-4 rounded-2xl text-lg hover:bg-gray-200 disabled:opacity-50 transition"
           >
-            {loading ? "Redirection vers le paiement..." : "S'abonner maintenant"}
+            {loading ? "Redirection vers Stripe..." : "S'abonner maintenant"}
           </button>
         </div>
       </div>
