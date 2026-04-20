@@ -122,7 +122,7 @@ export default function MessagesPage() {
         </div>
 
         <div className="bg-zinc-900 rounded-3xl h-[70vh] flex flex-col overflow-hidden shadow-2xl">
-          {/* Header */}
+          {/* Header avec avatar */}
           <div className="border-b border-zinc-700 p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/20">
               <Image src={defaultAvatar} alt="Avatar" width={48} height={48} className="object-cover" />
@@ -133,7 +133,7 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          {/* Messages Area */}
+          {/* Zone des messages */}
           <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-zinc-950">
             {messages.length === 0 ? (
               <p className="text-center text-gray-500 mt-20">Aucun message pour l'instant...</p>
@@ -170,7 +170,7 @@ export default function MessagesPage() {
             </div>
           )}
 
-          {/* Input Area */}
+          {/* Zone d'écriture */}
           <div className="border-t border-zinc-700 p-4 bg-zinc-900">
             {imagePreview && (
               <div className="mb-3 flex gap-3 items-center">
