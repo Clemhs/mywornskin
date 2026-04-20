@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { createClient } from '@supabase/supabase-js';
 
@@ -21,12 +21,31 @@ export default function MessagesPage() {
   const [showTranslation, setShowTranslation] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  const commonEmojis = ['😀', '😂', '❤️', '😍', '🥰', '🔥', '👀', '💦', '😘', '🙈', '👍', '😏', '🥵', '💋'];
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+  const commonEmojis = ['😀', '😂', '❤️', '😍', '🥰', '🔥', '👀', '💦', '😘', '🙈', '👍', '😏', '🥵', '💋', '😈', '✨'];
 
   const insertEmoji = (emoji: string) => {
     setNewMessage(prev => prev + emoji);
     setShowEmojiPicker(false);
   };
+
+  // Fermer le picker en cliquant à l'extérieur
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showEmojiPicker]);
 
   useEffect(() => {
     const init = async () => {
@@ -107,7 +126,6 @@ export default function MessagesPage() {
           </span>
         </div>
 
-        {/* Fenêtre avec cadre rose/noir élégant */}
         <div className="relative bg-zinc-950 border-2 border-rose-800/80 rounded-3xl h-[74vh] flex flex-col overflow-hidden shadow-2xl shadow-black/80">
           
           {/* Header */}
@@ -153,10 +171,10 @@ export default function MessagesPage() {
             )}
 
             <div className="flex gap-3 items-center">
-              {/* Bouton photo moderne (inspiré WhatsApp / Telegram) */}
+              {/* Bouton photo - icône mieux centrée */}
               <label className="cursor-pointer flex-shrink-0">
                 <input type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
-                <div className="w-11 h-11 bg-zinc-900 hover:bg-zinc-800 border border-rose-500/40 hover:border-rose-400 rounded-2xl flex items-center justify-center text-2xl transition-all active:scale-95 shadow-inner">
+                <div className="w-11 h-11 bg-zinc-900 hover:bg-zinc-800 border border-rose-500/40 hover:border-rose-400 rounded-2xl flex items-center justify-center text-3xl transition-all active:scale-95">
                   📸
                 </div>
               </label>
@@ -164,7 +182,7 @@ export default function MessagesPage() {
               {/* Bouton emoji */}
               <button
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className="w-11 h-11 bg-zinc-900 hover:bg-zinc-800 border border-rose-500/40 hover:border-rose-400 rounded-2xl flex items-center justify-center text-2xl transition-all active:scale-95"
+                className="w-11 h-11 bg-zinc-900 hover:bg-zinc-800 border border-rose-500/40 hover:border-rose-400 rounded-2xl flex items-center justify-center text-3xl transition-all active:scale-95"
               >
                 😀
               </button>
@@ -188,14 +206,17 @@ export default function MessagesPage() {
               </button>
             </div>
 
-            {/* Emoji Picker */}
+            {/* Emoji Picker avec fermeture au clic extérieur */}
             {showEmojiPicker && (
-              <div className="absolute bottom-20 left-6 bg-zinc-900 border border-rose-500/30 rounded-2xl p-4 shadow-2xl grid grid-cols-6 gap-3 z-50">
+              <div 
+                ref={emojiPickerRef}
+                className="absolute bottom-20 left-6 bg-zinc-900 border border-rose-500/30 rounded-2xl p-4 shadow-2xl grid grid-cols-6 gap-3 z-50"
+              >
                 {commonEmojis.map((emoji, i) => (
                   <button
                     key={i}
                     onClick={() => insertEmoji(emoji)}
-                    className="text-3xl hover:scale-125 transition-transform"
+                    className="text-3xl hover:scale-125 active:scale-110 transition-transform p-2"
                   >
                     {emoji}
                   </button>
