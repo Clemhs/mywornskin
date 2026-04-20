@@ -13,6 +13,7 @@ export default function MessagesPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -23,13 +24,15 @@ export default function MessagesPage() {
       }
       setUser(user);
 
-      // Charger les messages existants (pour l'instant on charge tout, on filtrera plus tard)
-      const { data } = await supabase
+      // Charger les messages
+      const { data, error } = await supabase
         .from('messages')
         .select('*')
         .order('created_at', { ascending: true });
 
-      if (data) setMessages(data);
+      if (error) console.error('Erreur chargement messages:', error);
+      else if (data) setMessages(data);
+
       setLoading(false);
     };
 
@@ -37,17 +40,20 @@ export default function MessagesPage() {
   }, []);
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !user) return;
+    if (!newMessage.trim() || !user || sending) return;
+
+    setSending(true);
 
     const { error } = await supabase
       .from('messages')
       .insert({
         sender_id: user.id,
-        receiver_id: user.id, // Pour l'instant on s'envoie à soi-même (à améliorer plus tard)
+        receiver_id: user.id,        // Pour l'instant on s'envoie à soi-même
         content: newMessage.trim()
       });
 
     if (!error) {
+      // Ajouter le message localement pour affichage immédiat
       setMessages([...messages, {
         id: Date.now(),
         sender_id: user.id,
@@ -55,7 +61,11 @@ export default function MessagesPage() {
         created_at: new Date().toISOString()
       }]);
       setNewMessage('');
+    } else {
+      alert("Erreur lors de l'envoi du message");
     }
+
+    setSending(false);
   };
 
   if (loading) {
@@ -97,12 +107,14 @@ export default function MessagesPage() {
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Écris ton message ici..."
                 className="flex-1 bg-zinc-800 text-white rounded-2xl px-6 py-4 focus:outline-none"
+                disabled={sending}
               />
               <button
                 onClick={sendMessage}
-                className="bg-white text-black px-8 rounded-2xl font-bold hover:bg-gray-200 transition"
+                disabled={sending || !newMessage.trim()}
+                className="bg-white text-black px-8 rounded-2xl font-bold hover:bg-gray-200 transition disabled:opacity-50"
               >
-                Envoyer
+                {sending ? "Envoi..." : "Envoyer"}
               </button>
             </div>
           </div>
