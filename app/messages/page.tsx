@@ -223,6 +223,7 @@ export default function MessagesPage() {
     </div>
   );
 
+  // Fonction handleImageSelect définie une seule fois
   function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (file) {
