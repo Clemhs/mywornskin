@@ -78,7 +78,7 @@ export default function MessagesPage() {
     setSending(true);
     setErrorMsg('');
 
-    let imageUrl = null;
+    let imageUrl: string | null = null;
 
     if (selectedImage) {
       const fileExt = selectedImage.name.split('.').pop();
@@ -113,7 +113,7 @@ export default function MessagesPage() {
       setSelectedImage(null);
       setImagePreview(null);
     } else {
-      setErrorMsg("Erreur lors de l'envoi");
+      setErrorMsg("Erreur lors de l'envoi du message");
     }
 
     setSending(false);
