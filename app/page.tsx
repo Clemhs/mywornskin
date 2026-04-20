@@ -12,6 +12,7 @@ const supabase = createClient(
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
+  const [items, setItems] = useState<any[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -21,8 +22,18 @@ export default function Home() {
     };
     getUser();
 
-    // Écoute les changements de session
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+    // Récupérer les vêtements
+    const fetchItems = async () => {
+      const { data } = await supabase
+        .from('items')
+        .select('*')
+        .eq('is_available', true)
+        .order('created_at', { ascending: false });
+      setItems(data || []);
+    };
+    fetchItems();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user || null);
     });
 
@@ -36,54 +47,38 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-4xl mx-auto px-6 py-12">
+      <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="flex justify-between items-center mb-12">
           <h1 className="text-5xl font-bold">MyWornSkin</h1>
           
           <div className="flex items-center gap-4">
             {user ? (
               <>
-                <span className="text-sm text-gray-400">
-                  Connecté en tant que <strong>{user.email}</strong>
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-xl text-sm transition"
-                >
+                <span className="text-sm text-gray-400">Bonjour, {user.email}</span>
+                <button onClick={handleLogout} className="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-xl text-sm">
                   Déconnexion
                 </button>
-                <Link 
-                  href="/sell"
-                  className="bg-white text-black font-semibold px-6 py-2 rounded-xl hover:bg-gray-200 transition"
-                >
+                <Link href="/sell" className="bg-white text-black font-semibold px-6 py-3 rounded-2xl hover:bg-gray-200">
                   Mettre en vente
                 </Link>
               </>
             ) : (
-              <Link 
-                href="/auth"
-                className="bg-white text-black font-semibold px-8 py-3 rounded-2xl hover:bg-gray-200 transition"
-              >
+              <Link href="/auth" className="bg-white text-black font-semibold px-8 py-3 rounded-2xl hover:bg-gray-200">
                 Se connecter / S'inscrire
               </Link>
             )}
           </div>
         </div>
 
-        <div className="text-center mb-20">
-          <p className="text-2xl text-gray-400 mb-4">
-            Vêtements déjà portés • Vibe intime • Rien que pour toi
-          </p>
-          <p className="text-gray-500">
-            Partage tes pièces les plus intimes avec ceux qui les désirent vraiment.
-          </p>
+        <div className="text-center mb-16">
+          <p className="text-2xl text-gray-400">Vêtements déjà portés • Vibe intime • Rien que pour toi</p>
         </div>
 
-        <div className="text-center text-gray-500 text-sm">
-          Aucun vêtement disponible pour le moment<br />
-          Connecte-toi et mets tes vêtements en vente pour commencer
-        </div>
-      </div>
-    </div>
-  );
-}
+        <h2 className="text-3xl font-semibold mb-8">Vêtements en vente</h2>
+
+        {items.length === 0 ? (
+          <p className="text-center text-gray-500 py-20">Aucun vêtement disponible pour le moment.<br />Sois le premier à en mettre un en vente !</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {items.map((item) => (
+              <div key={item.id} className="bg-zinc-900 rounded-
