@@ -1,6 +1,7 @@
 'use client';
 
 import { useLanguage } from './context/LanguageContext';
+import Link from 'next/link';
 
 export default function Home() {
   const { language, setLanguage, t } = useLanguage();
@@ -36,19 +37,25 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <button className="bg-rose-600 hover:bg-rose-500 transition-all px-14 py-6 rounded-3xl text-xl font-semibold w-full sm:w-auto">
-              {t('subscribe')}
-            </button>
+            {/* Bouton principal : Explorer les créateurs */}
+            <Link href="/creators">
+              <button className="bg-rose-600 hover:bg-rose-500 transition-all px-14 py-6 rounded-3xl text-xl font-semibold w-full sm:w-auto">
+                Explorer les créateurs
+              </button>
+            </Link>
             
-            <button className="border-2 border-white/70 hover:border-white transition-all px-14 py-6 rounded-3xl text-xl font-semibold w-full sm:w-auto">
-              {t('sell')}
-            </button>
+            {/* Bouton secondaire : Vendre */}
+            <Link href="/sell">
+              <button className="border-2 border-white/70 hover:border-white transition-all px-14 py-6 rounded-3xl text-xl font-semibold w-full sm:w-auto">
+                {t('sell')}
+              </button>
+            </Link>
           </div>
         </div>
 
         {/* Petit texte décoratif */}
         <div className="absolute bottom-12 text-xs text-gray-500 tracking-widest">
-          MYWORNSKIN — Vêtements portés avec une histoire
+          MyWornSkin © 2026 — Vêtements portés avec passion
         </div>
       </div>
     </div>
