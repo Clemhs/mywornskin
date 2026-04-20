@@ -25,7 +25,6 @@ export default function MessagesPage() {
       }
       setUser(user);
 
-      // Charger les messages
       const { data } = await supabase
         .from('messages')
         .select('*')
@@ -39,7 +38,7 @@ export default function MessagesPage() {
   }, []);
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !user) return;
+    if (!newMessage.trim() || !user || sending) return;
 
     setSending(true);
     setErrorMsg('');
@@ -47,16 +46,15 @@ export default function MessagesPage() {
     const { error } = await supabase
       .from('messages')
       .insert({
-        sender_id: user.id,
-        receiver_id: user.id,   // Pour l'instant on s'envoie à soi-même
+        sender_id: user.id,           // Utilise l'ID réel de l'utilisateur connecté
+        receiver_id: user.id,         // Pour l'instant on s'envoie à soi-même
         content: newMessage.trim()
       });
 
     if (error) {
-      console.error(error);
+      console.error('Insert error:', error);
       setErrorMsg("Erreur : " + error.message);
     } else {
-      // Ajouter localement pour affichage immédiat
       setMessages([...messages, {
         id: Date.now(),
         sender_id: user.id,
@@ -99,7 +97,7 @@ export default function MessagesPage() {
             )}
           </div>
 
-          {errorMsg && <p className="text-red-400 text-center py-2">{errorMsg}</p>}
+          {errorMsg && <p className="text-red-400 text-center py-2 px-6">{errorMsg}</p>}
 
           <div className="border-t border-zinc-700 p-4">
             <div className="flex gap-3">
