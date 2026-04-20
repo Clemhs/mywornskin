@@ -138,7 +138,7 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-black text-white flex">
-      {/* Sidebar */}
+      {/* Sidebar Conversations */}
       <div className="w-80 bg-zinc-950 border-r border-rose-950/60 flex flex-col overflow-hidden">
         <div className="p-6 border-b border-rose-900/50">
           <h2 className="text-2xl font-bold tracking-tight">Conversations</h2>
@@ -163,7 +163,7 @@ export default function MessagesPage() {
         </div>
       </div>
 
-      {/* Zone discussion */}
+      {/* Zone de discussion */}
       <div className="flex-1 flex flex-col h-screen p-6">
         <div className="flex-1 bg-zinc-950 border border-rose-900/60 rounded-3xl overflow-hidden flex flex-col shadow-2xl">
           <div className="p-6 border-b border-rose-900/50 flex items-center gap-5 bg-black/70">
