@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import Image from 'next/image';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,10 +13,15 @@ export default function MessagesPage() {
   const [user, setUser] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [showTranslations, setShowTranslations] = useState(false);
   const [translations, setTranslations] = useState<Record<number, string>>({});
+
+  // Avatar par défaut (on pourra le remplacer par une vraie photo plus tard)
+  const defaultAvatar = "https://picsum.photos/id/64/128/128";
 
   useEffect(() => {
     const init = async () => {
@@ -39,49 +45,68 @@ export default function MessagesPage() {
   }, []);
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !user) return;
+    if ((!newMessage.trim() && !selectedImage) || !user) return;
 
     setSending(true);
+
+    let imageUrl = null;
+
+    // Si une image est sélectionnée, on l'upload (simulation pour l'instant)
+    if (selectedImage) {
+      imageUrl = URL.createObjectURL(selectedImage); // Simulation
+    }
 
     const { error } = await supabase
       .from('messages')
       .insert({
         sender_id: user.id,
         receiver_id: user.id,
-        content: newMessage.trim()
+        content: newMessage.trim() || null,
+        image_url: imageUrl
       });
 
     if (!error) {
       setMessages([...messages, {
         id: Date.now(),
         sender_id: user.id,
-        content: newMessage.trim(),
+        content: newMessage.trim() || null,
+        image_url: imageUrl,
         created_at: new Date().toISOString()
       }]);
       setNewMessage('');
+      setSelectedImage(null);
+      setImagePreview(null);
     } else {
-      alert("Erreur lors de l'envoi du message");
+      alert("Erreur lors de l'envoi");
     }
 
     setSending(false);
   };
 
-  // Traduction simulée (on peut remplacer plus tard par une vraie API)
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  // Traduction simulée
   const translateAllMessages = () => {
     const newTranslations: Record<number, string> = {};
 
     messages.forEach((msg) => {
-      const fakeTranslations: Record<string, string> = {
-        "test": "Ceci est un test",
-        "test2": "Ceci est le deuxième test",
-        "test3": "Troisième test réussi",
-        "ca marche": "Ça fonctionne bien !",
-        "hello how are you ?": "Bonjour, comment vas-tu ?",
-        "test 4": "Quatrième message de test"
-      };
-
-      newTranslations[msg.id] = fakeTranslations[msg.content.toLowerCase()] || 
-        "Traduction automatique : " + msg.content;
+      if (msg.content) {
+        const fake = {
+          "test": "Ceci est un test",
+          "test2": "Ceci est le deuxième test",
+          "test3": "Troisième test réussi",
+          "ca marche": "Ça fonctionne bien !",
+          "hello how are you ?": "Bonjour, comment vas-tu ?",
+          "test 4": "Quatrième message de test"
+        };
+        newTranslations[msg.id] = fake[msg.content.toLowerCase()] || "Traduction : " + msg.content;
+      }
     });
 
     setTranslations(newTranslations);
@@ -100,23 +125,35 @@ export default function MessagesPage() {
           <span className="text-green-400">● En ligne</span>
         </div>
 
-        <div className="bg-zinc-900 rounded-3xl h-[65vh] flex flex-col overflow-hidden">
-          <div className="flex-1 p-6 overflow-y-auto space-y-6">
+        <div className="bg-zinc-900 rounded-3xl h-[70vh] flex flex-col overflow-hidden shadow-2xl">
+          {/* Header avec avatar */}
+          <div className="border-b border-zinc-700 p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/20">
+              <Image src={defaultAvatar} alt="Avatar" width={48} height={48} className="object-cover" />
+            </div>
+            <div>
+              <p className="font-semibold">Créateur / Utilisateur</p>
+              <p className="text-xs text-green-400">En ligne maintenant</p>
+            </div>
+          </div>
+
+          {/* Zone des messages */}
+          <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-zinc-950">
             {messages.length === 0 ? (
               <p className="text-center text-gray-500 mt-20">Aucun message pour l'instant...</p>
             ) : (
               messages.map((msg) => (
-                <div key={msg.id} className="flex justify-end">
-                  <div className="max-w-[80%] bg-white text-black rounded-2xl px-5 py-3">
-                    <p>{msg.content}</p>
-
-                    {showTranslations && translations[msg.id] && (
-                      <p className="text-sm text-gray-600 mt-3 border-l-2 border-blue-500 pl-3">
-                        Traduction : {translations[msg.id]}
-                      </p>
-                    )}
-
-                    <p className="text-xs opacity-60 mt-1 text-right">
+                <div key={msg.id} className="flex justify-end group">
+                  <div className="max-w-[75%]">
+                    <div className="bg-white text-black rounded-3xl px-5 py-3 rounded-br-none">
+                      {msg.content && <p className="text-[15px]">{msg.content}</p>}
+                      {msg.image_url && (
+                        <div className="mt-3 rounded-2xl overflow-hidden">
+                          <Image src={msg.image_url} alt="Image envoyée" width={300} height={200} className="object-cover" />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-gray-500 mt-1 text-right pr-2">
                       {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
@@ -125,40 +162,11 @@ export default function MessagesPage() {
             )}
           </div>
 
-          {/* Bouton de traduction globale */}
+          {/* Bouton traduction globale */}
           {!showTranslations && messages.length > 0 && (
-            <div className="px-6 pb-4">
+            <div className="px-6 pb-3">
               <button
                 onClick={translateAllMessages}
                 className="w-full py-3 text-sm text-blue-400 hover:text-blue-300 border border-blue-500/30 hover:border-blue-500/50 rounded-2xl transition"
               >
-                Traduire tous les messages dans votre langue
-              </button>
-            </div>
-          )}
-
-          <div className="border-t border-zinc-700 p-4">
-            <div className="flex gap-3">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Écris ton message ici..."
-                className="flex-1 bg-zinc-800 text-white rounded-2xl px-6 py-4 focus:outline-none"
-                disabled={sending}
-              />
-              <button
-                onClick={sendMessage}
-                disabled={sending || !newMessage.trim()}
-                className="bg-white text-black px-8 rounded-2xl font-bold hover:bg-gray-200 disabled:opacity-50"
-              >
-                {sending ? "Envoi..." : "Envoyer"}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+                Trad
