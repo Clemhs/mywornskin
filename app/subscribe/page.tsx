@@ -13,13 +13,13 @@ export default function SubscribePage() {
             {t('subscribe')}
           </h1>
           <p className="text-2xl text-gray-400 max-w-2xl mx-auto">
-            Accédez à du contenu exclusif, photos intimes et discussions privées avec tes créatrices préférées.
+            {t('access_exclusive')}
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Abonnement Mensuel */}
-          <div className="bg-zinc-900 rounded-3xl p-10 border border-zinc-700 hover:border-rose-600/50 transition-all group">
+          <div className="bg-zinc-900 rounded-3xl p-10 border border-zinc-700 hover:border-rose-600/50 transition-all">
             <h2 className="text-3xl font-semibold mb-2">{t('monthly')}</h2>
             <div className="flex items-baseline gap-2 mb-8">
               <span className="text-6xl font-bold">9,99</span>
@@ -33,7 +33,7 @@ export default function SubscribePage() {
               <li className="flex items-center gap-3">✓ Annulation à tout moment</li>
             </ul>
 
-            <button className="w-full bg-rose-600 hover:bg-rose-500 py-5 rounded-2xl text-xl font-semibold transition group-hover:scale-105">
+            <button className="w-full bg-rose-600 hover:bg-rose-500 py-5 rounded-2xl text-xl font-semibold transition">
               {t('subscribe_monthly')}
             </button>
           </div>
