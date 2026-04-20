@@ -1,124 +1,58 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { loadStripe } from '@stripe/stripe-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+import { useLanguage } from '../context/LanguageContext';
 
 export default function SubscribePage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
-
-  const monthlyPriceId = 'price_1TOI3sBnvnJqvQspTEI77qKP';
-  const yearlyPriceId = 'price_1TOLRUBnvnJqvQspKbQci01B';
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = '/auth';
-      } else {
-        setUser(user);
-      }
-    };
-    checkUser();
-  }, []);
-
-  const handleSubscribe = async () => {
-    if (!user) return;
-
-    setLoading(true);
-
-    const priceId = selectedPlan === 'monthly' ? monthlyPriceId : yearlyPriceId;
-
-    try {
-      const stripe = await stripePromise;
-      if (!stripe) throw new Error("Stripe n'a pas chargé");
-
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          priceId: priceId,
-          userId: user.id
-        }),
-      });
-
-      const { sessionId, error } = await response.json();
-
-      if (error) throw new Error(error);
-
-      const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
-
-      if (stripeError) throw stripeError;
-
-    } catch (error: any) {
-      alert("Erreur : " + error.message);
-    }
-
-    setLoading(false);
-  };
-
-  if (!user) {
-    return <div className="text-center py-20 text-white">Redirection...</div>;
-  }
+  const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-black text-white py-12">
-      <div className="max-w-md mx-auto px-6 text-center">
-        <h1 className="text-4xl font-bold mb-6">Choisis ton abonnement</h1>
-        <p className="text-gray-400 mb-10">Soutiens tes créateurs préférés</p>
+    <div className="min-h-screen bg-black text-white py-16 px-6">
+      <div className="max-w-4xl mx-auto text-center">
+        <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
+          {t('subscribe')}
+        </h1>
+        <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
+          Accédez à du contenu exclusif, photos intimes et discussions privées.
+        </p>
 
-        <div className="space-y-4 mb-10">
+        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
           {/* Abonnement Mensuel */}
-          <div 
-            onClick={() => setSelectedPlan('monthly')}
-            className={`bg-zinc-900 rounded-3xl p-6 cursor-pointer transition border-2 ${selectedPlan === 'monthly' ? 'border-white' : 'border-transparent'}`}
-          >
-            <div className="text-4xl font-bold">9,99 €</div>
-            <p className="text-gray-400">par mois</p>
-            <ul className="text-left text-sm mt-6 space-y-2">
-              <li>✓ Accès aux photos exclusives</li>
-              <li>✓ Priorité sur les nouvelles pièces</li>
-              <li>✓ Messagerie prioritaire</li>
-              <li>✓ Contenu personnalisé</li>
+          <div className="bg-zinc-900 rounded-3xl p-10 border border-rose-900/30 hover:border-rose-600 transition-all">
+            <h2 className="text-3xl font-semibold mb-4">Mensuel</h2>
+            <p className="text-6xl font-bold mb-2">9,99 €</p>
+            <p className="text-gray-400 mb-8">par mois</p>
+            
+            <ul className="space-y-4 text-left mb-10">
+              <li className="flex items-center gap-3">✓ Photos exclusives</li>
+              <li className="flex items-center gap-3">✓ Messagerie prioritaire</li>
+              <li className="flex items-center gap-3">✓ Accès aux lives</li>
             </ul>
+
+            <button className="w-full bg-rose-600 hover:bg-rose-500 py-4 rounded-2xl font-semibold text-lg transition">
+              S'abonner mensuellement
+            </button>
           </div>
 
           {/* Abonnement Annuel */}
-          <div 
-            onClick={() => setSelectedPlan('yearly')}
-            className={`bg-zinc-900 rounded-3xl p-6 cursor-pointer transition border-2 ${selectedPlan === 'yearly' ? 'border-white' : 'border-transparent'}`}
-          >
-            <div className="text-4xl font-bold">99 €</div>
-            <p className="text-gray-400">par an</p>
-            <p className="text-green-400 text-sm mt-1">Économise ~17 %</p>
-            <ul className="text-left text-sm mt-6 space-y-2">
-              <li>✓ Tout du mensuel</li>
-              <li>✓ Accès prioritaire aux nouveautés</li>
-              <li>✓ Badge "Abonné Annuel"</li>
+          <div className="bg-zinc-900 rounded-3xl p-10 border border-rose-600 relative overflow-hidden">
+            <div className="absolute top-6 right-6 bg-rose-600 text-xs font-bold px-4 py-1 rounded-full">POPULAIRE</div>
+            
+            <h2 className="text-3xl font-semibold mb-4">Annuel</h2>
+            <p className="text-6xl font-bold mb-2">99 €</p>
+            <p className="text-gray-400 mb-2">par an</p>
+            <p className="text-emerald-400 text-sm mb-8">Économisez 17 %</p>
+
+            <ul className="space-y-4 text-left mb-10">
+              <li className="flex items-center gap-3">✓ Tout du mensuel</li>
+              <li className="flex items-center gap-3">✓ Accès anticipé aux nouveautés</li>
+              <li className="flex items-center gap-3">✓ Badge exclusif</li>
             </ul>
+
+            <button className="w-full bg-white text-black hover:bg-gray-100 py-4 rounded-2xl font-semibold text-lg transition">
+              S'abonner annuellement
+            </button>
           </div>
         </div>
-
-        <button
-          onClick={handleSubscribe}
-          disabled={loading}
-          className="w-full bg-white text-black font-bold py-4 rounded-2xl text-lg hover:bg-gray-200 disabled:opacity-50 transition"
-        >
-          {loading ? "Redirection vers Stripe..." : `S'abonner ${selectedPlan === 'monthly' ? 'mensuellement' : 'annuellement'}`}
-        </button>
-
-        <p className="text-xs text-gray-500 mt-8">
-          Paiement sécurisé via Stripe • Annulation possible à tout moment
-        </p>
       </div>
     </div>
   );
