@@ -15,44 +15,51 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkUser = async () => {
+    const init = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         window.location.href = '/auth';
         return;
       }
       setUser(user);
+
+      // Charger les messages existants (pour l'instant on charge tout, on filtrera plus tard)
+      const { data } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (data) setMessages(data);
       setLoading(false);
     };
 
-    checkUser();
+    init();
   }, []);
 
-  // Messages de test pour l'instant
-  useEffect(() => {
-    if (user) {
-      setMessages([
-        { id: 1, from: "Créatrice", text: "Salut ! Tu aimes mes pièces ?", time: "14:32" },
-        { id: 2, from: "Toi", text: "Oui beaucoup, surtout la dernière 😍", time: "14:35" },
-      ]);
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !user) return;
+
+    const { error } = await supabase
+      .from('messages')
+      .insert({
+        sender_id: user.id,
+        receiver_id: user.id, // Pour l'instant on s'envoie à soi-même (à améliorer plus tard)
+        content: newMessage.trim()
+      });
+
+    if (!error) {
+      setMessages([...messages, {
+        id: Date.now(),
+        sender_id: user.id,
+        content: newMessage.trim(),
+        created_at: new Date().toISOString()
+      }]);
+      setNewMessage('');
     }
-  }, [user]);
-
-  const sendMessage = () => {
-    if (!newMessage.trim()) return;
-
-    setMessages([...messages, {
-      id: Date.now(),
-      from: "Toi",
-      text: newMessage,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }]);
-
-    setNewMessage('');
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-black text-white flex items-center justify-center">Chargement...</div>;
+    return <div className="min-h-screen bg-black text-white flex items-center justify-center">Chargement de la messagerie...</div>;
   }
 
   return (
@@ -63,23 +70,24 @@ export default function MessagesPage() {
           <span className="text-green-400">● En ligne</span>
         </div>
 
-        <div className="bg-zinc-900 rounded-3xl h-[60vh] flex flex-col overflow-hidden">
-          {/* Zone des messages */}
+        <div className="bg-zinc-900 rounded-3xl h-[65vh] flex flex-col overflow-hidden">
           <div className="flex-1 p-6 overflow-y-auto space-y-6">
-            {messages.map((msg) => (
-              <div 
-                key={msg.id} 
-                className={`flex ${msg.from === "Toi" ? "justify-end" : "justify-start"}`}
-              >
-                <div className={`max-w-[75%] rounded-2xl px-5 py-3 ${msg.from === "Toi" ? "bg-white text-black" : "bg-zinc-800"}`}>
-                  <p>{msg.text}</p>
-                  <p className="text-xs opacity-60 mt-1 text-right">{msg.time}</p>
+            {messages.length === 0 ? (
+              <p className="text-center text-gray-500 mt-20">Aucun message pour l'instant...</p>
+            ) : (
+              messages.map((msg) => (
+                <div key={msg.id} className="flex justify-end">
+                  <div className="max-w-[80%] bg-white text-black rounded-2xl px-5 py-3">
+                    <p>{msg.content}</p>
+                    <p className="text-xs opacity-60 mt-1 text-right">
+                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
-          {/* Zone d'écriture */}
           <div className="border-t border-zinc-700 p-4">
             <div className="flex gap-3">
               <input
@@ -87,7 +95,7 @@ export default function MessagesPage() {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Écris un message..."
+                placeholder="Écris ton message ici..."
                 className="flex-1 bg-zinc-800 text-white rounded-2xl px-6 py-4 focus:outline-none"
               />
               <button
@@ -98,10 +106,6 @@ export default function MessagesPage() {
               </button>
             </div>
           </div>
-        </div>
-
-        <div className="text-center mt-6 text-sm text-gray-500">
-          Messagerie privée • Les créateurs répondent généralement sous 24h
         </div>
       </div>
     </div>
