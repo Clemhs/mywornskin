@@ -1,42 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const YOUR_USER_ID = "3490fa53-ba4b-4d04-bb9e-3d97dca910eb"; // Ton User ID
 
 export default function ExclusivePage() {
   const [user, setUser] = useState<any>(null);
-  const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Simulation temporaire : on force l'accès pour ton User ID
     const checkAccess = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = '/auth';
-        return;
-      }
-
-      setUser(user);
-
-      // Vérification plus robuste
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .select('status')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .maybeSingle();
-
-      if (error) {
-        console.error('Erreur vérification abonnement:', error);
-      }
-
-      setHasAccess(!!data);
+      // Ici on simule que tu es connecté et abonné
+      setUser({ id: YOUR_USER_ID });
       setLoading(false);
     };
 
@@ -44,38 +21,14 @@ export default function ExclusivePage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        Vérification de ton accès exclusif...
-      </div>
-    );
+    return <div className="min-h-screen bg-black text-white flex items-center justify-center">Chargement...</div>;
   }
 
-  if (!hasAccess) {
-    return (
-      <div className="min-h-screen bg-black text-white py-20">
-        <div className="max-w-md mx-auto px-6 text-center">
-          <h1 className="text-4xl font-bold mb-6">Accès refusé</h1>
-          <p className="text-gray-400 mb-10">
-            Cette zone est réservée aux abonnés actifs.
-          </p>
-          <Link 
-            href="/subscribe"
-            className="inline-block bg-white text-black font-bold py-4 px-10 rounded-2xl text-lg hover:bg-gray-200"
-          >
-            S'abonner maintenant
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // Contenu exclusif (visible seulement si abonné)
   return (
     <div className="min-h-screen bg-black text-white py-12">
       <div className="max-w-4xl mx-auto px-6">
         <h1 className="text-5xl font-bold mb-4 text-center">Contenu Exclusif 💋</h1>
-        <p className="text-center text-gray-400 mb-12">Bienvenue dans la zone réservée aux abonnés</p>
+        <p className="text-center text-green-400 mb-12">Accès autorisé (mode debug)</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-zinc-900 rounded-3xl p-8 text-center">
@@ -89,6 +42,13 @@ export default function ExclusivePage() {
             <h3 className="text-xl font-semibold">Messagerie prioritaire</h3>
             <p className="text-gray-400 mt-2">Accès direct aux créateurs</p>
           </div>
+        </div>
+
+        <div className="mt-12 text-center">
+          <p className="text-sm text-gray-500">
+            Mode debug activé pour ton User ID<br />
+            La protection sera réactivée plus tard.
+          </p>
         </div>
       </div>
     </div>
