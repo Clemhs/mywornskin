@@ -14,7 +14,7 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [translations, setTranslations] = useState<Record<number, string>>({});
 
   useEffect(() => {
     const init = async () => {
@@ -41,7 +41,6 @@ export default function MessagesPage() {
     if (!newMessage.trim() || !user) return;
 
     setSending(true);
-    setErrorMsg('');
 
     const { error } = await supabase
       .from('messages')
@@ -51,10 +50,7 @@ export default function MessagesPage() {
         content: newMessage.trim()
       });
 
-    if (error) {
-      console.error(error);
-      setErrorMsg("Erreur : " + error.message);
-    } else {
+    if (!error) {
       setMessages([...messages, {
         id: Date.now(),
         sender_id: user.id,
@@ -62,13 +58,36 @@ export default function MessagesPage() {
         created_at: new Date().toISOString()
       }]);
       setNewMessage('');
+    } else {
+      alert("Erreur lors de l'envoi");
     }
 
     setSending(false);
   };
 
+  // Fonction de traduction simple (utilise LibreTranslate - gratuit)
+  const translateMessage = async (text: string, messageId: number) => {
+    try {
+      const res = await fetch('https://libretranslate.de/translate', {
+        method: 'POST',
+        body: JSON.stringify({
+          q: text,
+          source: 'auto',
+          target: 'fr', // On traduit vers le français pour l'instant
+          format: 'text'
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = await res.json();
+      setTranslations(prev => ({ ...prev, [messageId]: data.translatedText }));
+    } catch (err) {
+      alert("Erreur de traduction. Vérifie ta connexion.");
+    }
+  };
+
   if (loading) {
-    return <div className="min-h-screen bg-black text-white flex items-center justify-center">Chargement...</div>;
+    return <div className="min-h-screen bg-black text-white flex items-center justify-center">Chargement de la messagerie...</div>;
   }
 
   return (
@@ -88,6 +107,23 @@ export default function MessagesPage() {
                 <div key={msg.id} className="flex justify-end">
                   <div className="max-w-[80%] bg-white text-black rounded-2xl px-5 py-3">
                     <p>{msg.content}</p>
+                    
+                    {/* Bouton Traduire */}
+                    {!translations[msg.id] && (
+                      <button 
+                        onClick={() => translateMessage(msg.content, msg.id)}
+                        className="text-xs text-blue-600 hover:text-blue-700 mt-2 underline"
+                      >
+                        Traduire en français
+                      </button>
+                    )}
+
+                    {translations[msg.id] && (
+                      <p className="text-sm text-gray-600 mt-2 border-l-2 border-blue-500 pl-3">
+                        Traduction : {translations[msg.id]}
+                      </p>
+                    )}
+
                     <p className="text-xs opacity-60 mt-1 text-right">
                       {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
@@ -96,8 +132,6 @@ export default function MessagesPage() {
               ))
             )}
           </div>
-
-          {errorMsg && <p className="text-red-400 text-center py-2 px-6">{errorMsg}</p>}
 
           <div className="border-t border-zinc-700 p-4">
             <div className="flex gap-3">
