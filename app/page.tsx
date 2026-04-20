@@ -22,7 +22,6 @@ export default function Home() {
     };
     getUser();
 
-    // Récupérer les vêtements
     const fetchItems = async () => {
       const { data } = await supabase
         .from('items')
@@ -55,15 +54,24 @@ export default function Home() {
             {user ? (
               <>
                 <span className="text-sm text-gray-400">Bonjour, {user.email}</span>
-                <button onClick={handleLogout} className="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-xl text-sm">
+                <button 
+                  onClick={handleLogout}
+                  className="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-xl text-sm transition"
+                >
                   Déconnexion
                 </button>
-                <Link href="/sell" className="bg-white text-black font-semibold px-6 py-3 rounded-2xl hover:bg-gray-200">
+                <Link 
+                  href="/sell"
+                  className="bg-white text-black font-semibold px-6 py-3 rounded-2xl hover:bg-gray-200 transition"
+                >
                   Mettre en vente
                 </Link>
               </>
             ) : (
-              <Link href="/auth" className="bg-white text-black font-semibold px-8 py-3 rounded-2xl hover:bg-gray-200">
+              <Link 
+                href="/auth"
+                className="bg-white text-black font-semibold px-8 py-3 rounded-2xl hover:bg-gray-200 transition"
+              >
                 Se connecter / S'inscrire
               </Link>
             )}
@@ -77,8 +85,34 @@ export default function Home() {
         <h2 className="text-3xl font-semibold mb-8">Vêtements en vente</h2>
 
         {items.length === 0 ? (
-          <p className="text-center text-gray-500 py-20">Aucun vêtement disponible pour le moment.<br />Sois le premier à en mettre un en vente !</p>
+          <p className="text-center text-gray-500 py-20">
+            Aucun vêtement disponible pour le moment.<br />
+            Sois le premier à en mettre un en vente !
+          </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {items.map((item) => (
-              <div key={item.id} className="bg-zinc-900 rounded-
+              <div key={item.id} className="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800">
+                {item.images && item.images.length > 0 && (
+                  <img 
+                    src={item.images[0]} 
+                    alt={item.title} 
+                    className="w-full h-64 object-cover" 
+                  />
+                )}
+                <div className="p-6">
+                  <h3 className="font-semibold text-xl mb-2">{item.title}</h3>
+                  <p className="text-gray-400 text-sm line-clamp-2 mb-4">{item.description}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-3xl font-bold">{item.price} €</span>
+                    <span className="text-xs bg-zinc-800 px-4 py-1.5 rounded-full">{item.condition}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
