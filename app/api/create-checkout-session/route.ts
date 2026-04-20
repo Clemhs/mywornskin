@@ -3,15 +3,19 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log("Body reçu :", body);
+    console.log("API appelée avec body :", body);
 
     return NextResponse.json({ 
-      message: "API appelée avec succès",
-      receivedPriceId: body.priceId 
+      success: true,
+      message: "API fonctionne !",
+      received: body 
     });
 
   } catch (error: any) {
-    console.error("Erreur dans l'API :", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Erreur API :", error);
+    return NextResponse.json({ 
+      success: false,
+      error: error.message 
+    }, { status: 500 });
   }
 }
