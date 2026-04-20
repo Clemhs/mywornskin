@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 
@@ -13,8 +13,14 @@ export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [hasSubscription, setHasSubscription] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [currentLang, setCurrentLang] = useState<'fr' | 'en' | 'es' | 'de'>('fr');
 
-  const heroRef = useRef<HTMLDivElement>(null);
+  const languages = [
+    { code: 'fr', label: 'FR' },
+    { code: 'en', label: 'EN' },
+    { code: 'es', label: 'ES' },
+    { code: 'de', label: 'DE' },
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,18 +41,13 @@ export default function Home() {
     };
 
     fetchData();
-
-    // Parallax subtil sur le hero
-    const handleScroll = () => {
-      if (heroRef.current) {
-        const scrollY = window.scrollY;
-        heroRef.current.style.transform = `translateY(${scrollY * 0.15}px)`;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const changeLanguage = (lang: 'fr' | 'en' | 'es' | 'de') => {
+    setCurrentLang(lang);
+    // Plus tard on ajoutera la vraie traduction i18n
+    alert(`Langue changée en ${lang.toUpperCase()} (traduction complète à venir)`);
+  };
 
   if (loading) {
     return <div className="min-h-screen bg-black text-white flex items-center justify-center">Chargement...</div>;
@@ -54,16 +55,30 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
-      {/* Hero Section - Ultra sensuel */}
-      <div ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Background avec effet de profondeur */}
-        <div className="absolute inset-0 bg-[radial-gradient(at_center,#3a1f4a_0%,#0a0a0a_60%)]"></div>
-        
-        {/* Effet de lumière douce */}
+      {/* Hero Section */}
+      <div className="relative h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(at_center,#3a1f4a_0%,#0a0a0a_70%)]"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 via-purple-500/5 to-transparent"></div>
 
         <div className="relative z-10 text-center px-6 max-w-5xl">
-          <div className="mb-6 inline-flex items-center gap-3 bg-white/5 backdrop-blur-xl px-8 py-3 rounded-full border border-white/10">
+          {/* Sélecteur de langue */}
+          <div className="absolute top-8 right-8 flex gap-2 z-50">
+            {languages.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => changeLanguage(lang.code as 'fr' | 'en' | 'es' | 'de')}
+                className={`px-5 py-2 text-sm font-medium tracking-widest rounded-full transition-all border ${
+                  currentLang === lang.code 
+                    ? 'bg-white text-black border-white' 
+                    : 'border-white/30 hover:border-white/70'
+                }`}
+              >
+                {lang.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mb-8 inline-flex items-center gap-3 bg-white/5 backdrop-blur-xl px-8 py-3 rounded-full border border-white/10">
             <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse"></div>
             <span className="text-sm tracking-[3px] uppercase">Intime • Porté • Désiré</span>
           </div>
@@ -85,8 +100,7 @@ export default function Home() {
                     href="/exclusive"
                     className="group relative bg-white text-black font-semibold py-6 px-16 rounded-3xl text-2xl overflow-hidden hover:scale-105 transition-all duration-300"
                   >
-                    <span className="relative z-10">Accéder à l'exclusif</span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-purple-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
+                    Accéder à l'exclusif
                   </Link>
                 ) : (
                   <Link 
@@ -114,12 +128,6 @@ export default function Home() {
             )}
           </div>
         </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 text-xs tracking-widest text-gray-400">
-          <div className="w-px h-16 bg-gradient-to-b from-transparent via-gray-400 to-transparent"></div>
-          SCROLL
-        </div>
       </div>
 
       {/* Section Vente */}
@@ -127,7 +135,7 @@ export default function Home() {
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-5xl font-bold mb-8">Tu veux vendre tes pièces portées ?</h2>
           <p className="text-xl text-gray-400 mb-12">
-            Transforme ton intimité en revenu. Partage tes vêtements déjà vécus avec des amateurs qui les désirent.
+            Transforme ton intimité en revenu. Partage tes vêtements déjà vécus avec ceux qui les désirent.
           </p>
           <Link 
             href="/sell"
