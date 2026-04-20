@@ -14,7 +14,6 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     const init = async () => {
@@ -25,9 +24,15 @@ export default function MessagesPage() {
       }
       setUser(user);
 
+      // Charger tous les messages de l'utilisateur (envoyés ou reçus)
       const { data } = await supabase
         .from('messages')
-        .select('*')
+        .select(`
+          *,
+          sender:sender_id (email),
+          receiver:receiver_id (email)
+        `)
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .order('created_at', { ascending: true });
 
       if (data) setMessages(data);
@@ -41,26 +46,26 @@ export default function MessagesPage() {
     if (!newMessage.trim() || !user || sending) return;
 
     setSending(true);
-    setError('');
 
-    const { error: insertError } = await supabase
+    const { error } = await supabase
       .from('messages')
       .insert({
         sender_id: user.id,
-        receiver_id: user.id,
+        receiver_id: user.id, // Pour l'instant on s'envoie à soi-même (à améliorer plus tard)
         content: newMessage.trim()
       });
 
-    if (insertError) {
-      setError("Erreur lors de l'envoi : " + insertError.message);
-    } else {
+    if (!error) {
       setMessages([...messages, {
         id: Date.now(),
         sender_id: user.id,
         content: newMessage.trim(),
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        sender: { email: user.email }
       }]);
       setNewMessage('');
+    } else {
+      alert("Erreur lors de l'envoi");
     }
 
     setSending(false);
@@ -95,8 +100,6 @@ export default function MessagesPage() {
               ))
             )}
           </div>
-
-          {error && <p className="text-red-400 text-center py-2 px-6">{error}</p>}
 
           <div className="border-t border-zinc-700 p-4">
             <div className="flex gap-3">
