@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { loadStripe } from '@stripe/stripe-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function SubscribePage() {
   const [user, setUser] = useState<any>(null);
@@ -17,19 +20,49 @@ export default function SubscribePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         window.location.href = '/auth';
-      } else {
-        setUser(user);
+        return;
       }
+      setUser(user);
     };
     checkUser();
   }, []);
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
+    if (!user) return;
+
     setLoading(true);
-    window.location.href = "https://buy.stripe.com/test_fZu6oG4YvezkeRj7rwgA800";
+
+    try {
+      const stripe = await stripePromise;
+      if (!stripe) throw new Error("Stripe n'a pas pu se charger");
+
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId: 'price_1TOI3sBnvnJqvQspTEI77qKP',
+          userId: user.id
+        }),
+      });
+
+      const { sessionId, error } = await response.json();
+
+      if (error) throw new Error(error);
+
+      const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
+
+      if (stripeError) throw stripeError;
+
+    } catch (error: any) {
+      alert("Erreur lors de la redirection : " + error.message);
+    }
+
+    setLoading(false);
   };
 
-  if (!user) return <div className="text-center py-20">Redirection en cours...</div>;
+  if (!user) {
+    return <div className="text-center py-20 text-white">Redirection vers la connexion...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-black text-white py-12">
@@ -53,14 +86,14 @@ export default function SubscribePage() {
           <button
             onClick={handleSubscribe}
             disabled={loading}
-            className="w-full bg-white text-black font-bold py-4 rounded-2xl text-lg hover:bg-gray-200 disabled:opacity-50 transition"
+            className="w-full bg-white text-black font-bold py-4 rounded-2xl text-lg hover:bg-gray-200 disabled:opacity-50 transition-all"
           >
-            {loading ? "Redirection..." : "S'abonner maintenant"}
+            {loading ? "Redirection vers Stripe..." : "S'abonner maintenant"}
           </button>
         </div>
 
         <p className="text-xs text-gray-500 mt-8">
-          Paiement sécurisé via Stripe
+          Paiement sécurisé via Stripe • Annulation possible à tout moment
         </p>
       </div>
     </div>
