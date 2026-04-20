@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { createClient } from '@supabase/supabase-js';
-import { useLanguage } from '../context/LanguageContext';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,8 +10,6 @@ const supabase = createClient(
 );
 
 export default function MessagesPage() {
-  const { t } = useLanguage();
-
   const [user, setUser] = useState<any>(null);
   const [activeConvId, setActiveConvId] = useState(0);
   const [messages, setMessages] = useState<any[]>([]);
@@ -128,7 +125,7 @@ export default function MessagesPage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-black flex items-center justify-center text-white">{t('loading')}</div>;
+    return <div className="min-h-screen bg-black flex items-center justify-center text-white">Chargement...</div>;
   }
 
   const currentConv = conversations[activeConvId];
@@ -138,7 +135,7 @@ export default function MessagesPage() {
       {/* Sidebar */}
       <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex w-full md:w-80 bg-zinc-950 border-b md:border-r border-rose-950/60 flex-col overflow-hidden`}>
         <div className="p-6 border-b border-rose-900/50 flex items-center justify-between">
-          <h2 className="text-2xl font-bold tracking-tight">{t('conversations')}</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Conversations</h2>
           <button onClick={() => setShowSidebar(false)} className="md:hidden text-3xl">✕</button>
         </div>
 
@@ -184,7 +181,7 @@ export default function MessagesPage() {
 
         <div className="flex-1 p-6 md:p-8 overflow-y-auto space-y-8 bg-black/90">
           {messages.length === 0 && (
-            <p className="text-center text-gray-500 mt-20 md:mt-32">{t('no_messages')}</p>
+            <p className="text-center text-gray-500 mt-20 md:mt-32">Aucun message pour l'instant...</p>
           )}
 
           {messages.map((msg: any) => (
@@ -230,7 +227,7 @@ export default function MessagesPage() {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-              placeholder={t('write_message')}
+              placeholder="Écris ton message..."
               className="flex-1 bg-zinc-900 border border-rose-900/60 focus:border-rose-400 rounded-3xl px-6 py-4 text-[15px]"
               disabled={sending}
             />
@@ -240,7 +237,7 @@ export default function MessagesPage() {
               disabled={sending || uploading}
               className="bg-rose-600 hover:bg-rose-500 px-9 py-4 rounded-3xl font-medium disabled:bg-zinc-700"
             >
-              {sending || uploading ? '...' : t('send')}
+              Envoyer
             </button>
           </div>
 
