@@ -14,6 +14,7 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [showTranslations, setShowTranslations] = useState(false);
   const [translations, setTranslations] = useState<Record<number, string>>({});
 
   useEffect(() => {
@@ -65,23 +66,26 @@ export default function MessagesPage() {
     setSending(false);
   };
 
-  // Traduction simulée (pour éviter les erreurs API)
-  const translateMessage = (text: string, messageId: number) => {
-    const fakeTranslations: Record<string, string> = {
-      "test": "Ceci est un test",
-      "test2": "Ceci est le deuxième test",
-      "test3": "Troisième test réussi",
-      "ca marche": "Ça fonctionne bien !",
-      "hello how are you ?": "Bonjour, comment vas-tu ?",
-      "test 4": "Quatrième message de test"
-    };
+  // Traduction simulée (on peut remplacer plus tard par une vraie API)
+  const translateAllMessages = () => {
+    const newTranslations: Record<number, string> = {};
 
-    const translated = fakeTranslations[text.toLowerCase()] || "Traduction : " + text + " (version simulée)";
+    messages.forEach((msg) => {
+      const fakeTranslations: Record<string, string> = {
+        "test": "Ceci est un test",
+        "test2": "Ceci est le deuxième test",
+        "test3": "Troisième test réussi",
+        "ca marche": "Ça fonctionne bien !",
+        "hello how are you ?": "Bonjour, comment vas-tu ?",
+        "test 4": "Quatrième message de test"
+      };
 
-    setTranslations(prev => ({
-      ...prev,
-      [messageId]: translated
-    }));
+      newTranslations[msg.id] = fakeTranslations[msg.content.toLowerCase()] || 
+        "Traduction automatique : " + msg.content;
+    });
+
+    setTranslations(newTranslations);
+    setShowTranslations(true);
   };
 
   if (loading) {
@@ -106,17 +110,7 @@ export default function MessagesPage() {
                   <div className="max-w-[80%] bg-white text-black rounded-2xl px-5 py-3">
                     <p>{msg.content}</p>
 
-                    {/* Bouton Traduire */}
-                    {!translations[msg.id] && (
-                      <button 
-                        onClick={() => translateMessage(msg.content, msg.id)}
-                        className="text-xs text-blue-600 hover:text-blue-700 mt-2 underline block"
-                      >
-                        Traduire en français
-                      </button>
-                    )}
-
-                    {translations[msg.id] && (
+                    {showTranslations && translations[msg.id] && (
                       <p className="text-sm text-gray-600 mt-3 border-l-2 border-blue-500 pl-3">
                         Traduction : {translations[msg.id]}
                       </p>
@@ -130,6 +124,18 @@ export default function MessagesPage() {
               ))
             )}
           </div>
+
+          {/* Bouton de traduction globale */}
+          {!showTranslations && messages.length > 0 && (
+            <div className="px-6 pb-4">
+              <button
+                onClick={translateAllMessages}
+                className="w-full py-3 text-sm text-blue-400 hover:text-blue-300 border border-blue-500/30 hover:border-blue-500/50 rounded-2xl transition"
+              >
+                Traduire tous les messages dans votre langue
+              </button>
+            </div>
+          )}
 
           <div className="border-t border-zinc-700 p-4">
             <div className="flex gap-3">
