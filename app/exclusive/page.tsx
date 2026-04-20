@@ -1,6 +1,76 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import Link from 'next/link';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 export default function ExclusivePage() {
+  const [user, setUser] = useState<any>(null);
+  const [hasAccess, setHasAccess] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = '/auth';
+        return;
+      }
+
+      setUser(user);
+
+      // Vérification plus robuste
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('status')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (error) {
+        console.error('Erreur vérification abonnement:', error);
+      }
+
+      setHasAccess(!!data);
+      setLoading(false);
+    };
+
+    checkAccess();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        Vérification de ton accès exclusif...
+      </div>
+    );
+  }
+
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-black text-white py-20">
+        <div className="max-w-md mx-auto px-6 text-center">
+          <h1 className="text-4xl font-bold mb-6">Accès refusé</h1>
+          <p className="text-gray-400 mb-10">
+            Cette zone est réservée aux abonnés actifs.
+          </p>
+          <Link 
+            href="/subscribe"
+            className="inline-block bg-white text-black font-bold py-4 px-10 rounded-2xl text-lg hover:bg-gray-200"
+          >
+            S'abonner maintenant
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Contenu exclusif (visible seulement si abonné)
   return (
     <div className="min-h-screen bg-black text-white py-12">
       <div className="max-w-4xl mx-auto px-6">
@@ -19,11 +89,6 @@ export default function ExclusivePage() {
             <h3 className="text-xl font-semibold">Messagerie prioritaire</h3>
             <p className="text-gray-400 mt-2">Accès direct aux créateurs</p>
           </div>
-        </div>
-
-        <div className="mt-12 text-center text-sm text-gray-500">
-          Cette page est temporairement accessible pour tester.<br />
-          La protection sera réactivée une fois le bug corrigé.
         </div>
       </div>
     </div>
