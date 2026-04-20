@@ -59,30 +59,30 @@ export default function MessagesPage() {
       }]);
       setNewMessage('');
     } else {
-      alert("Erreur lors de l'envoi");
+      alert("Erreur lors de l'envoi du message");
     }
 
     setSending(false);
   };
 
-  // Fonction de traduction simple (utilise LibreTranslate - gratuit)
+  // Traduction avec une API plus stable (MyMemory)
   const translateMessage = async (text: string, messageId: number) => {
     try {
-      const res = await fetch('https://libretranslate.de/translate', {
-        method: 'POST',
-        body: JSON.stringify({
-          q: text,
-          source: 'auto',
-          target: 'fr', // On traduit vers le français pour l'instant
-          format: 'text'
-        }),
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const response = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=auto|fr`
+      );
+      const data = await response.json();
 
-      const data = await res.json();
-      setTranslations(prev => ({ ...prev, [messageId]: data.translatedText }));
+      if (data.responseData && data.responseData.translatedText) {
+        setTranslations(prev => ({
+          ...prev,
+          [messageId]: data.responseData.translatedText
+        }));
+      } else {
+        alert("Impossible de traduire pour le moment.");
+      }
     } catch (err) {
-      alert("Erreur de traduction. Vérifie ta connexion.");
+      alert("Erreur de traduction. Vérifie ta connexion internet.");
     }
   };
 
@@ -107,19 +107,19 @@ export default function MessagesPage() {
                 <div key={msg.id} className="flex justify-end">
                   <div className="max-w-[80%] bg-white text-black rounded-2xl px-5 py-3">
                     <p>{msg.content}</p>
-                    
+
                     {/* Bouton Traduire */}
                     {!translations[msg.id] && (
                       <button 
                         onClick={() => translateMessage(msg.content, msg.id)}
-                        className="text-xs text-blue-600 hover:text-blue-700 mt-2 underline"
+                        className="text-xs text-blue-600 hover:text-blue-700 mt-2 underline block"
                       >
                         Traduire en français
                       </button>
                     )}
 
                     {translations[msg.id] && (
-                      <p className="text-sm text-gray-600 mt-2 border-l-2 border-blue-500 pl-3">
+                      <p className="text-sm text-gray-600 mt-3 border-l-2 border-blue-500 pl-3">
                         Traduction : {translations[msg.id]}
                       </p>
                     )}
