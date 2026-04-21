@@ -41,15 +41,11 @@ export default function Messages() {
     getUser();
   }, []);
 
-  // Scroll uniquement quand on envoie un message
-  const scrollToBottom = () => {
+  // Scroll automatique uniquement quand on envoie un message
+  useEffect(() => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  };
-
-  useEffect(() => {
-    scrollToBottom();
+    }, 150);
   }, [messages]);
 
   const sendMessage = () => {
@@ -87,7 +83,7 @@ export default function Messages() {
 
   return (
     <div className="flex h-screen bg-zinc-950 overflow-hidden">
-      {/* Sidebar */}
+      {/* Sidebar Conversations */}
       <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex w-full md:w-80 border-r border-zinc-800 flex-col bg-zinc-950 z-50`}>
         <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
           <h1 className="text-3xl font-bold">Messages</h1>
@@ -117,7 +113,7 @@ export default function Messages() {
       </div>
 
       {/* Zone principale du chat */}
-      <div className="flex-1 flex flex-col min-w-0 relative">
+      <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
         {/* Header du chat */}
         <div className="p-4 border-b border-zinc-800 flex items-center gap-4 bg-zinc-900 z-40">
           <button onClick={() => setShowSidebar(true)} className="md:hidden text-3xl pr-3">☰</button>
@@ -136,10 +132,8 @@ export default function Messages() {
           </div>
         </div>
 
-        {/* Messages - zone scrollable sans débordement */}
-        <div 
-          className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-zinc-950 pb-24"
-        >
+        {/* Zone des messages - scrollable uniquement ici */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-zinc-950" ref={messagesEndRef}>
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
               <div className={`chat-bubble max-w-[85%] md:max-w-[70%] ${msg.sender === 'me' ? 'chat-bubble-sent' : 'chat-bubble-received'}`}>
@@ -149,11 +143,10 @@ export default function Messages() {
               </div>
             </div>
           ))}
-          <div ref={messagesEndRef} />
         </div>
 
-        {/* Zone de saisie - fixée en bas sans débordement */}
-        <div className="absolute bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800 p-4 z-40">
+        {/* Zone de saisie - toujours visible en bas */}
+        <div className="bg-zinc-900 border-t border-zinc-800 p-4 z-40">
           {imagePreview && (
             <div className="mb-3 relative inline-block">
               <img src={imagePreview} alt="preview" className="max-h-28 rounded-xl" />
