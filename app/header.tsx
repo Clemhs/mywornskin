@@ -14,6 +14,7 @@ const translations = {
 
 export default function Header() {
   const [currentLang, setCurrentLang] = useState<Language>('fr');
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('language') as Language;
@@ -35,12 +36,13 @@ export default function Header() {
           <div className="w-9 h-9 bg-gradient-to-br from-rose-600 via-rose-500 to-pink-600 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg">
             M
           </div>
-          <div>
+          <div className="hidden sm:block">
             <div className="text-2xl font-bold tracking-tight">MyWornSkin</div>
             <div className="text-[10px] text-zinc-500 -mt-1">vêtements portés</div>
           </div>
         </Link>
 
+        {/* Navigation Desktop */}
         <nav className="hidden md:flex items-center gap-9 text-sm font-medium">
           <Link href="/" className="hover:text-rose-400 transition-colors">{t.home}</Link>
           <Link href="/creators" className="hover:text-rose-400 transition-colors">{t.creators}</Link>
@@ -48,16 +50,15 @@ export default function Header() {
           <Link href="/messages" className="hover:text-rose-400 transition-colors">{t.messages}</Link>
         </nav>
 
-        <div className="flex items-center gap-5">
-          <div className="flex gap-1 bg-zinc-900 rounded-2xl p-1 border border-zinc-800">
+        <div className="flex items-center gap-4">
+          {/* Langues */}
+          <div className="hidden sm:flex gap-1 bg-zinc-900 rounded-2xl p-1 border border-zinc-800">
             {(['fr', 'en', 'es', 'de'] as Language[]).map((lang) => (
               <button
                 key={lang}
                 onClick={() => changeLanguage(lang)}
-                className={`px-4 py-1.5 text-xs font-medium rounded-xl transition-all ${
-                  currentLang === lang 
-                    ? 'bg-rose-600 text-white shadow-sm' 
-                    : 'hover:bg-zinc-800'
+                className={`px-3 py-1 text-xs font-medium rounded-xl transition-all ${
+                  currentLang === lang ? 'bg-rose-600 text-white' : 'hover:bg-zinc-800'
                 }`}
               >
                 {lang.toUpperCase()}
@@ -67,12 +68,32 @@ export default function Header() {
 
           <Link 
             href="/messages" 
-            className="bg-rose-600 hover:bg-rose-500 px-7 py-3 rounded-2xl text-sm font-medium transition flex items-center gap-2"
+            className="bg-rose-600 hover:bg-rose-500 px-5 py-2.5 rounded-2xl text-sm font-medium transition"
           >
             Messages
           </Link>
+
+          {/* Menu mobile */}
+          <button 
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden text-2xl p-2"
+          >
+            ☰
+          </button>
         </div>
       </div>
+
+      {/* Menu mobile */}
+      {menuOpen && (
+        <div className="md:hidden border-t border-zinc-800 bg-zinc-900 px-6 py-6">
+          <nav className="flex flex-col gap-5 text-lg">
+            <Link href="/" onClick={() => setMenuOpen(false)}>{t.home}</Link>
+            <Link href="/creators" onClick={() => setMenuOpen(false)}>{t.creators}</Link>
+            <Link href="/sell" onClick={() => setMenuOpen(false)}>{t.sell}</Link>
+            <Link href="/messages" onClick={() => setMenuOpen(false)}>{t.messages}</Link>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }
