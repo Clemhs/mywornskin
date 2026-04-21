@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
-type Language = 'fr' | 'en' | 'es' | 'de'; 
+type Language = 'fr' | 'en' | 'es' | 'de';
 
 const translations = {
   fr: { home: 'Accueil', creators: 'Créateurs', sell: 'Vendre', messages: 'Messages' },
