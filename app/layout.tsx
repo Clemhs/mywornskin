@@ -1,5 +1,3 @@
-'use client';
-
 import type { Metadata } from 'next';
 import './globals.css';
 import Link from 'next/link';
@@ -19,9 +17,14 @@ const translations = {
   de: { home: 'Start', creators: 'Ersteller', sell: 'Verkaufen', messages: 'Nachrichten' },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [currentLang, setCurrentLang] = useState<Language>('fr');
 
+  // Charger la langue sauvegardée
   useEffect(() => {
     const savedLang = localStorage.getItem('language') as Language;
     if (savedLang) setCurrentLang(savedLang);
@@ -30,7 +33,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const changeLanguage = (lang: Language) => {
     setCurrentLang(lang);
     localStorage.setItem('language', lang);
-    // Pour l'instant on recharge la page (on améliorera plus tard avec Context)
     window.location.reload();
   };
 
@@ -60,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
 
             <div className="flex items-center gap-4">
-              {/* Boutons de langue fonctionnels */}
+              {/* Boutons de langue */}
               <div className="flex gap-1 bg-zinc-900 rounded-xl p-1 border border-zinc-800">
                 {(['fr', 'en', 'es', 'de'] as Language[]).map((lang) => (
                   <button
