@@ -29,20 +29,20 @@ export default function Messages() {
   const currentConv = conversations[activeConvId];
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-2 md:p-4 flex items-center justify-center">
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-2 md:p-4">
       <div className="w-full max-w-5xl h-[82vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 shadow-2xl flex flex-col md:flex-row">
 
-        {/* Sidebar (visible seulement sur PC) */}
+        {/* Sidebar Conversations */}
         <div className="hidden md:flex w-80 border-r border-zinc-800 flex-col bg-zinc-950">
           <div className="p-6 border-b border-zinc-800 bg-zinc-900">
             <h1 className="text-2xl font-bold">Messages</h1>
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto p-3">
             {conversations.map((conv, index) => (
               <div
                 key={conv.id}
                 onClick={() => setActiveConvId(index)}
-                className={`p-5 border-b border-zinc-800 flex gap-4 cursor-pointer hover:bg-zinc-900 transition-all ${
+                className={`p-4 border-b border-zinc-800 flex gap-4 cursor-pointer hover:bg-zinc-900 transition-all rounded-xl mb-1 ${
                   activeConvId === index ? 'bg-zinc-900 border-l-4 border-rose-500' : ''
                 }`}
               >
@@ -57,7 +57,7 @@ export default function Messages() {
         </div>
 
         {/* Chat principal */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 relative">
           {/* Header */}
           <div className="p-4 border-b border-zinc-800 flex items-center gap-4 bg-zinc-900">
             <button onClick={() => setShowSidebar(!showSidebar)} className="md:hidden text-3xl pr-4">☰</button>
@@ -79,9 +79,9 @@ export default function Messages() {
             ))}
           </div>
 
-          {/* Zone de saisie - optimisée pour mobile */}
+          {/* Zone de saisie - optimisée mobile */}
           <div className="bg-zinc-900 border-t border-zinc-800 p-3">
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <input
                 type="text"
                 value={newMessage}
@@ -92,7 +92,7 @@ export default function Messages() {
               />
               <button 
                 onClick={sendMessage}
-                className="bg-rose-600 hover:bg-rose-500 px-7 py-3.5 rounded-2xl font-medium whitespace-nowrap"
+                className="bg-rose-600 hover:bg-rose-500 px-8 py-3.5 rounded-2xl font-medium whitespace-nowrap text-sm"
               >
                 Envoyer
               </button>
