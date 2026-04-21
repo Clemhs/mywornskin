@@ -6,7 +6,7 @@ import Link from 'next/link';
 const creatorsData: any = {
   'emma-laurent': {
     name: 'Emma Laurent',
-    avatar: 'https://i.pravatar.cc/300?img=1',
+    avatar: 'https://picsum.photos/id/1011/300/300',   // Photo neutre élégante
     banner: 'https://picsum.photos/id/1015/1200/400',
     bio: 'Passionnée de lingerie fine et de vêtements portés avec émotion. Chaque pièce raconte une histoire intime.',
     subscribers: '8.4k',
@@ -15,8 +15,8 @@ const creatorsData: any = {
   },
   'sophie-moreau': {
     name: 'Sophie Moreau',
-    avatar: 'https://i.pravatar.cc/300?img=2',
-    banner: 'https://picsum.photos/id/1027/1200/400',
+    avatar: 'https://picsum.photos/id/1027/300/300',   // Photo neutre élégante
+    banner: 'https://picsum.photos/id/133/1200/400',
     bio: 'Je partage mes tenues du quotidien, mes collants, mes robes... tout ce qui a été porté avec plaisir.',
     subscribers: '5.9k',
     itemsCount: 19,
@@ -24,8 +24,8 @@ const creatorsData: any = {
   },
   'lisa-vert': {
     name: 'Lisa Vert',
-    avatar: 'https://i.pravatar.cc/300?img=3',
-    banner: 'https://picsum.photos/id/106/1200/400',
+    avatar: 'https://picsum.photos/id/106/300/300',    // Photo neutre élégante
+    banner: 'https://picsum.photos/id/201/1200/400',
     bio: 'Spécialisée dans les accessoires et vêtements intimes du quotidien. Toujours prête à partager mes pièces favorites.',
     subscribers: '12.1k',
     itemsCount: 34,
@@ -51,15 +51,6 @@ export default function CreatorProfile() {
     );
   }
 
-  const handleSubscribe = () => {
-    const confirmed = window.confirm(
-      `Confirmer l'abonnement à ${creator.name} pour ${creator.monthlyPrice} € par mois ?\n\n(Ceci est une simulation)`
-    );
-    if (confirmed) {
-      alert(`✅ Abonnement activé pour ${creator.name} !\n\nVous avez maintenant accès à son contenu exclusif.`);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
       {/* Banner */}
@@ -76,11 +67,13 @@ export default function CreatorProfile() {
         <div className="flex flex-col md:flex-row gap-10">
           {/* Avatar */}
           <div className="flex-shrink-0 text-center md:text-left">
-            <img 
-              src={creator.avatar} 
-              alt={creator.name}
-              className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover shadow-2xl mx-auto md:mx-0"
-            />
+            <div className="w-40 h-40 mx-auto md:mx-0 rounded-3xl border-4 border-zinc-950 overflow-hidden shadow-2xl">
+              <img 
+                src={creator.avatar} 
+                alt={creator.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
             <h1 className="text-5xl font-bold mt-6 mb-1">{creator.name}</h1>
             <p className="text-rose-400">@{id.replace('-', '')}</p>
           </div>
@@ -102,12 +95,11 @@ export default function CreatorProfile() {
               </div>
             </div>
 
-            {/* Bouton Abonnement */}
             <button 
-              onClick={handleSubscribe}
+              onClick={() => alert(`✅ Abonnement activé pour ${creator.name} !\n\nVous avez maintenant accès à son contenu exclusif.`)}
               className="w-full md:w-auto bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 px-14 py-6 rounded-2xl text-xl font-semibold transition-all shadow-xl shadow-rose-600/30 flex items-center justify-center gap-3"
             >
-              S'abonner à {creator.name.split(' ')[0]} — {creator.monthlyPrice} € / mois
+              S'abonner • {creator.monthlyPrice} € / mois
             </button>
             
             <p className="text-center text-xs text-zinc-500 mt-4">
