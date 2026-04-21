@@ -21,6 +21,7 @@ export default function MessagesPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [showTranslation, setShowTranslation] = useState(false);
 
   const emojiPickerRef = useRef<HTMLDivElement>(null);
 
@@ -78,23 +79,43 @@ export default function MessagesPage() {
     setSending(true);
     setErrorMsg('');
 
+    let imageUrl: string | null = null;
+
+    if (selectedImage) {
+      const fileExt = selectedImage.name.split('.').pop();
+      const fileName = `msg-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('message-images')
+        .upload(fileName, selectedImage);
+
+      if (!uploadError) {
+        const { data } = supabase.storage.from('message-images').getPublicUrl(fileName);
+        imageUrl = data.publicUrl;
+      }
+    }
+
     const { error } = await supabase.from('messages').insert({
-      sender_id: user.id,                    // ← Correction ici : vrai UUID
-      receiver_id: user.id,                  // ← Pour l'instant on envoie à soi-même
+      sender_id: user.id,
+      receiver_id: conversations[activeConvId].id,
       content: newMessage.trim() || null,
+      image_url: imageUrl,
     });
 
     if (error) {
       console.error("Erreur Supabase :", error);
-      setErrorMsg("Erreur lors de l'envoi : " + error.message);
+      setErrorMsg("Erreur lors de l'envoi du message");
     } else {
       setMessages(prev => [...prev, {
         id: Date.now(),
         sender_id: user.id,
         content: newMessage.trim() || null,
+        image_url: imageUrl,
         created_at: new Date().toISOString()
       }]);
       setNewMessage('');
+      setSelectedImage(null);
+      setImagePreview(null);
     }
 
     setSending(false);
@@ -116,7 +137,7 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
-      {/* Sidebar */}
+      {/* Sidebar Conversations */}
       <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex w-full md:w-80 bg-zinc-950 border-b md:border-r border-rose-950/60 flex-col overflow-hidden`}>
         <div className="p-6 border-b border-rose-900/50 flex items-center justify-between">
           <h2 className="text-2xl font-bold tracking-tight">Conversations</h2>
@@ -173,6 +194,7 @@ export default function MessagesPage() {
               <div className="max-w-[85%] md:max-w-[78%]">
                 <div className="bg-white text-black rounded-3xl px-6 py-4 rounded-br-none shadow">
                   {msg.content && <p>{msg.content}</p>}
+                  {msg.image_url && <Image src={msg.image_url} alt="photo" width={320} height={240} className="rounded-2xl mt-3" />}
                 </div>
                 <p className="text-xs text-gray-500 mt-2 pr-4 text-right">
                   {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -233,6 +255,14 @@ export default function MessagesPage() {
               ))}
             </div>
           )}
+
+          {/* Bouton Traduction */}
+          <button
+            onClick={() => setShowTranslation(!showTranslation)}
+            className="mt-4 w-full py-3 text-sm border border-rose-500/30 hover:border-rose-400 rounded-2xl text-rose-400 hover:text-rose-300 transition flex items-center justify-center gap-3"
+          >
+            🌍 🇫🇷 🇬🇧 🇪🇸 🇩🇪 Traduire automatiquement les messages
+          </button>
         </div>
       </div>
     </div>
