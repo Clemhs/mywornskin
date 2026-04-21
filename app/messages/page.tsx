@@ -79,8 +79,9 @@ export default function Messages() {
   const commonEmojis = ['😀', '😂', '❤️', '😍', '🥰', '🔥', '👀', '💦', '😘', '🙈', '👍', '😏', '🥵', '💋', '🌹'];
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-2 md:p-4">
-      <div className="w-full max-w-md md:max-w-4xl h-[85vh] md:h-[88vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 shadow-2xl flex flex-col md:flex-row">
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-2">
+      {/* Cadre centré très compact */}
+      <div className="w-full max-w-[380px] md:max-w-4xl h-[82vh] md:h-[88vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 shadow-2xl flex flex-col md:flex-row">
 
         {/* Sidebar */}
         <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex w-full md:w-80 border-r border-zinc-800 flex-col bg-zinc-950 z-50`}>
@@ -107,7 +108,7 @@ export default function Messages() {
           </div>
         </div>
 
-        {/* Chat */}
+        {/* Chat principal */}
         <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
           {/* Header */}
           <div className="p-4 border-b border-zinc-800 flex items-center gap-4 bg-zinc-900 z-40">
@@ -132,7 +133,7 @@ export default function Messages() {
             ))}
           </div>
 
-          {/* Zone de saisie */}
+          {/* Zone de saisie - très compacte */}
           <div className="bg-zinc-900 border-t border-zinc-800 p-3 z-50">
             {imagePreview && (
               <div className="mb-2 relative inline-block">
@@ -157,7 +158,7 @@ export default function Messages() {
               <button 
                 onClick={sendMessage} 
                 disabled={!newMessage.trim() && !selectedImage}
-                className="bg-rose-600 hover:bg-rose-500 disabled:bg-zinc-700 px-7 py-3 rounded-3xl font-medium transition disabled:cursor-not-allowed"
+                className="bg-rose-600 hover:bg-rose-500 disabled:bg-zinc-700 px-6 py-3 rounded-3xl font-medium transition disabled:cursor-not-allowed flex-shrink-0"
               >
                 Envoyer
               </button>
