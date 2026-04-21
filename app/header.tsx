@@ -49,7 +49,6 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-5">
-          {/* Langues */}
           <div className="flex gap-1 bg-zinc-900 rounded-2xl p-1 border border-zinc-800">
             {(['fr', 'en', 'es', 'de'] as Language[]).map((lang) => (
               <button
@@ -57,7 +56,7 @@ export default function Header() {
                 onClick={() => changeLanguage(lang)}
                 className={`px-4 py-1.5 text-xs font-medium rounded-xl transition-all ${
                   currentLang === lang 
-                    ? 'bg-rose-600 text-white shadow' 
+                    ? 'bg-rose-600 text-white shadow-sm' 
                     : 'hover:bg-zinc-800'
                 }`}
               >
