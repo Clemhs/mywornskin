@@ -31,8 +31,8 @@ export default function Header() {
   return (
     <header className="border-b border-zinc-800 bg-black/95 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition">
-          <div className="w-9 h-9 bg-gradient-to-br from-rose-600 to-pink-600 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg">
+        <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition">
+          <div className="w-9 h-9 bg-gradient-to-br from-rose-600 via-rose-500 to-pink-600 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg">
             M
           </div>
           <div>
@@ -41,21 +41,24 @@ export default function Header() {
           </div>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+        <nav className="hidden md:flex items-center gap-9 text-sm font-medium">
           <Link href="/" className="hover:text-rose-400 transition-colors">{t.home}</Link>
           <Link href="/creators" className="hover:text-rose-400 transition-colors">{t.creators}</Link>
           <Link href="/sell" className="hover:text-rose-400 transition-colors">{t.sell}</Link>
           <Link href="/messages" className="hover:text-rose-400 transition-colors">{t.messages}</Link>
         </nav>
 
-        <div className="flex items-center gap-4">
-          <div className="flex gap-1 bg-zinc-900 rounded-xl p-1 border border-zinc-800">
+        <div className="flex items-center gap-5">
+          {/* Langues */}
+          <div className="flex gap-1 bg-zinc-900 rounded-2xl p-1 border border-zinc-800">
             {(['fr', 'en', 'es', 'de'] as Language[]).map((lang) => (
               <button
                 key={lang}
                 onClick={() => changeLanguage(lang)}
-                className={`px-3 py-1 text-xs font-medium rounded-lg transition ${
-                  currentLang === lang ? 'bg-rose-600 text-white' : 'hover:bg-zinc-800'
+                className={`px-4 py-1.5 text-xs font-medium rounded-xl transition-all ${
+                  currentLang === lang 
+                    ? 'bg-rose-600 text-white shadow' 
+                    : 'hover:bg-zinc-800'
                 }`}
               >
                 {lang.toUpperCase()}
@@ -65,7 +68,7 @@ export default function Header() {
 
           <Link 
             href="/messages" 
-            className="bg-rose-600 hover:bg-rose-500 px-6 py-2.5 rounded-xl text-sm font-medium transition"
+            className="bg-rose-600 hover:bg-rose-500 px-7 py-3 rounded-2xl text-sm font-medium transition flex items-center gap-2"
           >
             Messages
           </Link>
