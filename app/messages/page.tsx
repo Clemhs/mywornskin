@@ -70,32 +70,24 @@ export default function MessagesPage() {
   };
 
   const sendMessage = async () => {
-    console.log("Bouton Envoyer cliqué");
-    console.log("Message :", newMessage);
-    console.log("User :", user);
-
     if ((!newMessage.trim() && !selectedImage) || !user) {
-      console.log("Condition bloquante : message vide ou user manquant");
-      setErrorMsg("Le message est vide ou utilisateur non connecté");
+      setErrorMsg("Le message est vide");
       return;
     }
 
     setSending(true);
     setErrorMsg('');
 
-    console.log("Envoi vers Supabase...");
-
     const { error } = await supabase.from('messages').insert({
-      sender_id: user.id,
-      receiver_id: conversations[activeConvId].id,
+      sender_id: user.id,                    // ← Correction ici : vrai UUID
+      receiver_id: user.id,                  // ← Pour l'instant on envoie à soi-même
       content: newMessage.trim() || null,
     });
 
     if (error) {
       console.error("Erreur Supabase :", error);
-      setErrorMsg("Erreur Supabase : " + error.message);
+      setErrorMsg("Erreur lors de l'envoi : " + error.message);
     } else {
-      console.log("Message envoyé avec succès !");
       setMessages(prev => [...prev, {
         id: Date.now(),
         sender_id: user.id,
@@ -191,7 +183,12 @@ export default function MessagesPage() {
         </div>
 
         <div className="p-4 md:p-6 border-t border-rose-900/50 bg-zinc-950">
-          {errorMsg && <div className="text-red-400 mb-3 text-center">{errorMsg}</div>}
+          {imagePreview && (
+            <div className="mb-4 flex gap-4 items-center">
+              <Image src={imagePreview} alt="preview" width={110} height={110} className="rounded-2xl" />
+              <button onClick={() => {setSelectedImage(null); setImagePreview(null);}} className="text-rose-400">Supprimer</button>
+            </div>
+          )}
 
           <div className="flex gap-3 items-center">
             <label className="cursor-pointer flex-shrink-0">
@@ -223,7 +220,7 @@ export default function MessagesPage() {
               disabled={sending || (!newMessage.trim() && !selectedImage)}
               className="bg-rose-600 hover:bg-rose-500 px-9 py-4 rounded-3xl font-medium disabled:bg-zinc-700"
             >
-              {sending ? '...' : 'Envoyer'}
+              Envoyer
             </button>
           </div>
 
