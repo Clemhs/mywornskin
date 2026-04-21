@@ -70,7 +70,10 @@ export default function MessagesPage() {
   };
 
   const sendMessage = async () => {
-    if ((!newMessage.trim() && !selectedImage) || !user) return;
+    if ((!newMessage.trim() && !selectedImage) || !user) {
+      setErrorMsg("Le message est vide");
+      return;
+    }
 
     setSending(true);
     setErrorMsg('');
@@ -98,7 +101,10 @@ export default function MessagesPage() {
       image_url: imageUrl,
     });
 
-    if (!error) {
+    if (error) {
+      console.error("Supabase error:", error);
+      setErrorMsg("Erreur lors de l'envoi du message");
+    } else {
       setMessages(prev => [...prev, {
         id: Date.now(),
         sender_id: user.id,
@@ -109,8 +115,6 @@ export default function MessagesPage() {
       setNewMessage('');
       setSelectedImage(null);
       setImagePreview(null);
-    } else {
-      setErrorMsg("Erreur lors de l'envoi du message");
     }
 
     setSending(false);
@@ -132,7 +136,7 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
-      {/* Sidebar Conversations */}
+      {/* Sidebar */}
       <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex w-full md:w-80 bg-zinc-950 border-b md:border-r border-rose-950/60 flex-col overflow-hidden`}>
         <div className="p-6 border-b border-rose-900/50 flex items-center justify-between">
           <h2 className="text-2xl font-bold tracking-tight">Conversations</h2>
@@ -163,7 +167,6 @@ export default function MessagesPage() {
 
       {/* Zone principale */}
       <div className="flex-1 flex flex-col h-screen">
-        {/* Header mobile */}
         <div className="md:hidden p-4 border-b border-rose-900/60 flex items-center gap-4 bg-black/80">
           <button onClick={() => setShowSidebar(true)} className="text-3xl">☰</button>
           <div className="flex items-center gap-3">
@@ -172,7 +175,6 @@ export default function MessagesPage() {
           </div>
         </div>
 
-        {/* Header desktop */}
         <div className="hidden md:flex p-6 border-b border-rose-900/50 items-center gap-5 bg-black/70">
           <Image src={currentConv.avatar} alt="" width={58} height={58} className="rounded-2xl" />
           <div>
@@ -181,7 +183,6 @@ export default function MessagesPage() {
           </div>
         </div>
 
-        {/* Messages */}
         <div className="flex-1 p-6 md:p-8 overflow-y-auto space-y-8 bg-black/90">
           {messages.length === 0 && (
             <p className="text-center text-gray-500 mt-20 md:mt-32">Aucun message pour l'instant...</p>
@@ -202,7 +203,6 @@ export default function MessagesPage() {
           ))}
         </div>
 
-        {/* Zone d'écriture */}
         <div className="p-4 md:p-6 border-t border-rose-900/50 bg-zinc-950">
           {imagePreview && (
             <div className="mb-4 flex gap-4 items-center">
