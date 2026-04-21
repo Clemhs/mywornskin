@@ -1,11 +1,6 @@
-'use client';
-
 import Link from 'next/link';
-import { useLanguage } from './context/LanguageContext';
 
 export default function NotFound() {
-  const { t } = useLanguage();
-
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center px-6">
       <div className="text-center">
@@ -14,7 +9,10 @@ export default function NotFound() {
         <p className="text-gray-400 mb-10 max-w-md mx-auto">
           La page que vous cherchez n'existe pas ou a été déplacée.
         </p>
-        <Link href="/" className="bg-rose-600 hover:bg-rose-500 px-10 py-4 rounded-2xl inline-block font-medium">
+        <Link 
+          href="/" 
+          className="bg-rose-600 hover:bg-rose-500 px-10 py-4 rounded-2xl inline-block font-medium"
+        >
           Retour à l'accueil
         </Link>
       </div>
