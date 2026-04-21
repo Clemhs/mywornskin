@@ -81,14 +81,13 @@ export default function Messages() {
   const commonEmojis = ['😀', '😂', '❤️', '😍', '🥰', '🔥', '👀', '💦', '😘', '🙈', '👍', '😏', '🥵', '💋', '🌹'];
 
   return (
-    <div className="flex h-screen bg-zinc-950 overflow-hidden">
+    <div className="flex h-screen bg-zinc-950 overflow-hidden flex-col md:flex-row">
       {/* Sidebar */}
       <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex w-full md:w-80 border-r border-zinc-800 flex-col bg-zinc-950 z-50`}>
         <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
           <h1 className="text-3xl font-bold">Messages</h1>
           <button onClick={() => setShowSidebar(false)} className="md:hidden text-3xl">✕</button>
         </div>
-
         <div className="flex-1 overflow-y-auto">
           {conversations.map((conv, index) => (
             <div
@@ -111,12 +110,11 @@ export default function Messages() {
         </div>
       </div>
 
-      {/* Zone principale du chat */}
-      <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
-        {/* Header du chat */}
+      {/* Chat principal */}
+      <div className="flex-1 flex flex-col min-w-0 relative">
+        {/* Header */}
         <div className="p-4 border-b border-zinc-800 flex items-center gap-4 bg-zinc-900 z-40">
           <button onClick={() => setShowSidebar(true)} className="md:hidden text-3xl pr-3">☰</button>
-          
           <img 
             src={conversations[activeConvId].avatar} 
             alt="" 
@@ -124,15 +122,12 @@ export default function Messages() {
           />
           <div className="flex-1">
             <div className="font-semibold">{conversations[activeConvId].name}</div>
-            <div className="text-emerald-400 text-xs flex items-center gap-1">
-              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-              En ligne
-            </div>
+            <div className="text-emerald-400 text-xs">En ligne</div>
           </div>
         </div>
 
-        {/* Zone des messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-zinc-950 pb-4" ref={messagesEndRef}>
+        {/* Zone messages - scrollable */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-zinc-950" ref={messagesEndRef}>
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
               <div className={`chat-bubble max-w-[85%] ${msg.sender === 'me' ? 'chat-bubble-sent' : 'chat-bubble-received'}`}>
@@ -144,34 +139,19 @@ export default function Messages() {
           ))}
         </div>
 
-        {/* Zone de saisie - toujours visible et plus compacte */}
-        <div className="bg-zinc-900 border-t border-zinc-800 p-3 z-40">
+        {/* Zone de saisie - toujours visible et compacte */}
+        <div className="bg-zinc-900 border-t border-zinc-800 p-3 z-50">
           {imagePreview && (
             <div className="mb-3 relative inline-block">
               <img src={imagePreview} alt="preview" className="max-h-24 rounded-xl" />
-              <button 
-                onClick={() => { setImagePreview(null); setSelectedImage(null); }}
-                className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-              >
-                ✕
-              </button>
+              <button onClick={() => {setImagePreview(null); setSelectedImage(null);}} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">✕</button>
             </div>
           )}
 
           <div className="flex gap-2 items-end">
-            <button 
-              onClick={() => fileInputRef.current?.click()} 
-              className="w-11 h-11 flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xl transition flex-shrink-0"
-            >
-              📷
-            </button>
-
-            <button 
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)} 
-              className="w-11 h-11 flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xl transition flex-shrink-0"
-            >
-              😀
-            </button>
+            <button onClick={() => fileInputRef.current?.click()} className="w-11 h-11 flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-2xl transition">📷</button>
+            
+            <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="w-11 h-11 flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-2xl transition">😀</button>
 
             <input
               type="text"
@@ -185,7 +165,7 @@ export default function Messages() {
             <button 
               onClick={sendMessage} 
               disabled={!newMessage.trim() && !selectedImage}
-              className="bg-rose-600 hover:bg-rose-500 disabled:bg-zinc-700 px-7 py-3.5 rounded-3xl font-medium transition disabled:cursor-not-allowed flex-shrink-0"
+              className="bg-rose-600 hover:bg-rose-500 disabled:bg-zinc-700 px-7 py-3.5 rounded-3xl font-medium transition disabled:cursor-not-allowed"
             >
               Envoyer
             </button>
