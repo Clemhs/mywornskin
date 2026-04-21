@@ -1,19 +1,43 @@
+'use client';
+
 import type { Metadata } from 'next';
 import './globals.css';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 export const metadata: Metadata = {
   title: 'MyWornSkin',
   description: 'Vêtements déjà portés • Plateforme intime',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+type Language = 'fr' | 'en' | 'es' | 'de';
+
+const translations = {
+  fr: { home: 'Accueil', creators: 'Créateurs', sell: 'Vendre', messages: 'Messages' },
+  en: { home: 'Home', creators: 'Creators', sell: 'Sell', messages: 'Messages' },
+  es: { home: 'Inicio', creators: 'Creadores', sell: 'Vender', messages: 'Mensajes' },
+  de: { home: 'Start', creators: 'Ersteller', sell: 'Verkaufen', messages: 'Nachrichten' },
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const [currentLang, setCurrentLang] = useState<Language>('fr');
+
+  useEffect(() => {
+    const savedLang = localStorage.getItem('language') as Language;
+    if (savedLang) setCurrentLang(savedLang);
+  }, []);
+
+  const changeLanguage = (lang: Language) => {
+    setCurrentLang(lang);
+    localStorage.setItem('language', lang);
+    // Pour l'instant on recharge la page (on améliorera plus tard avec Context)
+    window.location.reload();
+  };
+
+  const t = translations[currentLang];
+
   return (
-    <html lang="fr">
+    <html lang={currentLang}>
       <body className="bg-zinc-950 text-white antialiased">
         {/* Header Global */}
         <header className="border-b border-zinc-800 bg-black/95 backdrop-blur-md sticky top-0 z-50">
@@ -29,19 +53,28 @@ export default function RootLayout({
             </Link>
 
             <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
-              <Link href="/" className="hover:text-rose-400 transition-colors">Accueil</Link>
-              <Link href="/creators" className="hover:text-rose-400 transition-colors">Créateurs</Link>
-              <Link href="/sell" className="hover:text-rose-400 transition-colors">Vendre</Link>
-              <Link href="/messages" className="hover:text-rose-400 transition-colors">Messages</Link>
+              <Link href="/" className="hover:text-rose-400 transition-colors">{t.home}</Link>
+              <Link href="/creators" className="hover:text-rose-400 transition-colors">{t.creators}</Link>
+              <Link href="/sell" className="hover:text-rose-400 transition-colors">{t.sell}</Link>
+              <Link href="/messages" className="hover:text-rose-400 transition-colors">{t.messages}</Link>
             </nav>
 
             <div className="flex items-center gap-4">
-              {/* Boutons de langue */}
+              {/* Boutons de langue fonctionnels */}
               <div className="flex gap-1 bg-zinc-900 rounded-xl p-1 border border-zinc-800">
-                <a href="#" className="px-3 py-1 text-xs font-medium rounded-lg bg-rose-600 text-white">FR</a>
-                <a href="#" className="px-3 py-1 text-xs font-medium rounded-lg hover:bg-zinc-800 transition">EN</a>
-                <a href="#" className="px-3 py-1 text-xs font-medium rounded-lg hover:bg-zinc-800 transition">ES</a>
-                <a href="#" className="px-3 py-1 text-xs font-medium rounded-lg hover:bg-zinc-800 transition">DE</a>
+                {(['fr', 'en', 'es', 'de'] as Language[]).map((lang) => (
+                  <button
+                    key={lang}
+                    onClick={() => changeLanguage(lang)}
+                    className={`px-3 py-1 text-xs font-medium rounded-lg transition ${
+                      currentLang === lang 
+                        ? 'bg-rose-600 text-white' 
+                        : 'hover:bg-zinc-800'
+                    }`}
+                  >
+                    {lang.toUpperCase()}
+                  </button>
+                ))}
               </div>
 
               <Link 
