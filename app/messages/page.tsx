@@ -32,7 +32,6 @@ export default function Messages() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const getUser = async () => {
@@ -42,11 +41,15 @@ export default function Messages() {
     getUser();
   }, []);
 
-  // Scroll automatique vers le bas
-  useEffect(() => {
+  // Scroll uniquement quand on envoie un message
+  const scrollToBottom = () => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
+  };
+
+  useEffect(() => {
+    scrollToBottom();
   }, [messages]);
 
   const sendMessage = () => {
@@ -84,7 +87,7 @@ export default function Messages() {
 
   return (
     <div className="flex h-screen bg-zinc-950 overflow-hidden">
-      {/* Sidebar Conversations - Mobile friendly */}
+      {/* Sidebar */}
       <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex w-full md:w-80 border-r border-zinc-800 flex-col bg-zinc-950 z-50`}>
         <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
           <h1 className="text-3xl font-bold">Messages</h1>
@@ -114,15 +117,10 @@ export default function Messages() {
       </div>
 
       {/* Zone principale du chat */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Header du chat */}
-        <div className="p-4 border-b border-zinc-800 flex items-center gap-4 bg-zinc-900">
-          <button 
-            onClick={() => setShowSidebar(true)} 
-            className="md:hidden text-3xl pr-3"
-          >
-            ☰
-          </button>
+        <div className="p-4 border-b border-zinc-800 flex items-center gap-4 bg-zinc-900 z-40">
+          <button onClick={() => setShowSidebar(true)} className="md:hidden text-3xl pr-3">☰</button>
           
           <img 
             src={conversations[activeConvId].avatar} 
@@ -138,15 +136,14 @@ export default function Messages() {
           </div>
         </div>
 
-        {/* Zone des messages - avec padding réduit en bas pour mobile */}
+        {/* Messages - zone scrollable sans débordement */}
         <div 
-          ref={chatContainerRef}
-          className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-zinc-950 pb-24 md:pb-6"
+          className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-zinc-950 pb-24"
         >
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
               <div className={`chat-bubble max-w-[85%] md:max-w-[70%] ${msg.sender === 'me' ? 'chat-bubble-sent' : 'chat-bubble-received'}`}>
-                {msg.content && <p className="text-[15.5px] leading-relaxed">{msg.content}</p>}
+                {msg.content && <p>{msg.content}</p>}
                 {msg.image_url && <img src={msg.image_url} alt="sent" className="rounded-2xl mt-3 max-w-full" />}
                 <span className="text-[10px] opacity-70 block mt-2 text-right">{msg.time}</span>
               </div>
@@ -155,8 +152,8 @@ export default function Messages() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Zone de saisie - fixée en bas */}
-        <div className="absolute bottom-0 left-0 right-0 md:relative bg-zinc-900 border-t border-zinc-800 p-4">
+        {/* Zone de saisie - fixée en bas sans débordement */}
+        <div className="absolute bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800 p-4 z-40">
           {imagePreview && (
             <div className="mb-3 relative inline-block">
               <img src={imagePreview} alt="preview" className="max-h-28 rounded-xl" />
@@ -201,18 +198,18 @@ export default function Messages() {
               Envoyer
             </button>
           </div>
-
-          {/* Emoji Picker */}
-          {showEmojiPicker && (
-            <div className="absolute bottom-20 left-4 bg-zinc-900 border border-zinc-700 p-4 rounded-3xl grid grid-cols-7 gap-3 shadow-2xl z-50">
-              {commonEmojis.map((emoji, i) => (
-                <button key={i} onClick={() => insertEmoji(emoji)} className="text-3xl hover:scale-125 transition">{emoji}</button>
-              ))}
-            </div>
-          )}
-
-          <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" className="hidden" />
         </div>
+
+        {/* Emoji Picker */}
+        {showEmojiPicker && (
+          <div className="absolute bottom-28 left-6 bg-zinc-900 border border-zinc-700 p-4 rounded-3xl grid grid-cols-7 gap-3 shadow-2xl z-50">
+            {commonEmojis.map((emoji, i) => (
+              <button key={i} onClick={() => insertEmoji(emoji)} className="text-3xl hover:scale-125 transition">{emoji}</button>
+            ))}
+          </div>
+        )}
+
+        <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" className="hidden" />
       </div>
     </div>
   );
