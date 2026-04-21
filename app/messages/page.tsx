@@ -103,7 +103,6 @@ export default function MessagesPage() {
     });
 
     if (error) {
-      console.error("Erreur Supabase :", error);
       setErrorMsg("Erreur lors de l'envoi du message");
     } else {
       setMessages(prev => [...prev, {
@@ -137,7 +136,7 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
-      {/* Sidebar Conversations */}
+      {/* Sidebar */}
       <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex w-full md:w-80 bg-zinc-950 border-b md:border-r border-rose-950/60 flex-col overflow-hidden`}>
         <div className="p-6 border-b border-rose-900/50 flex items-center justify-between">
           <h2 className="text-2xl font-bold tracking-tight">Conversations</h2>
@@ -204,6 +203,7 @@ export default function MessagesPage() {
           ))}
         </div>
 
+        {/* Zone d'écriture + Traduction */}
         <div className="p-4 md:p-6 border-t border-rose-900/50 bg-zinc-950">
           {imagePreview && (
             <div className="mb-4 flex gap-4 items-center">
@@ -246,6 +246,14 @@ export default function MessagesPage() {
             </button>
           </div>
 
+          {/* Bouton Traduction - remonté */}
+          <button
+            onClick={() => setShowTranslation(!showTranslation)}
+            className="mt-4 w-full py-3 text-sm border border-rose-500/30 hover:border-rose-400 rounded-2xl text-rose-400 hover:text-rose-300 transition flex items-center justify-center gap-3"
+          >
+            🌍 🇫🇷 🇬🇧 🇪🇸 🇩🇪 Traduire automatiquement les messages
+          </button>
+
           {showEmojiPicker && (
             <div ref={emojiPickerRef} className="absolute bottom-24 left-6 md:left-20 bg-zinc-900 border border-rose-500/30 rounded-3xl p-5 shadow-2xl grid grid-cols-6 gap-4 z-50">
               {commonEmojis.map((emoji, i) => (
@@ -255,14 +263,6 @@ export default function MessagesPage() {
               ))}
             </div>
           )}
-
-          {/* Bouton Traduction */}
-          <button
-            onClick={() => setShowTranslation(!showTranslation)}
-            className="mt-4 w-full py-3 text-sm border border-rose-500/30 hover:border-rose-400 rounded-2xl text-rose-400 hover:text-rose-300 transition flex items-center justify-center gap-3"
-          >
-            🌍 🇫🇷 🇬🇧 🇪🇸 🇩🇪 Traduire automatiquement les messages
-          </button>
         </div>
       </div>
     </div>
