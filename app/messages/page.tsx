@@ -42,9 +42,7 @@ export default function Messages() {
   }, []);
 
   useEffect(() => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   }, [messages]);
 
   const sendMessage = () => {
@@ -81,11 +79,11 @@ export default function Messages() {
   const commonEmojis = ['😀', '😂', '❤️', '😍', '🥰', '🔥', '👀', '💦', '😘', '🙈', '👍', '😏', '🥵', '💋', '🌹'];
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-3">
-      {/* Cadre centré compact */}
-      <div className="w-full max-w-[420px] md:max-w-4xl h-[92vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 shadow-2xl flex flex-col md:flex-row">
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-2 md:p-4">
+      {/* Cadre centré très compact */}
+      <div className="w-full max-w-[380px] md:max-w-4xl h-[88vh] md:h-[90vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 shadow-2xl flex flex-col md:flex-row">
         
-        {/* Sidebar Conversations */}
+        {/* Sidebar */}
         <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex w-full md:w-80 border-r border-zinc-800 flex-col bg-zinc-950 z-50`}>
           <div className="p-5 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
             <h1 className="text-2xl font-bold">Messages</h1>
@@ -95,10 +93,7 @@ export default function Messages() {
             {conversations.map((conv, index) => (
               <div
                 key={conv.id}
-                onClick={() => {
-                  setActiveConvId(index);
-                  setShowSidebar(false);
-                }}
+                onClick={() => { setActiveConvId(index); setShowSidebar(false); }}
                 className={`p-4 border-b border-zinc-800 flex gap-4 cursor-pointer hover:bg-zinc-900 transition-all ${
                   activeConvId === index ? 'bg-zinc-900 border-l-4 border-rose-500' : ''
                 }`}
@@ -113,23 +108,19 @@ export default function Messages() {
           </div>
         </div>
 
-        {/* Zone du chat */}
+        {/* Chat principal */}
         <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
           {/* Header */}
           <div className="p-4 border-b border-zinc-800 flex items-center gap-4 bg-zinc-900 z-40">
             <button onClick={() => setShowSidebar(true)} className="md:hidden text-3xl pr-3">☰</button>
-            <img 
-              src={conversations[activeConvId].avatar} 
-              alt="" 
-              className="w-9 h-9 rounded-2xl object-cover" 
-            />
+            <img src={conversations[activeConvId].avatar} alt="" className="w-9 h-9 rounded-2xl object-cover" />
             <div className="flex-1">
               <div className="font-semibold">{conversations[activeConvId].name}</div>
               <div className="text-emerald-400 text-xs">En ligne</div>
             </div>
           </div>
 
-          {/* Zone des messages */}
+          {/* Zone messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-5 bg-zinc-950" ref={messagesEndRef}>
             {messages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
@@ -142,18 +133,17 @@ export default function Messages() {
             ))}
           </div>
 
-          {/* Zone de saisie - compacte et centrée */}
+          {/* Zone de saisie - très compacte */}
           <div className="bg-zinc-900 border-t border-zinc-800 p-3 z-50">
             {imagePreview && (
-              <div className="mb-3 relative inline-block">
+              <div className="mb-2 relative inline-block">
                 <img src={imagePreview} alt="preview" className="max-h-20 rounded-xl" />
-                <button onClick={() => {setImagePreview(null); setSelectedImage(null);}} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">✕</button>
+                <button onClick={() => {setImagePreview(null); setSelectedImage(null);}} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">✕</button>
               </div>
             )}
 
             <div className="flex gap-2 items-end">
               <button onClick={() => fileInputRef.current?.click()} className="w-10 h-10 flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xl transition flex-shrink-0">📷</button>
-              
               <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="w-10 h-10 flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xl transition flex-shrink-0">😀</button>
 
               <input
@@ -161,7 +151,7 @@ export default function Messages() {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Écris ton message..."
+                placeholder="Message..."
                 className="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-4 py-3 text-base focus:outline-none focus:border-rose-500"
               />
 
