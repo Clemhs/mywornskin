@@ -11,7 +11,7 @@ const creatorsData: any = {
     bio: 'Passionnée de lingerie fine et de vêtements portés avec émotion. Chaque pièce raconte une histoire intime.',
     subscribers: '8.4k',
     itemsCount: 27,
-    price: '9,99',
+    monthlyPrice: '9,99',
   },
   'sophie-moreau': {
     name: 'Sophie Moreau',
@@ -20,7 +20,7 @@ const creatorsData: any = {
     bio: 'Je partage mes tenues du quotidien, mes collants, mes robes... tout ce qui a été porté avec plaisir.',
     subscribers: '5.9k',
     itemsCount: 19,
-    price: '7,99',
+    monthlyPrice: '7,99',
   },
   'lisa-vert': {
     name: 'Lisa Vert',
@@ -29,7 +29,7 @@ const creatorsData: any = {
     bio: 'Spécialisée dans les accessoires et vêtements intimes du quotidien. Toujours prête à partager mes pièces favorites.',
     subscribers: '12.1k',
     itemsCount: 34,
-    price: '11,99',
+    monthlyPrice: '11,99',
   },
 };
 
@@ -51,6 +51,15 @@ export default function CreatorProfile() {
     );
   }
 
+  const handleSubscribe = () => {
+    const confirmed = window.confirm(
+      `Confirmer l'abonnement à ${creator.name} pour ${creator.monthlyPrice} € par mois ?\n\n(Ceci est une simulation)`
+    );
+    if (confirmed) {
+      alert(`✅ Abonnement activé pour ${creator.name} !\n\nVous avez maintenant accès à son contenu exclusif.`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
       {/* Banner */}
@@ -65,7 +74,7 @@ export default function CreatorProfile() {
 
       <div className="max-w-5xl mx-auto px-6 -mt-20 relative z-10">
         <div className="flex flex-col md:flex-row gap-10">
-          {/* Avatar + Info */}
+          {/* Avatar */}
           <div className="flex-shrink-0 text-center md:text-left">
             <img 
               src={creator.avatar} 
@@ -76,7 +85,7 @@ export default function CreatorProfile() {
             <p className="text-rose-400">@{id.replace('-', '')}</p>
           </div>
 
-          {/* Bio & Abonnement */}
+          {/* Info + Abonnement */}
           <div className="flex-1 pt-8">
             <p className="text-zinc-300 leading-relaxed text-lg mb-10 max-w-2xl">
               {creator.bio}
@@ -95,35 +104,35 @@ export default function CreatorProfile() {
 
             {/* Bouton Abonnement */}
             <button 
-              onClick={() => alert(`Vous allez vous abonner à ${creator.name} pour ${creator.price} €/mois`)}
-              className="w-full md:w-auto bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 px-12 py-5 rounded-2xl text-xl font-semibold transition-all shadow-lg shadow-rose-600/30"
+              onClick={handleSubscribe}
+              className="w-full md:w-auto bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 px-14 py-6 rounded-2xl text-xl font-semibold transition-all shadow-xl shadow-rose-600/30 flex items-center justify-center gap-3"
             >
-              S'abonner • {creator.price} € / mois
+              S'abonner à {creator.name.split(' ')[0]} — {creator.monthlyPrice} € / mois
             </button>
+            
+            <p className="text-center text-xs text-zinc-500 mt-4">
+              Accès exclusif aux photos, vidéos et messages privés
+            </p>
           </div>
         </div>
 
-        {/* Galerie des pièces */}
+        {/* Galerie */}
         <div className="mt-20">
-          <h2 className="text-3xl font-semibold mb-10 flex items-center gap-3">
-            Ses dernières pièces
-            <span className="text-sm font-normal text-zinc-500">({creator.itemsCount} au total)</span>
-          </h2>
-
+          <h2 className="text-3xl font-semibold mb-10">Ses dernières pièces</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="group bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 hover:border-rose-500/50 transition-all hover:-translate-y-1">
-                <div className="aspect-square relative">
+                <div className="aspect-square relative overflow-hidden">
                   <img 
                     src={`https://picsum.photos/id/${100 + i}/600/600`} 
                     alt="Vêtement"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                 </div>
                 <div className="p-5">
-                  <div className="font-medium text-lg">Pièce #{i+1}</div>
+                  <div className="font-medium">Pièce #{i+1}</div>
                   <div className="text-rose-400 font-semibold">29,90 €</div>
-                  <div className="text-xs text-zinc-500 mt-1">Porté 3 fois • Très bon état</div>
+                  <div className="text-xs text-zinc-500 mt-1">Porté récemment • Très bon état</div>
                 </div>
               </div>
             ))}
