@@ -70,51 +70,39 @@ export default function MessagesPage() {
   };
 
   const sendMessage = async () => {
+    console.log("Bouton Envoyer cliqué");
+    console.log("Message :", newMessage);
+    console.log("User :", user);
+
     if ((!newMessage.trim() && !selectedImage) || !user) {
-      setErrorMsg("Le message est vide");
+      console.log("Condition bloquante : message vide ou user manquant");
+      setErrorMsg("Le message est vide ou utilisateur non connecté");
       return;
     }
 
     setSending(true);
     setErrorMsg('');
 
-    let imageUrl: string | null = null;
-
-    if (selectedImage) {
-      const fileExt = selectedImage.name.split('.').pop();
-      const fileName = `msg-${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('message-images')
-        .upload(fileName, selectedImage);
-
-      if (!uploadError) {
-        const { data } = supabase.storage.from('message-images').getPublicUrl(fileName);
-        imageUrl = data.publicUrl;
-      }
-    }
+    console.log("Envoi vers Supabase...");
 
     const { error } = await supabase.from('messages').insert({
       sender_id: user.id,
       receiver_id: conversations[activeConvId].id,
       content: newMessage.trim() || null,
-      image_url: imageUrl,
     });
 
     if (error) {
-      console.error("Supabase error:", error);
-      setErrorMsg("Erreur lors de l'envoi du message");
+      console.error("Erreur Supabase :", error);
+      setErrorMsg("Erreur Supabase : " + error.message);
     } else {
+      console.log("Message envoyé avec succès !");
       setMessages(prev => [...prev, {
         id: Date.now(),
         sender_id: user.id,
         content: newMessage.trim() || null,
-        image_url: imageUrl,
         created_at: new Date().toISOString()
       }]);
       setNewMessage('');
-      setSelectedImage(null);
-      setImagePreview(null);
     }
 
     setSending(false);
@@ -193,7 +181,6 @@ export default function MessagesPage() {
               <div className="max-w-[85%] md:max-w-[78%]">
                 <div className="bg-white text-black rounded-3xl px-6 py-4 rounded-br-none shadow">
                   {msg.content && <p>{msg.content}</p>}
-                  {msg.image_url && <Image src={msg.image_url} alt="photo" width={320} height={240} className="rounded-2xl mt-3" />}
                 </div>
                 <p className="text-xs text-gray-500 mt-2 pr-4 text-right">
                   {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -204,12 +191,7 @@ export default function MessagesPage() {
         </div>
 
         <div className="p-4 md:p-6 border-t border-rose-900/50 bg-zinc-950">
-          {imagePreview && (
-            <div className="mb-4 flex gap-4 items-center">
-              <Image src={imagePreview} alt="preview" width={110} height={110} className="rounded-2xl" />
-              <button onClick={() => {setSelectedImage(null); setImagePreview(null);}} className="text-rose-400">Supprimer</button>
-            </div>
-          )}
+          {errorMsg && <div className="text-red-400 mb-3 text-center">{errorMsg}</div>}
 
           <div className="flex gap-3 items-center">
             <label className="cursor-pointer flex-shrink-0">
@@ -241,7 +223,7 @@ export default function MessagesPage() {
               disabled={sending || (!newMessage.trim() && !selectedImage)}
               className="bg-rose-600 hover:bg-rose-500 px-9 py-4 rounded-3xl font-medium disabled:bg-zinc-700"
             >
-              Envoyer
+              {sending ? '...' : 'Envoyer'}
             </button>
           </div>
 
