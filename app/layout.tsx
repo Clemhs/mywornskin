@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'MyWornSkin',
@@ -14,10 +15,10 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className="bg-zinc-950 text-white antialiased">
-        {/* Header Global avec boutons de langue */}
+        {/* Header Global */}
         <header className="border-b border-zinc-800 bg-black/95 backdrop-blur-md sticky top-0 z-50">
           <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition">
               <div className="w-9 h-9 bg-gradient-to-br from-rose-600 to-pink-600 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg">
                 M
               </div>
@@ -25,13 +26,13 @@ export default function RootLayout({
                 <div className="text-2xl font-bold tracking-tight">MyWornSkin</div>
                 <div className="text-[10px] text-zinc-500 -mt-1">vêtements portés</div>
               </div>
-            </div>
+            </Link>
 
             <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
-              <a href="/" className="hover:text-rose-400 transition-colors">Accueil</a>
-              <a href="/creators" className="hover:text-rose-400 transition-colors">Créateurs</a>
-              <a href="/sell" className="hover:text-rose-400 transition-colors">Vendre</a>
-              <a href="/messages" className="hover:text-rose-400 transition-colors">Messages</a>
+              <Link href="/" className="hover:text-rose-400 transition-colors">Accueil</Link>
+              <Link href="/creators" className="hover:text-rose-400 transition-colors">Créateurs</Link>
+              <Link href="/sell" className="hover:text-rose-400 transition-colors">Vendre</Link>
+              <Link href="/messages" className="hover:text-rose-400 transition-colors">Messages</Link>
             </nav>
 
             <div className="flex items-center gap-4">
@@ -43,12 +44,12 @@ export default function RootLayout({
                 <a href="#" className="px-3 py-1 text-xs font-medium rounded-lg hover:bg-zinc-800 transition">DE</a>
               </div>
 
-              <a 
+              <Link 
                 href="/messages" 
                 className="bg-rose-600 hover:bg-rose-500 px-6 py-2.5 rounded-xl text-sm font-medium transition"
               >
                 Messages
-              </a>
+              </Link>
             </div>
           </div>
         </header>
