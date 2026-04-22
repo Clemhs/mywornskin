@@ -46,7 +46,7 @@ export default function Creators() {
     <div className="min-h-screen bg-zinc-950 py-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h1 className="text-6xl font-bold tracking-tighter mb-4">Nos créateurs</h1>
+          <h1 className="hero-text text-6xl tracking-tighter mb-4">Nos créateurs</h1>
           <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
             Des femmes et hommes qui partagent un peu d’eux à travers leurs vêtements portés.
           </p>
@@ -56,7 +56,7 @@ export default function Creators() {
           {creators.map((creator) => (
             <div 
               key={creator.id} 
-              className="group bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 hover:border-rose-500/50 transition-all duration-300 flex flex-col"
+              className="card group flex flex-col"
             >
               {/* Banner + Avatar */}
               <div className="relative h-52">
@@ -89,16 +89,15 @@ export default function Creators() {
                   {creator.bio}
                 </p>
 
-                {/* Buttons - maintenant bien alignés en bas */}
                 <div className="mt-10 flex gap-4">
                   <Link 
                     href={`/creators/${creator.id}`}
-                    className="flex-1 text-center border border-zinc-700 hover:border-zinc-500 py-3.5 rounded-2xl text-sm font-medium transition"
+                    className="btn-secondary flex-1 text-center py-3.5"
                   >
                     Voir le profil
                   </Link>
                   
-                  <button className="flex-1 bg-rose-600 hover:bg-rose-500 py-3.5 rounded-2xl text-sm font-semibold transition">
+                  <button className="btn-primary flex-1 py-3.5 text-center">
                     S'abonner • 9,90 €/mois
                   </button>
                 </div>
