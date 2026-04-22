@@ -153,16 +153,15 @@ export default function Messages() {
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Écris ton message..."
-                className="flex-1 bg-zinc-800 border border-zinc-700 focus:border-rose-500 rounded-3xl px-5 py-3.5 text-base"
+                className="input flex-1"
               />
 
-              {/* Flèche design sur mobile */}
               <button
                 onClick={sendMessage}
                 disabled={!newMessage.trim() && !selectedImage}
-                className="bg-rose-600 hover:bg-rose-500 disabled:bg-zinc-700 w-11 h-11 flex items-center justify-center rounded-2xl text-2xl transition flex-shrink-0 shadow-md"
+                className="btn-primary px-7 py-3.5"
               >
-                <span className="text-white">➤</span>
+                Envoyer
               </button>
             </div>
           </div>
