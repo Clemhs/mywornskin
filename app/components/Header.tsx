@@ -43,7 +43,23 @@ export default function Header() {
 
         {/* Partie droite */}
         <div className="flex items-center gap-3">
-          {/* Langue mobile - plus compact */}
+          {/* Langues PC - version resserrée */}
+          <div className="hidden md:flex bg-zinc-900 rounded-full p-1 border border-zinc-800">
+            {['FR', 'EN', 'ES', 'DE'].map((lang) => (
+              <button
+                key={lang}
+                onClick={() => changeLanguage(lang)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-full flex items-center gap-1 transition hover:bg-zinc-800 ${
+                  language === lang ? 'bg-rose-600 text-white' : ''
+                }`}
+              >
+                <span>{flag(lang)}</span>
+                <span className="hidden lg:inline">{lang}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Langue mobile - compact */}
           <button
             onClick={() => {
               const langs = ['FR', 'EN', 'ES', 'DE'];
@@ -55,22 +71,6 @@ export default function Header() {
           >
             {flag(language)}
           </button>
-
-          {/* Langues PC avec drapeaux */}
-          <div className="hidden md:flex bg-zinc-900 rounded-full p-1 border border-zinc-800">
-            {['FR', 'EN', 'ES', 'DE'].map((lang) => (
-              <button
-                key={lang}
-                onClick={() => changeLanguage(lang)}
-                className={`px-3 py-2 text-sm font-medium rounded-full flex items-center gap-1 transition hover:bg-zinc-800 ${
-                  language === lang ? 'bg-rose-600 text-white' : ''
-                }`}
-              >
-                <span>{flag(lang)}</span>
-                <span className="hidden lg:inline">{lang}</span>
-              </button>
-            ))}
-          </div>
 
           {/* Bouton Messages */}
           <Link 
