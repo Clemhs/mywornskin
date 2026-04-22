@@ -49,7 +49,6 @@ export default function Sell() {
     setTimeout(() => {
       alert("✅ Ton annonce a été publiée avec succès !");
       setUploading(false);
-      // Réinitialisation
       setFormData({ title: '', price: '', size: '', condition: 'Très bon état', description: '' });
       setImages([]);
     }, 1500);
@@ -59,11 +58,11 @@ export default function Sell() {
     <div className="min-h-screen bg-zinc-950 py-12">
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold tracking-tighter mb-4">Mettre une pièce en vente</h1>
-          <p className="text-zinc-400 text-xl">Partage un vêtement que tu as porté. Avec son histoire et son odeur.</p>
+          <h1 className="hero-text text-5xl tracking-tighter mb-4">Mettre une pièce en vente</h1>
+          <p className="text-xl text-zinc-400">Partage un vêtement que tu as porté. Avec son histoire et son odeur.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-zinc-900 rounded-3xl p-10 border border-zinc-800">
+        <form onSubmit={handleSubmit} className="card p-10">
           {/* Upload photos */}
           <div className="mb-12">
             <label className="block text-lg font-semibold mb-4">Photos de ta pièce</label>
@@ -107,7 +106,7 @@ export default function Sell() {
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Ex: Culotte en dentelle noire portée 3 jours"
-              className="w-full bg-zinc-800 border border-zinc-700 focus:border-rose-500 rounded-2xl px-6 py-4 text-lg"
+              className="input w-full"
               required
             />
           </div>
@@ -122,7 +121,7 @@ export default function Sell() {
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 placeholder="29.90"
-                className="w-full bg-zinc-800 border border-zinc-700 focus:border-rose-500 rounded-2xl px-6 py-4 text-lg"
+                className="input w-full"
                 required
               />
             </div>
@@ -131,7 +130,7 @@ export default function Sell() {
               <select
                 value={formData.size}
                 onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                className="w-full bg-zinc-800 border border-zinc-700 focus:border-rose-500 rounded-2xl px-6 py-4 text-lg"
+                className="input w-full"
               >
                 <option value="">Choisir une taille</option>
                 <option value="XS">XS</option>
@@ -146,7 +145,7 @@ export default function Sell() {
               <select
                 value={formData.condition}
                 onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                className="w-full bg-zinc-800 border border-zinc-700 focus:border-rose-500 rounded-2xl px-6 py-4 text-lg"
+                className="input w-full"
               >
                 <option value="Neuf avec étiquette">Neuf avec étiquette</option>
                 <option value="Excellent état">Excellent état</option>
@@ -164,14 +163,14 @@ export default function Sell() {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={8}
               placeholder="Combien de fois l’ai-je portée ? Dans quelles occasions ? Quelle est son odeur ? Comment je me sentais dedans ?"
-              className="w-full bg-zinc-800 border border-zinc-700 focus:border-rose-500 rounded-3xl px-6 py-5 text-lg resize-y"
+              className="input w-full resize-y"
             />
           </div>
 
           <button
             type="submit"
             disabled={uploading || images.length === 0}
-            className="w-full bg-rose-600 hover:bg-rose-500 disabled:bg-zinc-700 py-6 rounded-2xl text-xl font-semibold transition-all"
+            className="btn-primary w-full"
           >
             {uploading ? "Publication en cours..." : "Publier mon annonce"}
           </button>
