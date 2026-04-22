@@ -1,7 +1,6 @@
 export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
-      {/* Hero Section */}
       <div className="max-w-5xl mx-auto px-6 pt-32 pb-28 text-center">
         <h1 className="text-6xl md:text-[4.8rem] font-bold tracking-tighter leading-none mb-8">
           Des vêtements<br />
@@ -31,7 +30,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Teaser */}
       <div className="py-20 border-t border-zinc-800 text-center text-zinc-500 text-sm">
         Plateforme en cours de reconstruction • Tout est sauvegardé sur GitHub
       </div>
