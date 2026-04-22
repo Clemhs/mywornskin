@@ -170,7 +170,7 @@ export default function Sell() {
           <button
             type="submit"
             disabled={uploading || images.length === 0}
-            className="btn-primary w-full"
+            className="btn-primary w-full py-6 text-lg"
           >
             {uploading ? "Publication en cours..." : "Publier mon annonce"}
           </button>
