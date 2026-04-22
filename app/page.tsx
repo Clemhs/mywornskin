@@ -50,34 +50,18 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_65%)] opacity-30"></div>
         
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
-          {/* Bandeau avec tes 3 étoiles blanches exactes */}
-          <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-10 py-3.5 rounded-full border border-zinc-700 relative">
-
-            {/* Petite étoile gauche */}
+          {/* Bandeau avec une petite étoile scintillante */}
+          <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-8 py-3 rounded-full border border-rose-500/20">
             <span 
-              className="text-white text-2xl drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]"
-              style={{ animation: 'growStar 3.5s ease-out forwards, twinkle 2.8s infinite 0.5s' }}
+              className="text-rose-400 text-xl"
+              style={{
+                animation: 'gentleTwinkle 3s infinite ease-in-out',
+                textShadow: '0 0 8px rgba(244, 63, 94, 0.6)'
+              }}
             >
               ✦
             </span>
-
-            {/* Grande étoile centre */}
-            <span 
-              className="text-white text-5xl -mx-2 drop-shadow-[0_0_15px_rgba(255,255,255,0.9)]"
-              style={{ animation: 'growStar 3.5s ease-out forwards 0.7s, twinkle 3s infinite 1.2s' }}
-            >
-              ✦
-            </span>
-
-            {/* Petite étoile droite */}
-            <span 
-              className="text-white text-xl drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
-              style={{ animation: 'growStar 3.5s ease-out forwards 1.1s, twinkle 2.6s infinite 1.9s' }}
-            >
-              ✦
-            </span>
-
-            <span className="uppercase tracking-[3px] text-sm font-medium pl-6 text-zinc-300">VÊTEMENTS PORTÉS • HISTOIRES INTIMES</span>
+            <span className="uppercase tracking-[3px] text-sm font-medium">VÊTEMENTS PORTÉS • HISTOIRES INTIMES</span>
           </div>
 
           <h1 className="hero-text text-6xl md:text-7xl lg:text-8xl mb-10 min-h-[2.4em] leading-none tracking-tighter">
@@ -111,17 +95,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Animations */}
+      {/* Animation légère de l'étoile */}
       <style jsx>{`
-        @keyframes growStar {
-          0%   { opacity: 0; transform: scale(0.3); }
-          70%  { opacity: 1; transform: scale(1.2); }
-          100% { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.9; transform: scale(0.95); }
-          50%      { opacity: 1; transform: scale(1.1); }
+        @keyframes gentleTwinkle {
+          0%, 100% { opacity: 0.85; transform: scale(0.95); }
+          50% { opacity: 1; transform: scale(1.08); }
         }
       `}</style>
     </div>
