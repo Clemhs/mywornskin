@@ -17,9 +17,15 @@ export default function Header() {
     window.location.reload();
   };
 
+  const flag = (lang: string) => {
+    const flags: any = { FR: '🇫🇷', EN: '🇬🇧', ES: '🇪🇸', DE: '🇩🇪' };
+    return flags[lang] || '🌍';
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-zinc-950/95 backdrop-blur-lg border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+        
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-9 h-9 bg-gradient-to-br from-rose-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-md group-hover:scale-110 transition">
@@ -28,16 +34,35 @@ export default function Header() {
           <span className="font-bold text-xl sm:text-2xl tracking-tighter">MyWornSkin</span>
         </Link>
 
-        {/* Navigation - caché sur mobile */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+        {/* Navigation - Visible seulement sur PC */}
+        <nav className="hidden md:flex items-center gap-9 text-sm font-medium">
           <Link href="/" className="hover:text-rose-400 transition">Accueil</Link>
           <Link href="/creators" className="hover:text-rose-400 transition">Créateurs</Link>
           <Link href="/sell" className="hover:text-rose-400 transition">Vendre</Link>
         </nav>
 
-        {/* Droite : Langue simplifiée + Messages */}
-        <div className="flex items-center gap-3">
-          {/* Langue simplifiée : un seul bouton cliquable qui change de langue */}
+        {/* Partie droite */}
+        <div className="flex items-center gap-4">
+          
+          {/* Langues avec drapeaux - Version complète sur PC, simplifiée sur mobile */}
+          <div className="hidden md:flex bg-zinc-900 rounded-full p-1 border border-zinc-800">
+            {['FR', 'EN', 'ES', 'DE'].map((lang) => (
+              <button
+                key={lang}
+                onClick={() => changeLanguage(lang)}
+                className={`px-4 py-2 text-sm font-medium rounded-full flex items-center gap-1.5 transition ${
+                  language === lang 
+                    ? 'bg-rose-600 text-white' 
+                    : 'hover:bg-zinc-800'
+                }`}
+              >
+                <span>{flag(lang)}</span>
+                <span>{lang}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Version mobile : un seul bouton avec drapeau */}
           <button
             onClick={() => {
               const langs = ['FR', 'EN', 'ES', 'DE'];
@@ -45,9 +70,9 @@ export default function Header() {
               const nextLang = langs[(currentIndex + 1) % langs.length];
               changeLanguage(nextLang);
             }}
-            className="bg-zinc-900 hover:bg-zinc-800 px-4 py-2 rounded-2xl text-sm font-medium transition border border-zinc-700"
+            className="md:hidden bg-zinc-900 hover:bg-zinc-800 px-4 py-2 rounded-2xl text-sm font-medium flex items-center gap-2 border border-zinc-700 transition"
           >
-            {language}
+            {flag(language)} {language}
           </button>
 
           {/* Bouton Messages */}
