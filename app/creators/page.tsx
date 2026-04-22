@@ -56,7 +56,7 @@ export default function Creators() {
           {creators.map((creator) => (
             <div 
               key={creator.id} 
-              className="card group flex flex-col"
+              className="card group flex flex-col h-full"
             >
               {/* Banner + Avatar */}
               <div className="relative h-52">
