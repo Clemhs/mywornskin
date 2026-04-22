@@ -42,8 +42,21 @@ export default function Header() {
         </nav>
 
         {/* Partie droite */}
-        <div className="flex items-center gap-4">
-          {/* Langues avec drapeaux - version resserrée sur PC */}
+        <div className="flex items-center gap-3">
+          {/* Langue mobile - plus compact */}
+          <button
+            onClick={() => {
+              const langs = ['FR', 'EN', 'ES', 'DE'];
+              const currentIndex = langs.indexOf(language);
+              const nextLang = langs[(currentIndex + 1) % langs.length];
+              changeLanguage(nextLang);
+            }}
+            className="md:hidden bg-zinc-900 hover:bg-zinc-800 px-3 py-2 rounded-2xl text-sm font-medium flex items-center gap-1.5 border border-zinc-700 transition"
+          >
+            {flag(language)}
+          </button>
+
+          {/* Langues PC avec drapeaux */}
           <div className="hidden md:flex bg-zinc-900 rounded-full p-1 border border-zinc-800">
             {['FR', 'EN', 'ES', 'DE'].map((lang) => (
               <button
@@ -53,24 +66,11 @@ export default function Header() {
                   language === lang ? 'bg-rose-600 text-white' : ''
                 }`}
               >
-                <span className="text-base">{flag(lang)}</span>
+                <span>{flag(lang)}</span>
                 <span className="hidden lg:inline">{lang}</span>
               </button>
             ))}
           </div>
-
-          {/* Version mobile : bouton simple avec drapeau */}
-          <button
-            onClick={() => {
-              const langs = ['FR', 'EN', 'ES', 'DE'];
-              const currentIndex = langs.indexOf(language);
-              const nextLang = langs[(currentIndex + 1) % langs.length];
-              changeLanguage(nextLang);
-            }}
-            className="md:hidden bg-zinc-900 hover:bg-zinc-800 px-4 py-2 rounded-2xl text-sm font-medium flex items-center gap-2 border border-zinc-700 transition"
-          >
-            {flag(language)} {language}
-          </button>
 
           {/* Bouton Messages */}
           <Link 
