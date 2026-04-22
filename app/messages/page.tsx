@@ -117,7 +117,7 @@ export default function Messages() {
 
         {/* Zone de chat */}
         <div className="flex-1 flex flex-col min-w-0">
-          <div className="flex-1 overflow-y-auto p-5 space-y-6 bg-zinc-950">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
             {messages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.isMine ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] px-5 py-3.5 rounded-3xl ${msg.isMine ? 'bg-rose-600' : 'bg-zinc-800'}`}>
@@ -130,7 +130,7 @@ export default function Messages() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
+          {/* Input Area */}
           <div className="p-4 bg-zinc-900 border-t border-zinc-800">
             {selectedImage && (
               <div className="mb-3 flex gap-3 items-center bg-zinc-800 p-3 rounded-2xl">
@@ -156,19 +156,27 @@ export default function Messages() {
                 className="flex-1 bg-zinc-800 border border-zinc-700 focus:border-rose-500 rounded-3xl px-5 py-3.5 text-base"
               />
 
+              {/* Bouton Envoyer : flèche sur mobile, texte sur PC */}
               <button
                 onClick={sendMessage}
                 disabled={!newMessage.trim() && !selectedImage}
-                className="bg-rose-600 hover:bg-rose-500 disabled:bg-zinc-700 px-7 py-3.5 rounded-3xl font-semibold transition flex-shrink-0"
+                className="bg-rose-600 hover:bg-rose-500 disabled:bg-zinc-700 px-5 py-3.5 rounded-3xl font-semibold transition flex-shrink-0 md:px-8"
               >
-                Envoyer
+                <span className="md:hidden text-2xl">→</span>
+                <span className="hidden md:inline">Envoyer</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" className="hidden" />
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleImageSelect} 
+        accept="image/*" 
+        className="hidden" 
+      />
     </div>
   );
 }
