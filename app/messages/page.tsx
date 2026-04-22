@@ -1,16 +1,30 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 
 export default function Messages() {
   const [activeConvId, setActiveConvId] = useState(0);
   const [showSidebar, setShowSidebar] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const [conversations] = useState([
-    { id: 0, name: 'Emma Laurent', avatar: 'https://picsum.photos/id/1011/150/150', lastMessage: 'Tu as reçu mon dernier colis ?' },
-    { id: 1, name: 'Sophie Moreau', avatar: 'https://picsum.photos/id/1027/150/150', lastMessage: 'J’ai une nouvelle pièce pour toi ❤️' },
-    { id: 2, name: 'Lisa Vert', avatar: 'https://picsum.photos/id/106/150/150', lastMessage: 'Tu vas adorer celle-ci...' },
+    { 
+      id: 0, 
+      name: 'Emma Laurent', 
+      avatar: 'https://picsum.photos/id/1011/150/150', 
+      lastMessage: 'Tu as reçu mon dernier colis ?' 
+    },
+    { 
+      id: 1, 
+      name: 'Sophie Moreau', 
+      avatar: 'https://picsum.photos/id/1027/150/150', 
+      lastMessage: 'J’ai une nouvelle pièce pour toi ❤️' 
+    },
+    { 
+      id: 2, 
+      name: 'Lisa Vert', 
+      avatar: 'https://picsum.photos/id/106/150/150', 
+      lastMessage: 'Tu vas adorer celle-ci...' 
+    },
   ]);
 
   const [allMessages, setAllMessages] = useState({
@@ -24,27 +38,17 @@ export default function Messages() {
   });
 
   const [newMessage, setNewMessage] = useState('');
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentMessages = allMessages[activeConvId] || [];
   const currentConv = conversations[activeConvId];
 
   const sendMessage = () => {
-    if ((!newMessage.trim() && !selectedImage)) return;
-
-    let imageUrl = null;
-    if (selectedImage) {
-      imageUrl = URL.createObjectURL(selectedImage);
-    }
+    if (!newMessage.trim()) return;
 
     const newMsg = {
       id: Date.now(),
       sender: 'me',
-      content: newMessage.trim() || null,
-      image_url: imageUrl,
+      content: newMessage,
     };
 
     setAllMessages(prev => ({
@@ -53,25 +57,7 @@ export default function Messages() {
     }));
 
     setNewMessage('');
-    setSelectedImage(null);
-    setImagePreview(null);
-    setShowEmojiPicker(false);
   };
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedImage(file);
-      setImagePreview(URL.createObjectURL(file));
-    }
-  };
-
-  const insertEmoji = (emoji: string) => {
-    setNewMessage(prev => prev + emoji);
-    setShowEmojiPicker(false);
-  };
-
-  const commonEmojis = ['😀', '😂', '❤️', '😍', '🥰', '🔥', '👀', '💦', '😘', '🙈', '👍', '😏', '🥵', '💋', '🌹'];
 
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-2 md:p-4">
@@ -122,7 +108,6 @@ export default function Messages() {
               <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`px-5 py-3 rounded-3xl max-w-[78%] ${msg.sender === 'me' ? 'bg-rose-600 text-white' : 'bg-zinc-800'}`}>
                   {msg.content}
-                  {msg.image_url && <img src={msg.image_url} alt="image" className="rounded-2xl mt-3 max-w-full" />}
                 </div>
               </div>
             ))}
@@ -130,33 +115,7 @@ export default function Messages() {
 
           {/* Zone de saisie */}
           <div className="bg-zinc-900 border-t border-zinc-800 p-4">
-            {imagePreview && (
-              <div className="mb-3 relative inline-block">
-                <img src={imagePreview} alt="preview" className="max-h-28 rounded-xl" />
-                <button 
-                  onClick={() => {setImagePreview(null); setSelectedImage(null);}} 
-                  className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-
-            <div className="flex gap-3 items-end">
-              <button 
-                onClick={() => fileInputRef.current?.click()} 
-                className="w-11 h-11 flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-2xl transition"
-              >
-                📷
-              </button>
-
-              <button 
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)} 
-                className="w-11 h-11 flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-2xl transition"
-              >
-                😀
-              </button>
-
+            <div className="flex gap-3">
               <input
                 type="text"
                 value={newMessage}
@@ -165,7 +124,6 @@ export default function Messages() {
                 placeholder="Écris ton message..."
                 className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 focus:outline-none focus:border-rose-500"
               />
-
               <button 
                 onClick={sendMessage}
                 className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-2xl font-medium whitespace-nowrap"
@@ -176,17 +134,6 @@ export default function Messages() {
           </div>
         </div>
       </div>
-
-      {/* Emoji Picker */}
-      {showEmojiPicker && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-700 p-4 rounded-3xl grid grid-cols-7 gap-3 shadow-2xl z-50">
-          {commonEmojis.map((emoji, i) => (
-            <button key={i} onClick={() => insertEmoji(emoji)} className="text-3xl hover:scale-125 transition">{emoji}</button>
-          ))}
-        </div>
-      )}
-
-      <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" className="hidden" />
     </div>
   );
 }
