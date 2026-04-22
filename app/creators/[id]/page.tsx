@@ -51,11 +51,7 @@ export default function CreatorProfile() {
   const [subscribed, setSubscribed] = useState(false);
 
   if (!creator) {
-    return (
-      <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
-        Créateur non trouvé
-      </div>
-    );
+    return <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center text-2xl">Créateur non trouvé</div>;
   }
 
   const handleSubscribe = () => {
@@ -72,10 +68,10 @@ export default function CreatorProfile() {
           alt={creator.username} 
           className="w-full h-full object-cover" 
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/60 to-zinc-950" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/70 to-zinc-950" />
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 -mt-16 md:-mt-20 relative z-10">
+      <div className="max-w-5xl mx-auto px-6 -mt-20 relative z-10">
         <div className="flex flex-col md:flex-row gap-8 items-start">
           {/* Avatar */}
           <div className="flex-shrink-0 -mt-12 md:-mt-16">
@@ -99,11 +95,7 @@ export default function CreatorProfile() {
               <button
                 onClick={handleSubscribe}
                 disabled={subscribed}
-                className={`px-10 py-4 rounded-2xl font-semibold text-base md:text-lg transition-all whitespace-nowrap ${
-                  subscribed 
-                    ? 'bg-zinc-800 text-zinc-400 cursor-not-allowed' 
-                    : 'bg-rose-600 hover:bg-rose-500'
-                }`}
+                className={`btn-primary px-10 py-4 whitespace-nowrap ${subscribed ? 'bg-zinc-800 text-zinc-400 cursor-not-allowed' : ''}`}
               >
                 {subscribed ? "✓ Abonné" : "S'abonner • 9,90 €/mois"}
               </button>
@@ -112,7 +104,6 @@ export default function CreatorProfile() {
             <p className="mt-10 text-zinc-300 text-[17px] leading-relaxed max-w-2xl">
               {creator.bio}
             </p>
-
             <p className="text-zinc-500 mt-6">Membre depuis {creator.joined}</p>
           </div>
         </div>
@@ -125,9 +116,9 @@ export default function CreatorProfile() {
             {Array.from({ length: 8 }).map((_, i) => (
               <div 
                 key={i} 
-                className="group bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 hover:border-rose-500/30 transition-all"
+                className="card group"
               >
-                <div className="aspect-[4/3] relative">
+                <div className="aspect-[4/3] relative overflow-hidden rounded-3xl">
                   <img 
                     src={`https://picsum.photos/id/${100 + i}/600/450`} 
                     alt="Pièce" 
