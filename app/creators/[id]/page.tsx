@@ -2,129 +2,131 @@
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useState } from 'react';
 
 const creatorsData: any = {
-  'emma-laurent': {
-    name: 'Emma Laurent',
-    avatar: 'https://picsum.photos/id/1011/300/300',   // Photo neutre élégante
-    banner: 'https://picsum.photos/id/1015/1200/400',
-    bio: 'Passionnée de lingerie fine et de vêtements portés avec émotion. Chaque pièce raconte une histoire intime.',
-    subscribers: '8.4k',
-    itemsCount: 27,
-    monthlyPrice: '9,99',
+  1: {
+    username: "LilaNoir",
+    avatar: "https://picsum.photos/id/64/300/300",
+    banner: "https://picsum.photos/id/1015/1200/400",
+    bio: "Je partage ce que j’ai porté avec envie. Chaque pièce garde un peu de ma chaleur et de mon odeur.",
+    followers: "12.4k",
+    items: 24,
+    joined: "Mars 2025",
   },
-  'sophie-moreau': {
-    name: 'Sophie Moreau',
-    avatar: 'https://picsum.photos/id/1027/300/300',   // Photo neutre élégante
-    banner: 'https://picsum.photos/id/133/1200/400',
-    bio: 'Je partage mes tenues du quotidien, mes collants, mes robes... tout ce qui a été porté avec plaisir.',
-    subscribers: '5.9k',
-    itemsCount: 19,
-    monthlyPrice: '7,99',
+  2: {
+    username: "VelvetMuse",
+    avatar: "https://picsum.photos/id/65/300/300",
+    banner: "https://picsum.photos/id/102/1200/400",
+    bio: "Des vêtements qui ont vécu avec moi. Des nuits, des matins, des moments intimes.",
+    followers: "8.9k",
+    items: 19,
+    joined: "Janvier 2025",
   },
-  'lisa-vert': {
-    name: 'Lisa Vert',
-    avatar: 'https://picsum.photos/id/106/300/300',    // Photo neutre élégante
-    banner: 'https://picsum.photos/id/201/1200/400',
-    bio: 'Spécialisée dans les accessoires et vêtements intimes du quotidien. Toujours prête à partager mes pièces favorites.',
-    subscribers: '12.1k',
-    itemsCount: 34,
-    monthlyPrice: '11,99',
+  3: {
+    username: "SatinSecret",
+    avatar: "https://picsum.photos/id/66/300/300",
+    banner: "https://picsum.photos/id/1033/1200/400",
+    bio: "Ce que je portais quand je me sentais belle. Viens découvrir mon univers.",
+    followers: "15.2k",
+    items: 31,
+    joined: "Février 2025",
+  },
+  4: {
+    username: "RoseObsession",
+    avatar: "https://picsum.photos/id/67/300/300",
+    banner: "https://picsum.photos/id/106/1200/400",
+    bio: "Sensualité, dentelle et souvenirs. Chaque vêtement raconte une partie de moi.",
+    followers: "6.7k",
+    items: 17,
+    joined: "Avril 2025",
   },
 };
 
 export default function CreatorProfile() {
   const params = useParams();
-  const id = params.id as string;
+  const id = Number(params.id);
   const creator = creatorsData[id];
 
+  const [subscribed, setSubscribed] = useState(false);
+
   if (!creator) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">Créateur non trouvé</h1>
-          <Link href="/creators" className="text-rose-400 hover:underline text-lg">
-            ← Retour à la liste des créateurs
-          </Link>
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">Créateur non trouvé</div>;
   }
 
+  const handleSubscribe = () => {
+    setSubscribed(true);
+    alert(`✅ Vous êtes maintenant abonné à @${creator.username} !`);
+  };
+
   return (
-    <div className="min-h-screen bg-zinc-950 pb-20">
+    <div className="min-h-screen bg-zinc-950">
       {/* Banner */}
-      <div className="h-80 relative">
+      <div className="relative h-80">
         <img 
           src={creator.banner} 
-          alt={creator.name}
-          className="w-full h-full object-cover"
+          alt={creator.username} 
+          className="w-full h-full object-cover" 
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/80 to-zinc-950" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/70 to-zinc-950" />
       </div>
 
       <div className="max-w-5xl mx-auto px-6 -mt-20 relative z-10">
-        <div className="flex flex-col md:flex-row gap-10">
-          {/* Avatar */}
-          <div className="flex-shrink-0 text-center md:text-left">
-            <div className="w-40 h-40 mx-auto md:mx-0 rounded-3xl border-4 border-zinc-950 overflow-hidden shadow-2xl">
-              <img 
-                src={creator.avatar} 
-                alt={creator.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <h1 className="text-5xl font-bold mt-6 mb-1">{creator.name}</h1>
-            <p className="text-rose-400">@{id.replace('-', '')}</p>
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Avatar + Info */}
+          <div className="flex-shrink-0">
+            <img 
+              src={creator.avatar} 
+              alt={creator.username} 
+              className="w-40 h-40 rounded-3xl border-4 border-zinc-900 object-cover" 
+            />
           </div>
 
-          {/* Info + Abonnement */}
-          <div className="flex-1 pt-8">
-            <p className="text-zinc-300 leading-relaxed text-lg mb-10 max-w-2xl">
+          <div className="flex-1 pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-5xl font-bold">@{creator.username}</h1>
+                <p className="text-rose-400 mt-1">{creator.followers} abonnés • {creator.items} pièces</p>
+              </div>
+              
+              <button
+                onClick={handleSubscribe}
+                disabled={subscribed}
+                className={`px-10 py-4 rounded-2xl font-semibold text-lg transition-all ${
+                  subscribed 
+                    ? 'bg-zinc-800 text-zinc-400 cursor-not-allowed' 
+                    : 'bg-rose-600 hover:bg-rose-500'
+                }`}
+              >
+                {subscribed ? "Abonné ✓" : "S'abonner"}
+              </button>
+            </div>
+
+            <p className="mt-8 text-zinc-300 text-lg leading-relaxed max-w-2xl">
               {creator.bio}
             </p>
 
-            <div className="flex flex-wrap gap-8 mb-10">
-              <div>
-                <div className="text-3xl font-semibold text-white">{creator.subscribers}</div>
-                <div className="text-zinc-500">abonnés</div>
-              </div>
-              <div>
-                <div className="text-3xl font-semibold text-white">{creator.itemsCount}</div>
-                <div className="text-zinc-500">pièces en vente</div>
-              </div>
-            </div>
-
-            <button 
-              onClick={() => alert(`✅ Abonnement activé pour ${creator.name} !\n\nVous avez maintenant accès à son contenu exclusif.`)}
-              className="w-full md:w-auto bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 px-14 py-6 rounded-2xl text-xl font-semibold transition-all shadow-xl shadow-rose-600/30 flex items-center justify-center gap-3"
-            >
-              S'abonner • {creator.monthlyPrice} € / mois
-            </button>
-            
-            <p className="text-center text-xs text-zinc-500 mt-4">
-              Accès exclusif aux photos, vidéos et messages privés
-            </p>
+            <p className="text-zinc-500 mt-4">Membre depuis {creator.joined}</p>
           </div>
         </div>
 
-        {/* Galerie */}
-        <div className="mt-20">
-          <h2 className="text-3xl font-semibold mb-10">Ses dernières pièces</h2>
+        {/* Galerie des pièces */}
+        <div className="mt-16">
+          <h2 className="text-3xl font-semibold mb-8">Ses dernières pièces</h2>
+          
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="group bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 hover:border-rose-500/50 transition-all hover:-translate-y-1">
-                <div className="aspect-square relative overflow-hidden">
+              <div key={i} className="group bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 hover:border-rose-500/30 transition-all">
+                <div className="aspect-square relative">
                   <img 
                     src={`https://picsum.photos/id/${100 + i}/600/600`} 
-                    alt="Vêtement"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    alt="item" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                   />
-                </div>
-                <div className="p-5">
-                  <div className="font-medium">Pièce #{i+1}</div>
-                  <div className="text-rose-400 font-semibold">29,90 €</div>
-                  <div className="text-xs text-zinc-500 mt-1">Porté récemment • Très bon état</div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+                    <p className="text-sm font-medium">Pièce #{i+1}</p>
+                    <p className="text-rose-400 text-xs">29,90 €</p>
+                  </div>
                 </div>
               </div>
             ))}
