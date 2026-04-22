@@ -3,6 +3,13 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
+const languages = [
+  { code: 'FR', label: 'FR', flag: '🇫🇷' },
+  { code: 'EN', label: 'EN', flag: '🇬🇧' },
+  { code: 'ES', label: 'ES', flag: '🇪🇸' },
+  { code: 'DE', label: 'DE', flag: '🇩🇪' },
+];
+
 export default function Header() {
   const [language, setLanguage] = useState('FR');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,11 +23,6 @@ export default function Header() {
     setLanguage(lang);
     localStorage.setItem('language', lang);
     window.location.reload();
-  };
-
-  const flag = (lang: string) => {
-    const flags: any = { FR: '🇫🇷', EN: '🇬🇧', ES: '🇪🇸', DE: '🇩🇪' };
-    return flags[lang] || '🌍';
   };
 
   return (
@@ -46,16 +48,16 @@ export default function Header() {
         <div className="flex items-center gap-4">
           {/* Langues Desktop */}
           <div className="hidden md:flex bg-zinc-900 rounded-full p-1 border border-zinc-800">
-            {['FR', 'EN', 'ES', 'DE'].map((lang) => (
+            {languages.map((lang) => (
               <button
-                key={lang}
-                onClick={() => changeLanguage(lang)}
-                className={`px-3 py-1.5 text-sm font-medium rounded-full flex items-center gap-1 transition hover:bg-zinc-800 ${
-                  language === lang ? 'bg-rose-600 text-white' : ''
+                key={lang.code}
+                onClick={() => changeLanguage(lang.code)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-full flex items-center gap-1.5 transition hover:bg-zinc-800 ${
+                  language === lang.code ? 'bg-rose-600 text-white' : ''
                 }`}
               >
-                <span>{flag(lang)}</span>
-                <span className="hidden lg:inline">{lang}</span>
+                <span>{lang.flag}</span>
+                <span className="hidden lg:inline">{lang.label}</span>
               </button>
             ))}
           </div>
@@ -63,14 +65,13 @@ export default function Header() {
           {/* Langue Mobile */}
           <button
             onClick={() => {
-              const langs = ['FR', 'EN', 'ES', 'DE'];
-              const currentIndex = langs.indexOf(language);
-              const nextLang = langs[(currentIndex + 1) % langs.length];
+              const currentIndex = languages.findIndex(l => l.code === language);
+              const nextLang = languages[(currentIndex + 1) % languages.length].code;
               changeLanguage(nextLang);
             }}
-            className="md:hidden bg-zinc-900 hover:bg-zinc-800 px-3.5 py-2 rounded-2xl text-sm font-medium flex items-center gap-1.5 border border-zinc-700 transition"
+            className="md:hidden bg-zinc-900 hover:bg-zinc-800 px-4 py-2 rounded-2xl text-sm font-medium flex items-center gap-2 border border-zinc-700 transition"
           >
-            {flag(language)}
+            {languages.find(l => l.code === language)?.flag} {language}
           </button>
 
           {/* Bouton Messages */}
@@ -81,7 +82,7 @@ export default function Header() {
             Messages
           </Link>
 
-          {/* Hamburger Menu - Mobile */}
+          {/* Hamburger */}
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden text-3xl"
@@ -91,14 +92,14 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Menu Mobile Overlay */}
+      {/* Menu Mobile */}
       {isMenuOpen && (
         <div className="md:hidden fixed inset-0 bg-zinc-950 z-50 pt-20">
-          <div className="flex flex-col p-6 space-y-6 text-lg">
-            <Link href="/" onClick={() => setIsMenuOpen(false)} className="hover:text-rose-400">Accueil</Link>
-            <Link href="/creators" onClick={() => setIsMenuOpen(false)} className="hover:text-rose-400">Créateurs</Link>
-            <Link href="/sell" onClick={() => setIsMenuOpen(false)} className="hover:text-rose-400">Vendre</Link>
-            <Link href="/messages" onClick={() => setIsMenuOpen(false)} className="hover:text-rose-400">Messages</Link>
+          <div className="flex flex-col p-8 space-y-8 text-xl">
+            <Link href="/" onClick={() => setIsMenuOpen(false)}>Accueil</Link>
+            <Link href="/creators" onClick={() => setIsMenuOpen(false)}>Créateurs</Link>
+            <Link href="/sell" onClick={() => setIsMenuOpen(false)}>Vendre</Link>
+            <Link href="/messages" onClick={() => setIsMenuOpen(false)}>Messages</Link>
           </div>
         </div>
       )}
