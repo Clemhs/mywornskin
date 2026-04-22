@@ -53,26 +53,26 @@ export default function Home() {
           {/* Bandeau avec tes 3 étoiles blanches exactes */}
           <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-10 py-3.5 rounded-full border border-zinc-700 relative">
 
-            {/* Étoile moyenne (gauche) */}
+            {/* Petite étoile gauche */}
             <span 
-              className="text-white text-3xl drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
-              style={{ animation: 'growStar 3.8s ease-out forwards, twinkle 2.9s infinite 0.8s' }}
+              className="text-white text-2xl drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]"
+              style={{ animation: 'growStar 3.5s ease-out forwards, twinkle 2.8s infinite 0.5s' }}
             >
               ✦
             </span>
 
-            {/* Grande étoile (centre) */}
+            {/* Grande étoile centre */}
             <span 
-              className="text-white text-5xl -mx-1 drop-shadow-[0_0_12px_rgba(255,255,255,0.8)]"
-              style={{ animation: 'growStar 3.8s ease-out forwards 0.6s, twinkle 3.2s infinite 1.6s' }}
+              className="text-white text-5xl -mx-2 drop-shadow-[0_0_15px_rgba(255,255,255,0.9)]"
+              style={{ animation: 'growStar 3.5s ease-out forwards 0.7s, twinkle 3s infinite 1.2s' }}
             >
               ✦
             </span>
 
-            {/* Petite étoile (droite) */}
+            {/* Petite étoile droite */}
             <span 
-              className="text-white text-xl drop-shadow-[0_0_6px_rgba(255,255,255,0.5)]"
-              style={{ animation: 'growStar 3.8s ease-out forwards 1.3s, twinkle 2.6s infinite 2.4s' }}
+              className="text-white text-xl drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+              style={{ animation: 'growStar 3.5s ease-out forwards 1.1s, twinkle 2.6s infinite 1.9s' }}
             >
               ✦
             </span>
@@ -114,14 +114,14 @@ export default function Home() {
       {/* Animations */}
       <style jsx>{`
         @keyframes growStar {
-          0%   { opacity: 0; transform: scale(0.2); }
-          65%  { opacity: 1; transform: scale(1.18); }
+          0%   { opacity: 0; transform: scale(0.3); }
+          70%  { opacity: 1; transform: scale(1.2); }
           100% { opacity: 1; transform: scale(1); }
         }
 
         @keyframes twinkle {
-          0%, 100% { opacity: 0.85; transform: scale(0.95); }
-          50%      { opacity: 1; transform: scale(1.12); }
+          0%, 100% { opacity: 0.9; transform: scale(0.95); }
+          50%      { opacity: 1; transform: scale(1.1); }
         }
       `}</style>
     </div>
