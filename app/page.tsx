@@ -50,8 +50,17 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_65%)] opacity-30"></div>
         
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
+          {/* Bandeau avec étoile scintillante */}
           <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-8 py-3 rounded-full border border-rose-500/20">
-            <span className="text-rose-400 text-xl">✦</span>
+            <span 
+              className="text-rose-400 text-2xl inline-block"
+              style={{
+                animation: 'twinkle 3s infinite ease-in-out',
+                textShadow: '0 0 12px rgba(244, 63, 94, 0.8)'
+              }}
+            >
+              ✦
+            </span>
             <span className="uppercase tracking-[3px] text-sm font-medium">Vêtements portés • Histoires intimes</span>
           </div>
 
@@ -85,6 +94,20 @@ export default function Home() {
           <div className="w-px h-10 bg-gradient-to-b from-transparent via-zinc-400 to-transparent"></div>
         </div>
       </div>
+
+      {/* Animation CSS intégrée */}
+      <style jsx>{`
+        @keyframes twinkle {
+          0%, 100% { 
+            opacity: 0.75; 
+            transform: scale(0.92); 
+          }
+          50% { 
+            opacity: 1; 
+            transform: scale(1.18); 
+          }
+        }
+      `}</style>
     </div>
   );
 }
