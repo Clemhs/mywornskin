@@ -79,15 +79,17 @@ export default function Creators() {
                 <h3 className="text-2xl font-semibold mb-1">@{creator.username}</h3>
                 <p className="text-rose-400 text-sm mb-4">{creator.followers} followers • {creator.items} pièces</p>
                 
-                <p className="text-zinc-400 text-[15px] leading-relaxed line-clamp-3">
+                <p className="text-zinc-400 text-[15px] leading-relaxed line-clamp-3 mb-8">
                   {creator.bio}
                 </p>
 
-                <div className="mt-8 flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <span className="text-sm text-zinc-500 group-hover:text-rose-400 transition">
                     Voir le profil →
                   </span>
-                  <span className="text-xs bg-zinc-800 px-4 py-1.5 rounded-full">Suivre</span>
+                  <button className="text-sm bg-rose-600 hover:bg-rose-500 px-6 py-2.5 rounded-full transition">
+                    S'abonner • 9,90 €/mois
+                  </button>
                 </div>
               </div>
             </Link>
