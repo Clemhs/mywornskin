@@ -34,8 +34,8 @@ export default function Header() {
           <span className="font-bold text-xl sm:text-2xl tracking-tighter">MyWornSkin</span>
         </Link>
 
-        {/* Navigation - Visible seulement sur PC */}
-        <nav className="hidden md:flex items-center gap-9 text-sm font-medium">
+        {/* Navigation PC */}
+        <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
           <Link href="/" className="hover:text-rose-400 transition">Accueil</Link>
           <Link href="/creators" className="hover:text-rose-400 transition">Créateurs</Link>
           <Link href="/sell" className="hover:text-rose-400 transition">Vendre</Link>
@@ -43,26 +43,23 @@ export default function Header() {
 
         {/* Partie droite */}
         <div className="flex items-center gap-4">
-          
-          {/* Langues avec drapeaux - Version complète sur PC, simplifiée sur mobile */}
+          {/* Langues avec drapeaux - version resserrée sur PC */}
           <div className="hidden md:flex bg-zinc-900 rounded-full p-1 border border-zinc-800">
             {['FR', 'EN', 'ES', 'DE'].map((lang) => (
               <button
                 key={lang}
                 onClick={() => changeLanguage(lang)}
-                className={`px-4 py-2 text-sm font-medium rounded-full flex items-center gap-1.5 transition ${
-                  language === lang 
-                    ? 'bg-rose-600 text-white' 
-                    : 'hover:bg-zinc-800'
+                className={`px-3 py-2 text-sm font-medium rounded-full flex items-center gap-1 transition hover:bg-zinc-800 ${
+                  language === lang ? 'bg-rose-600 text-white' : ''
                 }`}
               >
-                <span>{flag(lang)}</span>
-                <span>{lang}</span>
+                <span className="text-base">{flag(lang)}</span>
+                <span className="hidden lg:inline">{lang}</span>
               </button>
             ))}
           </div>
 
-          {/* Version mobile : un seul bouton avec drapeau */}
+          {/* Version mobile : bouton simple avec drapeau */}
           <button
             onClick={() => {
               const langs = ['FR', 'EN', 'ES', 'DE'];
