@@ -46,33 +46,34 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
-      <div className="relative h-screen flex items-center justify-center pt-20 overflow-hidden">
+      <div className="relative h-screen flex items-center justify-center pt-20">
         <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_65%)] opacity-30"></div>
         
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
-          {/* Bandeau avec deux étoiles scintillantes */}
+          {/* Bandeau avec deux étoiles superposées */}
           <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-8 py-3 rounded-full border border-rose-500/20 relative">
-            {/* Petite étoile filante + scintillement */}
+            
+            {/* Petite étoile */}
             <span 
-              className="star-small text-rose-400 text-xl absolute -top-3 -left-4"
+              className="star-small text-rose-400 text-xl absolute left-6"
               style={{
-                animation: 'shootingStar 4s ease-in-out forwards, twinkle 2.5s infinite 1s'
+                animation: 'shootingStarSmall 4s ease-in-out forwards, twinkle 2.8s infinite 0.8s'
               }}
             >
               ✦
             </span>
 
-            {/* Grosse étoile filante + scintillement */}
+            {/* Grosse étoile (légèrement décalée pour effet superposé) */}
             <span 
-              className="star-large text-rose-400 text-3xl absolute -top-6 right-6"
+              className="star-large text-rose-400 text-2xl absolute left-7"
               style={{
-                animation: 'shootingStar 5s ease-in-out forwards 0.6s, twinkle 3s infinite 2s'
+                animation: 'shootingStarLarge 5s ease-in-out forwards 0.4s, twinkle 3.2s infinite 1.5s'
               }}
             >
               ✧
             </span>
 
-            <span className="uppercase tracking-[3px] text-sm font-medium">Vêtements portés • Histoires intimes</span>
+            <span className="uppercase tracking-[3px] text-sm font-medium pl-10">Vêtements portés • Histoires intimes</span>
           </div>
 
           <h1 className="hero-text text-6xl md:text-7xl lg:text-8xl mb-10 min-h-[2.4em] leading-none tracking-tighter">
@@ -109,34 +110,30 @@ export default function Home() {
       {/* Animations CSS intégrées */}
       <style jsx>{`
         @keyframes twinkle {
-          0%, 100% { opacity: 0.75; transform: scale(0.92); }
-          50% { opacity: 1; transform: scale(1.18); }
+          0%, 100% { opacity: 0.75; transform: scale(0.9); }
+          50% { opacity: 1; transform: scale(1.12); }
         }
 
-        @keyframes shootingStar {
-          0% { 
-            opacity: 0; 
-            transform: translate(30px, -30px) scale(0.6); 
-          }
-          20% { 
-            opacity: 1; 
-            transform: translate(0, 0) scale(1.1); 
-          }
-          80% { 
-            opacity: 1; 
-          }
-          100% { 
-            opacity: 0.75; 
-            transform: translate(-10px, 10px) scale(1); 
-          }
+        @keyframes shootingStarSmall {
+          0% { opacity: 0; transform: translate(-20px, -25px) scale(0.6); }
+          25% { opacity: 1; transform: translate(5px, 5px) scale(1.05); }
+          80% { opacity: 1; }
+          100% { opacity: 0.8; transform: translate(8px, 12px) scale(1); }
+        }
+
+        @keyframes shootingStarLarge {
+          0% { opacity: 0; transform: translate(-15px, -30px) scale(0.7); }
+          30% { opacity: 1; transform: translate(3px, 8px) scale(1.08); }
+          85% { opacity: 1; }
+          100% { opacity: 0.85; transform: translate(6px, 15px) scale(1); }
         }
 
         .star-small {
-          animation: shootingStar 4s ease-in-out forwards, twinkle 2.5s infinite 1.2s;
+          animation: shootingStarSmall 4.5s ease-in-out forwards, twinkle 2.8s infinite 1.2s;
         }
 
         .star-large {
-          animation: shootingStar 5.5s ease-in-out forwards 0.8s, twinkle 3s infinite 2.2s;
+          animation: shootingStarLarge 5.2s ease-in-out forwards 0.6s, twinkle 3.2s infinite 1.8s;
         }
       `}</style>
     </div>
