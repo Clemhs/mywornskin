@@ -52,28 +52,28 @@ export default function Home() {
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           {/* Bandeau avec deux étoiles superposées */}
           <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-8 py-3 rounded-full border border-rose-500/20 relative">
-            
-            {/* Petite étoile */}
+
+            {/* Étoile plus petite - derrière et en haut à gauche */}
             <span 
-              className="star-small text-rose-400 text-xl absolute left-6"
+              className="star-small text-rose-400 text-lg absolute -top-2 -left-1"
               style={{
-                animation: 'shootingStarSmall 4s ease-in-out forwards, twinkle 2.8s infinite 0.8s'
+                animation: 'shootingStarSmall 4.8s ease-in-out forwards, twinkle 2.6s infinite 1.1s'
               }}
             >
               ✦
             </span>
 
-            {/* Grosse étoile (légèrement décalée pour effet superposé) */}
+            {/* Étoile principale plus grosse */}
             <span 
-              className="star-large text-rose-400 text-2xl absolute left-7"
+              className="star-large text-rose-400 text-3xl"
               style={{
-                animation: 'shootingStarLarge 5s ease-in-out forwards 0.4s, twinkle 3.2s infinite 1.5s'
+                animation: 'shootingStarLarge 5.5s ease-in-out forwards 0.5s, twinkle 3s infinite 1.8s'
               }}
             >
               ✧
             </span>
 
-            <span className="uppercase tracking-[3px] text-sm font-medium pl-10">Vêtements portés • Histoires intimes</span>
+            <span className="uppercase tracking-[3px] text-sm font-medium pl-9">Vêtements portés • Histoires intimes</span>
           </div>
 
           <h1 className="hero-text text-6xl md:text-7xl lg:text-8xl mb-10 min-h-[2.4em] leading-none tracking-tighter">
@@ -110,30 +110,30 @@ export default function Home() {
       {/* Animations CSS intégrées */}
       <style jsx>{`
         @keyframes twinkle {
-          0%, 100% { opacity: 0.75; transform: scale(0.9); }
-          50% { opacity: 1; transform: scale(1.12); }
+          0%, 100% { opacity: 0.75; transform: scale(0.92); }
+          50% { opacity: 1; transform: scale(1.15); }
         }
 
         @keyframes shootingStarSmall {
-          0% { opacity: 0; transform: translate(-20px, -25px) scale(0.6); }
-          25% { opacity: 1; transform: translate(5px, 5px) scale(1.05); }
-          80% { opacity: 1; }
-          100% { opacity: 0.8; transform: translate(8px, 12px) scale(1); }
+          0% { opacity: 0; transform: translate(-18px, -22px) scale(0.65); }
+          30% { opacity: 1; transform: translate(4px, 6px) scale(1.05); }
+          85% { opacity: 1; }
+          100% { opacity: 0.8; transform: translate(6px, 10px) scale(0.95); }
         }
 
         @keyframes shootingStarLarge {
-          0% { opacity: 0; transform: translate(-15px, -30px) scale(0.7); }
-          30% { opacity: 1; transform: translate(3px, 8px) scale(1.08); }
-          85% { opacity: 1; }
-          100% { opacity: 0.85; transform: translate(6px, 15px) scale(1); }
+          0% { opacity: 0; transform: translate(-12px, -28px) scale(0.8); }
+          35% { opacity: 1; transform: translate(3px, 8px) scale(1.12); }
+          80% { opacity: 1; }
+          100% { opacity: 0.85; transform: translate(5px, 12px) scale(1); }
         }
 
         .star-small {
-          animation: shootingStarSmall 4.5s ease-in-out forwards, twinkle 2.8s infinite 1.2s;
+          animation: shootingStarSmall 4.8s ease-in-out forwards, twinkle 2.6s infinite 1.2s;
         }
 
         .star-large {
-          animation: shootingStarLarge 5.2s ease-in-out forwards 0.6s, twinkle 3.2s infinite 1.8s;
+          animation: shootingStarLarge 5.5s ease-in-out forwards 0.6s, twinkle 3s infinite 1.9s;
         }
       `}</style>
     </div>
