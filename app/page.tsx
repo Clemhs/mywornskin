@@ -40,54 +40,51 @@ export default function Home() {
   const [currentText, setCurrentText] = useState("");
 
   useEffect(() => {
-    // Choisir un texte aléatoire au chargement
-    const randomText = heroTexts[Math.floor(Math.random() * heroTexts.length)];
-    setCurrentText(randomText);
-
-    // Optionnel : changer toutes les 30 secondes (pour tester)
-    // const interval = setInterval(() => {
-    //   const newText = heroTexts[Math.floor(Math.random() * heroTexts.length)];
-    //   setCurrentText(newText);
-    // }, 30000);
-
-    // return () => clearInterval(interval);
+    const randomIndex = Math.floor(Math.random() * heroTexts.length);
+    setCurrentText(heroTexts[randomIndex]);
   }, []);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white overflow-hidden">
-      <div className="relative h-screen flex items-center justify-center">
-        <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_70%)] opacity-40"></div>
+    <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Hero */}
+      <div className="relative h-screen flex items-center justify-center pt-20">
+        <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_65%)] opacity-30"></div>
         
-        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
-          <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/80 backdrop-blur-md px-6 py-2 rounded-full border border-rose-500/20">
-            <span className="text-rose-400">✦</span>
-            <span className="text-sm tracking-widest uppercase">Vêtements portés • Histoires intimes</span>
+        <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
+          <div className="mb-6 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-8 py-3 rounded-full border border-rose-500/20">
+            <span className="text-rose-400 text-xl">✦</span>
+            <span className="uppercase tracking-[3px] text-sm font-medium">Vêtements portés • Histoires intimes</span>
           </div>
 
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold leading-none mb-8 tracking-tighter min-h-[2.2em]">
+          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold leading-none tracking-tighter mb-10 min-h-[2.4em]">
             {currentText}
           </h1>
 
           <p className="text-xl md:text-2xl text-zinc-400 max-w-2xl mx-auto mb-12">
-            Des pièces déjà portées.<br />
+            Des pièces déjà portées.<br className="hidden md:block" />
             Avec leur odeur, leur chaleur, leur histoire.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-5 justify-center">
             <Link
               href="/creators"
-              className="bg-rose-600 hover:bg-rose-500 px-10 py-5 rounded-2xl text-lg font-semibold transition-all active:scale-95"
+              className="bg-rose-600 hover:bg-rose-500 px-12 py-5 rounded-2xl text-lg font-semibold transition-all active:scale-[0.985]"
             >
               Découvrir les créateurs
             </Link>
-            
             <Link
               href="/sell"
-              className="border border-zinc-700 hover:border-rose-500 px-10 py-5 rounded-2xl text-lg font-semibold transition-all active:scale-95"
+              className="border-2 border-zinc-700 hover:border-rose-500 px-12 py-5 rounded-2xl text-lg font-semibold transition-all active:scale-[0.985]"
             >
               Mettre ma pièce en vente
             </Link>
           </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-500">
+          <div className="text-xs tracking-widest">SCROLL POUR DÉCOUVRIR</div>
+          <div className="w-px h-10 bg-gradient-to-b from-transparent via-zinc-400 to-transparent"></div>
         </div>
       </div>
     </div>
