@@ -46,9 +46,7 @@ export default function Creators() {
     <div className="min-h-screen bg-zinc-950 py-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h1 className="text-6xl font-bold tracking-tighter mb-4">
-            Nos créateurs
-          </h1>
+          <h1 className="text-6xl font-bold tracking-tighter mb-4">Nos créateurs</h1>
           <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
             Des femmes et hommes qui partagent un peu d’eux à travers leurs vêtements portés.
           </p>
@@ -56,43 +54,56 @@ export default function Creators() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {creators.map((creator) => (
-            <Link 
+            <div 
               key={creator.id} 
-              href={`/creators/${creator.id}`}
-              className="group bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 hover:border-rose-500/50 transition-all duration-300"
+              className="group bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 hover:border-rose-500/50 transition-all duration-300 flex flex-col"
             >
-              <div className="relative h-48">
+              {/* Banner + Avatar */}
+              <div className="relative h-52">
                 <img 
                   src={creator.banner} 
                   alt={creator.username} 
                   className="w-full h-full object-cover" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                <img 
-                  src={creator.avatar} 
-                  alt={creator.username} 
-                  className="absolute -bottom-12 left-6 w-24 h-24 rounded-2xl border-4 border-zinc-900 object-cover" 
-                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                
+                <div className="absolute -bottom-12 left-6">
+                  <img 
+                    src={creator.avatar} 
+                    alt={creator.username} 
+                    className="w-24 h-24 rounded-2xl border-4 border-zinc-900 object-cover shadow-xl" 
+                  />
+                </div>
               </div>
 
-              <div className="pt-16 pb-8 px-8">
-                <h3 className="text-2xl font-semibold mb-1">@{creator.username}</h3>
-                <p className="text-rose-400 text-sm mb-4">{creator.followers} followers • {creator.items} pièces</p>
-                
-                <p className="text-zinc-400 text-[15px] leading-relaxed line-clamp-3 mb-8">
+              {/* Content */}
+              <div className="flex-1 pt-16 pb-8 px-8 flex flex-col">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-semibold">@{creator.username}</h3>
+                  <p className="text-rose-400 text-sm mt-1">
+                    {creator.followers} followers • {creator.items} pièces
+                  </p>
+                </div>
+
+                <p className="text-zinc-400 text-[15px] leading-relaxed flex-1">
                   {creator.bio}
                 </p>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-zinc-500 group-hover:text-rose-400 transition">
-                    Voir le profil →
-                  </span>
-                  <button className="text-sm bg-rose-600 hover:bg-rose-500 px-6 py-2.5 rounded-full transition">
+                {/* Buttons - maintenant bien alignés en bas */}
+                <div className="mt-10 flex gap-4">
+                  <Link 
+                    href={`/creators/${creator.id}`}
+                    className="flex-1 text-center border border-zinc-700 hover:border-zinc-500 py-3.5 rounded-2xl text-sm font-medium transition"
+                  >
+                    Voir le profil
+                  </Link>
+                  
+                  <button className="flex-1 bg-rose-600 hover:bg-rose-500 py-3.5 rounded-2xl text-sm font-semibold transition">
                     S'abonner • 9,90 €/mois
                   </button>
                 </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
 
