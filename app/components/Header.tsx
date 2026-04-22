@@ -20,14 +20,14 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-zinc-950/95 backdrop-blur-lg border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-        {/* Logo */}
+        {/* Logo + Nom */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 bg-rose-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl group-hover:scale-110 transition">
+          <div className="w-9 h-9 bg-gradient-to-br from-rose-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-md group-hover:scale-110 transition">
             M
           </div>
-          <div className="hidden sm:block">
-            <span className="font-bold text-2xl tracking-tighter">MyWornSkin</span>
-            <p className="text-[10px] text-zinc-500 -mt-1">vêtements portés</p>
+          <div>
+            <span className="font-bold text-xl sm:text-2xl tracking-tighter">MyWornSkin</span>
+            <p className="text-[10px] text-zinc-500 -mt-1 hidden sm:block">vêtements portés</p>
           </div>
         </Link>
 
