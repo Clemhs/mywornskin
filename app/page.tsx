@@ -50,24 +50,24 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_65%)] opacity-30"></div>
         
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
-          {/* Bandeau avec deux étoiles superposées */}
+          {/* Bandeau avec deux étoiles presque superposées */}
           <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-8 py-3 rounded-full border border-rose-500/20 relative">
 
-            {/* Étoile principale plus grosse */}
+            {/* Étoile principale (grosse) */}
             <span 
-              className="star-large text-rose-400 text-[32px] relative z-10"
+              className="star-large text-rose-400 text-[34px] relative z-10"
               style={{
-                animation: 'shootingStarLarge 5.2s ease-in-out forwards 0.3s, twinkle 3s infinite 1.5s'
+                animation: 'shootingStarLarge 5.4s ease-in-out forwards 0.2s, twinkle 3.1s infinite 1.4s'
               }}
             >
               ✧
             </span>
 
-            {/* Petite étoile - en haut à droite et légèrement dessous */}
+            {/* Petite étoile - juste en dessous et légèrement à droite, presque superposée */}
             <span 
-              className="star-small text-rose-400 text-xl absolute top-[-6px] right-[-2px] z-0"
+              className="star-small text-rose-400 text-[19px] absolute top-[6px] left-[26px] z-0"
               style={{
-                animation: 'shootingStarSmall 4.6s ease-in-out forwards, twinkle 2.4s infinite 1.2s'
+                animation: 'shootingStarSmall 4.7s ease-in-out forwards, twinkle 2.5s infinite 1.1s'
               }}
             >
               ✦
@@ -115,25 +115,25 @@ export default function Home() {
         }
 
         @keyframes shootingStarLarge {
-          0% { opacity: 0; transform: translate(-25px, -30px) scale(0.7); }
-          35% { opacity: 1; transform: translate(6px, 8px) scale(1.15); }
+          0% { opacity: 0; transform: translate(-20px, -25px) scale(0.75); }
+          30% { opacity: 1; transform: translate(4px, 6px) scale(1.12); }
           80% { opacity: 1; }
-          100% { opacity: 0.85; transform: translate(10px, 15px) scale(1); }
+          100% { opacity: 0.85; transform: translate(8px, 12px) scale(1); }
         }
 
         @keyframes shootingStarSmall {
-          0% { opacity: 0; transform: translate(-15px, -20px) scale(0.6); }
-          30% { opacity: 1; transform: translate(8px, 5px) scale(1.08); }
+          0% { opacity: 0; transform: translate(-12px, -18px) scale(0.6); }
+          35% { opacity: 1; transform: translate(6px, 4px) scale(1.05); }
           85% { opacity: 1; }
-          100% { opacity: 0.8; transform: translate(12px, 10px) scale(0.95); }
+          100% { opacity: 0.8; transform: translate(9px, 9px) scale(0.92); }
         }
 
         .star-large {
-          animation: shootingStarLarge 5.2s ease-in-out forwards 0.3s, twinkle 3s infinite 1.5s;
+          animation: shootingStarLarge 5.4s ease-in-out forwards 0.2s, twinkle 3.1s infinite 1.4s;
         }
 
         .star-small {
-          animation: shootingStarSmall 4.6s ease-in-out forwards, twinkle 2.4s infinite 1.2s;
+          animation: shootingStarSmall 4.7s ease-in-out forwards, twinkle 2.5s infinite 1.1s;
         }
       `}</style>
     </div>
