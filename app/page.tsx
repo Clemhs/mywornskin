@@ -50,34 +50,34 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_65%)] opacity-30"></div>
         
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
-          {/* Bandeau avec tes 3 étoiles exactes */}
-          <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-10 py-3.5 rounded-full border border-rose-500/20 relative">
+          {/* Bandeau avec tes 3 étoiles blanches exactes */}
+          <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-10 py-3.5 rounded-full border border-zinc-700 relative">
 
             {/* Étoile moyenne (gauche) */}
             <span 
-              className="text-rose-400 text-3xl"
-              style={{ animation: 'growStar 3.5s ease-out forwards, twinkle 2.8s infinite 1.2s' }}
+              className="text-white text-3xl drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+              style={{ animation: 'growStar 3.8s ease-out forwards, twinkle 2.9s infinite 0.8s' }}
             >
               ✦
             </span>
 
             {/* Grande étoile (centre) */}
             <span 
-              className="text-rose-400 text-5xl -mx-1"
-              style={{ animation: 'growStar 3.5s ease-out forwards 0.6s, twinkle 3s infinite 1.8s' }}
+              className="text-white text-5xl -mx-1 drop-shadow-[0_0_12px_rgba(255,255,255,0.8)]"
+              style={{ animation: 'growStar 3.8s ease-out forwards 0.6s, twinkle 3.2s infinite 1.6s' }}
             >
               ✦
             </span>
 
             {/* Petite étoile (droite) */}
             <span 
-              className="text-rose-400 text-xl"
-              style={{ animation: 'growStar 3.5s ease-out forwards 1.2s, twinkle 2.4s infinite 2.4s' }}
+              className="text-white text-xl drop-shadow-[0_0_6px_rgba(255,255,255,0.5)]"
+              style={{ animation: 'growStar 3.8s ease-out forwards 1.3s, twinkle 2.6s infinite 2.4s' }}
             >
               ✦
             </span>
 
-            <span className="uppercase tracking-[3px] text-sm font-medium pl-4">VÊTEMENTS PORTÉS • HISTOIRES INTIMES</span>
+            <span className="uppercase tracking-[3px] text-sm font-medium pl-6 text-zinc-300">VÊTEMENTS PORTÉS • HISTOIRES INTIMES</span>
           </div>
 
           <h1 className="hero-text text-6xl md:text-7xl lg:text-8xl mb-10 min-h-[2.4em] leading-none tracking-tighter">
@@ -111,17 +111,17 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Animations CSS intégrées */}
+      {/* Animations */}
       <style jsx>{`
         @keyframes growStar {
           0%   { opacity: 0; transform: scale(0.2); }
-          70%  { opacity: 1; transform: scale(1.15); }
+          65%  { opacity: 1; transform: scale(1.18); }
           100% { opacity: 1; transform: scale(1); }
         }
 
         @keyframes twinkle {
           0%, 100% { opacity: 0.85; transform: scale(0.95); }
-          50%      { opacity: 1; transform: scale(1.08); }
+          50%      { opacity: 1; transform: scale(1.12); }
         }
       `}</style>
     </div>
