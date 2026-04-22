@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Header from './header';   // On va créer ce fichier juste après
+import Header from './components/Header';
 
 export const metadata: Metadata = {
-  title: 'MyWornSkin',
-  description: 'Vêtements déjà portés • Plateforme intime',
+  title: 'MyWornSkin - Vêtements déjà portés',
+  description: 'Plateforme intime pour acheter et vendre des vêtements portés.',
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
@@ -14,11 +17,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className="bg-zinc-950 text-white antialiased">
+      <body className="bg-zinc-950 text-white">
         <Header />
-        <main className="min-h-[calc(100vh-73px)]">
-          {children}
-        </main>
+        <main className="pt-20">{children}</main>
       </body>
     </html>
   );
