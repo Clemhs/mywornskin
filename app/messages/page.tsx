@@ -130,7 +130,7 @@ export default function Messages() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
+          {/* Input */}
           <div className="p-4 bg-zinc-900 border-t border-zinc-800">
             {selectedImage && (
               <div className="mb-3 flex gap-3 items-center bg-zinc-800 p-3 rounded-2xl">
@@ -156,14 +156,13 @@ export default function Messages() {
                 className="flex-1 bg-zinc-800 border border-zinc-700 focus:border-rose-500 rounded-3xl px-5 py-3.5 text-base"
               />
 
-              {/* Bouton Envoyer : flèche sur mobile, texte sur PC */}
+              {/* Bouton flèche stylée sur mobile */}
               <button
                 onClick={sendMessage}
                 disabled={!newMessage.trim() && !selectedImage}
-                className="bg-rose-600 hover:bg-rose-500 disabled:bg-zinc-700 px-5 py-3.5 rounded-3xl font-semibold transition flex-shrink-0 md:px-8"
+                className="bg-rose-600 hover:bg-rose-500 disabled:bg-zinc-700 w-11 h-11 flex items-center justify-center rounded-2xl text-2xl transition flex-shrink-0"
               >
-                <span className="md:hidden text-2xl">→</span>
-                <span className="hidden md:inline">Envoyer</span>
+                →
               </button>
             </div>
           </div>
