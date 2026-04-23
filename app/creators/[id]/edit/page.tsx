@@ -1,10 +1,16 @@
 'use client';
 
-// V7 - Statut visible + boutique cosmétiques complète
+// V8 - Intégration Supabase (upload réel + statut)
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function CreatorEdit() {
   const params = useParams();
@@ -30,28 +36,52 @@ export default function CreatorEdit() {
     { id: "gold", name: "5 ans", color: "gold", unlocked: false, price: 19 },
   ];
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setAvatar(ev.target?.result as string);
-        setAvatarStatus('pending');
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setAvatarStatus('pending');
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${id}-avatar-${Date.now()}.${fileExt}`;
+
+    const { error } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, file, { upsert: true });
+
+    if (error) {
+      console.error(error);
+      setAvatarStatus('rejected');
+      return;
     }
+
+    const { data } = supabase.storage.from('avatars').getPublicUrl(fileName);
+    setAvatar(data.publicUrl);
+    setAvatarStatus('pending'); // restera pending jusqu'à validation admin
   };
 
-  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setBanner(ev.target?.result as string);
-        setBannerStatus('pending');
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setBannerStatus('pending');
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${id}-banner-${Date.now()}.${fileExt}`;
+
+    const { error } = await supabase.storage
+      .from('banners')
+      .upload(fileName, file, { upsert: true });
+
+    if (error) {
+      console.error(error);
+      setBannerStatus('rejected');
+      return;
     }
+
+    const { data } = supabase.storage.from('banners').getPublicUrl(fileName);
+    setBanner(data.publicUrl);
+    setBannerStatus('pending');
   };
 
   return (
@@ -110,7 +140,7 @@ export default function CreatorEdit() {
               {avatarStatus === 'rejected' && <p className="mt-3 text-red-400">❌ Refusé</p>}
             </div>
 
-            {/* Badges */}
+            {/* Badges et Cadres (scroll horizontal) */}
             <div>
               <h2 className="text-xl mb-4">Badge</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
@@ -124,7 +154,6 @@ export default function CreatorEdit() {
               </div>
             </div>
 
-            {/* Cadres */}
             <div>
               <h2 className="text-xl mb-4">Cadre</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
