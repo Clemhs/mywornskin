@@ -1,6 +1,6 @@
 'use client';
 
-// V5 - Page Personnalisation complète (mobile optimisé + boutique cosmétiques remise)
+// V6 - Statut visible (En attente / Validé / Refusé) + tout le reste
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -12,8 +12,8 @@ export default function CreatorEdit() {
 
   const [avatar, setAvatar] = useState("https://picsum.photos/id/1011/280/280");
   const [banner, setBanner] = useState("https://picsum.photos/id/1005/1200/400");
-  const [avatarPending, setAvatarPending] = useState(false);
-  const [bannerPending, setBannerPending] = useState(false);
+  const [avatarStatus, setAvatarStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
+  const [bannerStatus, setBannerStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
   const [selectedBadge, setSelectedBadge] = useState<number | null>(10);
   const [selectedFrame, setSelectedFrame] = useState<string | null>("rose");
 
@@ -34,7 +34,10 @@ export default function CreatorEdit() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (ev) => { setAvatar(ev.target?.result as string); setAvatarPending(true); };
+      reader.onload = (ev) => {
+        setAvatar(ev.target?.result as string);
+        setAvatarStatus('pending');
+      };
       reader.readAsDataURL(file);
     }
   };
@@ -43,7 +46,10 @@ export default function CreatorEdit() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (ev) => { setBanner(ev.target?.result as string); setBannerPending(true); };
+      reader.onload = (ev) => {
+        setBanner(ev.target?.result as string);
+        setBannerStatus('pending');
+      };
       reader.readAsDataURL(file);
     }
   };
@@ -51,20 +57,13 @@ export default function CreatorEdit() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-12">
       <div className="max-w-6xl mx-auto px-4 pt-6">
-        
-        {/* Barre du haut optimisée mobile */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex items-center gap-2 text-sm">
-            ← Retour au profil
-          </Link>
-          
+          <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex items-center gap-2 text-sm">← Retour au profil</Link>
           <h1 className="text-2xl font-semibold text-center sm:text-left">Personnaliser mon profil</h1>
-          
           <button className="btn-primary px-8 py-3 text-sm sm:text-base">Enregistrer les modifications</button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-
           {/* Aperçu live */}
           <div className="lg:col-span-5">
             <h2 className="text-xl mb-4">Aperçu en direct</h2>
@@ -93,7 +92,9 @@ export default function CreatorEdit() {
                 <img src={banner} alt="couverture" className="w-40 h-24 object-cover rounded-2xl" />
                 <label className="btn-secondary cursor-pointer px-6 py-3">Changer la couverture<input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" /></label>
               </div>
-              {bannerPending && <p className="mt-3 text-amber-400 text-sm flex items-center gap-2">⏳ Changement en attente de validation</p>}
+              {bannerStatus === 'pending' && <p className="mt-3 text-amber-400 text-sm flex items-center gap-2">⏳ En attente de validation</p>}
+              {bannerStatus === 'approved' && <p className="mt-3 text-green-400 text-sm flex items-center gap-2">✅ Validé</p>}
+              {bannerStatus === 'rejected' && <p className="mt-3 text-red-400 text-sm flex items-center gap-2">❌ Refusé</p>}
             </div>
 
             {/* Avatar */}
@@ -104,7 +105,9 @@ export default function CreatorEdit() {
                 <img src={avatar} alt="avatar" className="w-24 h-24 rounded-3xl object-cover ring-2 ring-zinc-700" />
                 <label className="btn-secondary cursor-pointer px-6 py-3">Changer la photo<input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" /></label>
               </div>
-              {avatarPending && <p className="mt-3 text-amber-400 text-sm flex items-center gap-2">⏳ Changement en attente de validation</p>}
+              {avatarStatus === 'pending' && <p className="mt-3 text-amber-400 text-sm flex items-center gap-2">⏳ En attente de validation</p>}
+              {avatarStatus === 'approved' && <p className="mt-3 text-green-400 text-sm flex items-center gap-2">✅ Validé</p>}
+              {avatarStatus === 'rejected' && <p className="mt-3 text-red-400 text-sm flex items-center gap-2">❌ Refusé</p>}
             </div>
 
             {/* Badges */}
@@ -136,11 +139,10 @@ export default function CreatorEdit() {
               </div>
             </div>
 
-            {/* ====================== BOUTIQUE COSMÉTIQUES ====================== */}
+            {/* Boutique cosmétiques (restaurée) */}
             <div className="pt-8 border-t border-zinc-800">
               <h2 className="text-2xl font-semibold mb-2">Boutique cosmétiques</h2>
-              <p className="text-zinc-400 mb-6">Débloque des badges et cadres exclusifs pour te démarquer</p>
-              
+              <p className="text-zinc-400 mb-6">Débloque des badges et cadres exclusifs</p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {[
                   { name: "Badge 250", price: 15, type: "badge" },
@@ -166,21 +168,12 @@ export default function CreatorEdit() {
         </div>
       </div>
 
-      {/* Styles des cadres animés */}
       <style jsx>{`
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 300% 0; }
-        }
-        .shimmer-frame {
-          animation: shimmer 10s linear infinite;
-          background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.85) 50%, transparent 60%);
-          background-size: 200% 100%;
-          box-shadow: 0 0 20px -3px currentColor, inset 0 0 20px -3px currentColor;
-        }
-        .shimmer-frame.rose   { color: #f472b6; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 300% 0; } }
+        .shimmer-frame { animation: shimmer 10s linear infinite; background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.85) 50%, transparent 60%); background-size: 200% 100%; box-shadow: 0 0 20px -3px currentColor, inset 0 0 20px -3px currentColor; }
+        .shimmer-frame.rose { color: #f472b6; }
         .shimmer-frame.silver { color: #e2e8f0; }
-        .shimmer-frame.gold   { color: #fbbf24; }
+        .shimmer-frame.gold { color: #fbbf24; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
       `}</style>
     </div>
