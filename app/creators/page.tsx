@@ -1,6 +1,6 @@
 'use client';
 
-// V21 - Cadres Shimmering Frame BEAUCOUP PLUS LENTS (10s)
+// V22 - Cadres Shimmering + numéros 1an / 2ans / 5ans en bas à droite + pièces un peu plus petites
 
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
@@ -57,7 +57,17 @@ export default function Creators() {
                   <img src={creator.banner} alt={creator.username} className="w-full h-48 object-cover rounded-3xl" />
                   
                   {creator.frame && (
-                    <div className={`shimmer-frame absolute inset-0 rounded-3xl pointer-events-none ${creator.frame}`} />
+                    <div className={`shimmer-frame absolute inset-0 rounded-3xl pointer-events-none ${creator.frame}`}>
+                      {/* Numéro en bas à droite */}
+                      <div className={`absolute bottom-4 right-4 text-sm font-semibold tracking-widest drop-shadow-md
+                        ${creator.frame === 'rose' ? 'text-rose-300' : ''}
+                        ${creator.frame === 'silver' ? 'text-zinc-200' : ''}
+                        ${creator.frame === 'gold' ? 'text-amber-300' : ''}`}>
+                        {creator.frame === 'rose' && '1 an'}
+                        {creator.frame === 'silver' && '2 ans'}
+                        {creator.frame === 'gold' && '5 ans'}
+                      </div>
+                    </div>
                   )}
                 </div>
 
@@ -68,7 +78,7 @@ export default function Creators() {
                       <img 
                         src={`/badges/${creator.badge}.png`} 
                         alt="badge" 
-                        className="absolute -top-1 -right-1 w-8 h-8 drop-shadow-2xl"
+                        className="absolute -top-1 -right-1 w-7 h-7 drop-shadow-2xl"   {/* ← un peu plus petit */}
                       />
                     )}
                   </div>
@@ -88,14 +98,15 @@ export default function Creators() {
         </div>
       </div>
 
+      {/* Styles des cadres animés (10 secondes + très doux) */}
       <style jsx>{`
         @keyframes shimmer {
           0% { background-position: -200% 0; }
           100% { background-position: 300% 0; }
         }
         .shimmer-frame {
-          animation: shimmer 10s linear infinite;   /* ← beaucoup plus lent */
-          background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.9) 50%, transparent 60%);
+          animation: shimmer 10s linear infinite;
+          background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.85) 50%, transparent 60%);
           background-size: 200% 100%;
           box-shadow: 0 0 20px -3px currentColor, inset 0 0 20px -3px currentColor;
         }
