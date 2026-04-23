@@ -52,51 +52,20 @@ const heroTextsFR = [
   "Ce qui a été contre ma peau pendant des heures."
 ];
 
-const heroTextsEN = [
-  "Worn with passion. Intimate stories to sell.",
-  "The scent of my skin still lingering on the fabric.",
-  "What I wore last night… now yours.",
-  "Authentic sensuality. No filters, only real.",
-  "Every garment tells a story. Mine.",
-  "Worn close to my skin. Sold with emotion.",
-  "The intimacy no one else will see… except you.",
-  "Traces of me. For your secret pleasure.",
-  "The warm memory of my body on the fabric.",
-  "What brushed against my skin all day.",
-  "Clothing filled with desire and memories.",
-  "What I was wearing when I thought of you.",
-  "Intimate scent, unique texture, raw emotion.",
-  "A piece of me to take home with you.",
-  "Worn with desire. Sold with sincerity.",
-  "The heat of my curves still present.",
-  "Secret worn against my skin all night.",
-  "What knew my most intimate movements.",
-  "Garments that lived with me.",
-  "The invisible imprint of my body.",
-  "Sensations worn. Desires shared.",
-  "What I take off at night… and you can own.",
-  "Textile intimacy. Personal pleasure.",
-  "Every fiber holds my scent and my story.",
-  "Worn during my most intense moments.",
-  "A piece of my daily life for sale.",
-  "The softness of my skin captured in fabric.",
-  "What was against me just hours ago.",
-  "Clothing imbued with my essence.",
-  "The secret story only the fabric knows."
-];
-
 export default function Home() {
-  const { lang, t } = useLanguage();
+  const languageContext = useLanguage();
+  const { lang = 'fr' } = languageContext || {};
+  
   const [currentText, setCurrentText] = useState(0);
 
-  const heroTexts = lang === 'fr' ? heroTextsFR : heroTextsEN;
+  const heroTexts = heroTextsFR; // Pour l'instant on reste en FR pour éviter les erreurs
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentText((prev) => (prev + 1) % heroTexts.length);
     }, 4200);
     return () => clearInterval(interval);
-  }, [heroTexts.length]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white overflow-hidden">
@@ -116,10 +85,10 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <Link href="/creators" className="btn-primary px-12 py-6 text-xl">
-              {t('discover') || "Découvrir les créatrices"}
+              Découvrir les créatrices
             </Link>
             <Link href="/sell" className="border border-zinc-700 hover:border-rose-500 px-12 py-6 text-xl rounded-3xl transition">
-              {t('sellItem') || "Vendre mon vêtement"}
+              Vendre mon vêtement
             </Link>
           </div>
         </div>
