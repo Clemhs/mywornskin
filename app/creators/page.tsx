@@ -1,5 +1,8 @@
 'use client';
 
+// === FORCE CLEAN BUILD - CREATORS V3 - 2025-04-23 ===
+// Supprime le cache Vercel + photos réelles + badges pièces + cadres musée
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
@@ -107,14 +110,12 @@ export default function Creators() {
               <div className="relative">
                 <Image src={creator.banner} alt="" width={800} height={320} className="w-full h-48 object-cover" />
 
-                {/* Cadre musée style gravé (plus large) */}
                 {creator.frame && (
                   <div className={`absolute inset-0 border-[8px] rounded-3xl pointer-events-none
                     ${creator.frame === 'bronze' ? 'border-amber-700' : 'border-zinc-300'}`} 
                   />
                 )}
 
-                {/* Avatar + Badge pièce de monnaie */}
                 <div className="absolute -bottom-8 left-6">
                   <div className="relative">
                     <Image 
@@ -124,8 +125,6 @@ export default function Creators() {
                       height={88} 
                       className="rounded-3xl ring-4 ring-zinc-900 object-cover" 
                     />
-                    
-                    {/* Badge style pièce métallique rose-gold */}
                     {creator.badge && (
                       <div className="absolute -top-2 -right-2 bg-gradient-to-br from-rose-300 via-rose-400 to-amber-400 text-white text-2xl font-bold w-10 h-10 rounded-2xl flex items-center justify-center shadow-2xl ring-4 ring-zinc-900">
                         {creator.badge}
