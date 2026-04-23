@@ -1,16 +1,13 @@
 'use client';
 
-import { useLanguage } from '../contexts/LanguageContext';
 import Link from 'next/link';
 
 export default function WhyJoin() {
-  const { t } = useLanguage();
-
   return (
     <div className="min-h-screen bg-zinc-950 py-16">
       <div className="max-w-5xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold mb-6">{t('whyJoin') || "Pourquoi nous rejoindre ?"}</h1>
+          <h1 className="text-5xl font-bold mb-6">Pourquoi nous rejoindre ?</h1>
           <p className="text-xl text-zinc-400">La plateforme la plus intime et authentique pour vendre tes vêtements portés</p>
         </div>
 
