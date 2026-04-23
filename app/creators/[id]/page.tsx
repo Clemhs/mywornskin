@@ -8,7 +8,7 @@ const creatorsData: any = {
     username: "LilaNoir", 
     avatar: "https://picsum.photos/id/64/300/300", 
     banner: "https://picsum.photos/id/1015/1200/400", 
-    bio: "Je partage ce que j’ai porté avec envie. Chaque pièce garde un peu de ma chaleur et de mon odeur.", 
+    bio: "Je partage ce que j’ai porté avec envie...", 
     followers: "12.4k", 
     items: 87, 
     joined: "Mars 2025", 
@@ -28,6 +28,18 @@ const creatorsData: any = {
     volumeBadge: 50,
     longevity: 2 
   },
+  3: { 
+    username: "SatinSecret", 
+    avatar: "https://picsum.photos/id/66/300/300", 
+    banner: "https://picsum.photos/id/1033/1200/400", 
+    bio: "Ce que je portais quand je me sentais belle...", 
+    followers: "15.2k", 
+    items: 31, 
+    joined: "Février 2025", 
+    verified: false,
+    volumeBadge: 10,
+    longevity: 0 
+  },
 };
 
 export default function CreatorProfile() {
@@ -41,7 +53,7 @@ export default function CreatorProfile() {
 
   const handleSubscribe = () => {
     setSubscribed(true);
-    alert(`✅ Vous êtes maintenant abonné à @${creator.username} pour 9,90 €/mois !`);
+    alert(`✅ Abonnement activé à @${creator.username}`);
   };
 
   return (
@@ -63,14 +75,12 @@ export default function CreatorProfile() {
               
               {/* Badge Vérifié */}
               {creator.verified && (
-                <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1 shadow-lg">
-                  ✓ Vérifié
-                </div>
+                <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">✓ Vérifié</div>
               )}
 
               {/* Badge Volume */}
               {creator.volumeBadge && (
-                <div className="absolute -top-3 -left-3 bg-zinc-900 text-white text-sm font-bold w-9 h-9 rounded-2xl flex items-center justify-center border-2 border-rose-500 shadow-lg">
+                <div className="absolute -top-4 -left-4 bg-zinc-900 border-2 border-rose-500 text-white text-xl font-bold w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg">
                   {creator.volumeBadge}
                 </div>
               )}
@@ -78,24 +88,17 @@ export default function CreatorProfile() {
           </div>
 
           <div className="flex-1 pt-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex justify-between">
               <div>
                 <h1 className="text-5xl font-bold">@{creator.username}</h1>
                 <p className="text-rose-400 mt-1">{creator.followers} abonnés • {creator.items} pièces vendues</p>
               </div>
-              
-              <button
-                onClick={handleSubscribe}
-                disabled={subscribed}
-                className={`btn-primary px-10 py-4 ${subscribed ? 'bg-zinc-800 cursor-not-allowed' : ''}`}
-              >
-                {subscribed ? "✓ Abonné" : "S'abonner • 9,90 €/mois"}
+              <button onClick={handleSubscribe} className="btn-primary px-10 py-4">
+                S'abonner • 9,90 €/mois
               </button>
             </div>
 
-            <p className="mt-10 text-zinc-300 text-[17px] leading-relaxed max-w-2xl">
-              {creator.bio}
-            </p>
+            <p className="mt-10 text-zinc-300 text-[17px] leading-relaxed">{creator.bio}</p>
           </div>
         </div>
       </div>
