@@ -2,104 +2,81 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-type Language = 'FR' | 'EN' | 'ES' | 'DE';
+type Language = 'fr' | 'en' | 'es' | 'de';
 
-type Translations = {
-  [key in Language]: {
-    [key: string]: string;
-  };
-};
-
-const translations: Translations = {
-  FR: {
+const translations = {
+  fr: {
     home: "Accueil",
-    creators: "Créateurs",
+    creators: "Créatrices",
     sell: "Vendre",
     messages: "Messages",
-    discoverCreators: "Découvrir les créateurs",
-    sellItem: "Mettre ma pièce en vente",
-    wornClothes: "Vêtements portés",
-    intimateStories: "Histoires intimes",
-    tracesOfPleasure: "Des traces invisibles de plaisir",
-    alreadyWorn: "Des pièces déjà portées.",
-    withTheirScent: "Avec leur odeur, leur chaleur, leur histoire.",
+    discover: "Découvrir les créatrices",
+    sellItem: "Vendre mon vêtement",
+    whyJoin: "Pourquoi nous rejoindre ?",
+    verified: "Vérifiée",
+    subscribe: "S'abonner",
+    perMonth: "€/mois",
   },
-  EN: {
+  en: {
     home: "Home",
     creators: "Creators",
     sell: "Sell",
     messages: "Messages",
-    discoverCreators: "Discover creators",
-    sellItem: "Sell my item",
-    wornClothes: "Worn clothes",
-    intimateStories: "Intimate stories",
-    tracesOfPleasure: "Invisible traces of pleasure",
-    alreadyWorn: "Already worn pieces.",
-    withTheirScent: "With their scent, their warmth, their story.",
+    discover: "Discover Creators",
+    sellItem: "Sell My Item",
+    whyJoin: "Why Join Us?",
+    verified: "Verified",
+    subscribe: "Subscribe",
+    perMonth: "/month",
   },
-  ES: {
+  es: {
     home: "Inicio",
-    creators: "Creadores",
+    creators: "Creadoras",
     sell: "Vender",
     messages: "Mensajes",
-    discoverCreators: "Descubrir creadores",
-    sellItem: "Vender mi artículo",
-    wornClothes: "Ropa usada",
-    intimateStories: "Historias íntimas",
-    tracesOfPleasure: "Huellas invisibles de placer",
-    alreadyWorn: "Piezas ya usadas.",
-    withTheirScent: "Con su aroma, su calor, su historia.",
+    discover: "Descubrir Creadoras",
+    sellItem: "Vender Mi Prenda",
+    whyJoin: "¿Por qué unirte?",
+    verified: "Verificada",
+    subscribe: "Suscribirse",
+    perMonth: "€/mes",
   },
-  DE: {
+  de: {
     home: "Start",
-    creators: "Ersteller",
+    creators: "Creatorinnen",
     sell: "Verkaufen",
     messages: "Nachrichten",
-    discoverCreators: "Entdecke Ersteller",
-    sellItem: "Mein Item verkaufen",
-    wornClothes: "Getragene Kleidung",
-    intimateStories: "Intime Geschichten",
-    tracesOfPleasure: "Unsichtbare Spuren von Vergnügen",
-    alreadyWorn: "Bereits getragene Stücke.",
-    withTheirScent: "Mit ihrem Duft, ihrer Wärme, ihrer Geschichte.",
+    discover: "Entdecke Creatorinnen",
+    sellItem: "Mein Kleidungsstück verkaufen",
+    whyJoin: "Warum mitmachen?",
+    verified: "Verifiziert",
+    subscribe: "Abonnieren",
+    perMonth: "€/Monat",
   },
 };
 
-type LanguageContextType = {
-  language: Language;
-  t: (key: string) => string;
-  changeLanguage: (lang: Language) => void;
-};
-
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LanguageContext = createContext<any>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>('FR');
+  const [lang, setLang] = useState<Language>('fr');
 
   useEffect(() => {
-    const savedLang = localStorage.getItem('language') as Language | null;
-    if (savedLang) setLanguage(savedLang);
+    const saved = localStorage.getItem('language') as Language;
+    if (saved) setLang(saved);
   }, []);
 
-  const changeLanguage = (lang: Language) => {
-    setLanguage(lang);
-    localStorage.setItem('language', lang);
-    window.location.reload();
+  const changeLanguage = (newLang: Language) => {
+    setLang(newLang);
+    localStorage.setItem('language', newLang);
   };
 
-  const t = (key: string): string => {
-    return translations[language][key] || key;
-  };
+  const t = (key: string) => translations[lang][key as keyof typeof translations['fr']] || key;
 
   return (
-    <LanguageContext.Provider value={{ language, t, changeLanguage }}>
+    <LanguageContext.Provider value={{ lang, changeLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
 }
 
-export const useLanguage = () => {
-  const context = useContext(LanguageContext);
-  if (!context) throw new Error('useLanguage must be used within LanguageProvider');
-  return context;
-};
+export const useLanguage = () => useContext(LanguageContext);
