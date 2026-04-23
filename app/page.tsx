@@ -66,7 +66,7 @@ export default function Home() {
        
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           
-          {/* Titre MyWornSkin plus haut sur mobile */}
+          {/* Titre MyWornSkin */}
           <div className="mb-8 md:mb-6">
             <div className="text-5xl md:text-6xl font-light tracking-[-0.04em] text-white">
               MyWornSkin
@@ -97,10 +97,10 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-5 justify-center">
-            <Link href="/creators" className="btn-primary">
+            <Link href="/creators" className="btn-primary px-14 py-7 text-xl font-medium">
               Découvrir les créatrices
             </Link>
-            <Link href="/sell" className="btn-secondary">
+            <Link href="/sell" className="btn-secondary px-14 py-7 text-xl font-medium">
               Mettre ma pièce en vente
             </Link>
           </div>
@@ -122,7 +122,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Animation étoile */}
       <style jsx>{`
         @keyframes gentleTwinkle {
           0%, 100% { opacity: 0.85; transform: scale(0.95); }
