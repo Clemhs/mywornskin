@@ -1,127 +1,95 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 
-const creators = [
-  {
-    id: '1',
-    username: '@LilaNoir',
-    name: 'Lila Noir',
-    avatar: 'https://picsum.photos/id/64/300/300',
-    banner: 'https://picsum.photos/id/1015/800/400',
-    bio: 'Vêtements portés avec passion • Odeurs intimes garanties • 127 ventes',
-    price: 9.90,
-    verified: true,
-    volume: 127,
-    longevity: '1 an',
-  },
-  {
-    id: '2',
-    username: '@VelvetMuse',
-    name: 'Velvet Muse',
-    avatar: 'https://picsum.photos/id/65/300/300',
-    banner: 'https://picsum.photos/id/201/800/400',
-    bio: 'Lingerie fine et moments intenses',
-    price: 12.90,
-    verified: true,
-    volume: 84,
-    longevity: '8 mois',
-  },
-];
+export default function Verify() {
+  const [selfie, setSelfie] = useState<string | null>(null);
+  const [idCard, setIdCard] = useState<string | null>(null);
+  const [status, setStatus] = useState<'idle' | 'submitted' | 'approved' | 'rejected'>('idle');
+  const [loading, setLoading] = useState(false);
 
-export default function CreatorProfile() {
-  const params = useParams();
-  const creator = creators.find(c => c.id === params.id);
-  const [isSubscribed, setIsSubscribed] = useState(false);
+  const handleSelfieUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => setSelfie(event.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
 
-  if (!creator) {
-    return <div className="min-h-screen flex items-center justify-center text-2xl">Créateur non trouvé</div>;
-  }
+  const handleIdCardUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => setIdCard(event.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
 
-  const handleSubscribe = () => {
-    setIsSubscribed(true);
-    alert(`✅ Abonnement activé à ${creator.username} pour ${creator.price} €/mois !`);
+  const submitVerification = () => {
+    if (!selfie || !idCard) {
+      alert("Veuillez uploader les deux photos.");
+      return;
+    }
+
+    setLoading(true);
+    setTimeout(() => {
+      setStatus('submitted');
+      setLoading(false);
+      alert("✅ Documents envoyés avec succès ! Votre profil sera vérifié dans les 48h.");
+    }, 1400);
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950">
-      {/* Banner */}
-      <div className="h-80 relative">
-        <Image src={creator.banner} alt="banner" fill className="object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/70 to-zinc-950" />
-      </div>
-
-      <div className="max-w-4xl mx-auto px-6 -mt-20 relative z-10">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Avatar + Badges */}
-          <div className="flex-shrink-0 text-center md:text-left">
-            <div className="relative mx-auto md:mx-0 w-48 h-48">
-              <Image 
-                src={creator.avatar} 
-                alt={creator.name} 
-                width={192} 
-                height={192} 
-                className="rounded-full border-4 border-zinc-900 object-cover" 
-              />
-              {creator.verified && (
-                <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1">
-                  ✓ Vérifiée
-                </div>
-              )}
-            </div>
-
-            {creator.volume && (
-              <div className="mt-4 inline-flex items-center gap-2 bg-zinc-900 border border-rose-500/30 rounded-2xl px-5 py-2">
-                <span className="text-2xl">🔥</span>
-                <span className="font-bold text-lg">{creator.volume}</span>
-                <span className="text-sm text-zinc-400">ventes</span>
-              </div>
-            )}
-
-            {creator.longevity && (
-              <div className="mt-3 text-sm text-amber-400 font-medium">
-                🏆 {creator.longevity} sur la plateforme
-              </div>
-            )}
-          </div>
-
-          {/* Infos */}
-          <div className="flex-1 pt-6">
-            <h1 className="text-4xl font-bold">{creator.name}</h1>
-            <p className="text-rose-400 text-xl">{creator.username}</p>
-            <p className="mt-6 text-zinc-300 leading-relaxed">{creator.bio}</p>
-
-            <div className="mt-10 flex gap-4">
-              <button 
-                onClick={handleSubscribe}
-                className="btn-primary flex-1 py-6 text-lg font-semibold"
-              >
-                {isSubscribed ? "✓ Abonné" : `S'abonner • ${creator.price} €/mois`}
-              </button>
-
-              <Link href="/messages" className="flex-1 border border-zinc-700 hover:border-rose-500 py-6 text-center rounded-3xl font-medium transition">
-                Envoyer un message
-              </Link>
-            </div>
-          </div>
+    <div className="min-h-screen bg-zinc-950 py-12">
+      <div className="max-w-2xl mx-auto px-6">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4">Vérification du profil créateur</h1>
+          <p className="text-zinc-400">Cette étape est obligatoire pour apparaître sur le site et gagner la confiance des acheteurs.</p>
         </div>
 
-        {/* Galerie exemple */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-semibold mb-8">Derniers articles portés</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1,2,3,4,5,6,7,8].map(i => (
-              <img 
-                key={i}
-                src={`https://picsum.photos/id/${60 + i}/400/400`} 
-                alt="item" 
-                className="rounded-3xl aspect-square object-cover hover:scale-105 transition" 
-              />
-            ))}
+        <div className="card p-10">
+          <div className="mb-10">
+            <h3 className="font-semibold mb-3">1. Selfie de vérification</h3>
+            <p className="text-sm text-zinc-400 mb-4">Prends une photo de toi tenant une feuille avec écrit « MyWornSkin » + la date du jour.</p>
+            <label className="block border-2 border-dashed border-zinc-700 hover:border-rose-500 rounded-3xl p-12 text-center cursor-pointer">
+              <input type="file" accept="image/*" onChange={handleSelfieUpload} className="hidden" />
+              {selfie ? (
+                <img src={selfie} alt="selfie" className="mx-auto max-h-64 rounded-2xl" />
+              ) : (
+                <div className="text-6xl mb-4">📸</div>
+              )}
+            </label>
           </div>
+
+          <div className="mb-12">
+            <h3 className="font-semibold mb-3">2. Pièce d’identité</h3>
+            <p className="text-sm text-zinc-400 mb-4">Carte d’identité, passeport ou permis (recto uniquement).</p>
+            <label className="block border-2 border-dashed border-zinc-700 hover:border-rose-500 rounded-3xl p-12 text-center cursor-pointer">
+              <input type="file" accept="image/*" onChange={handleIdCardUpload} className="hidden" />
+              {idCard ? (
+                <img src={idCard} alt="id" className="mx-auto max-h-64 rounded-2xl" />
+              ) : (
+                <div className="text-6xl mb-4">🪪</div>
+              )}
+            </label>
+          </div>
+
+          <button
+            onClick={submitVerification}
+            disabled={!selfie || !idCard || loading}
+            className="btn-primary w-full py-6 text-lg"
+          >
+            {loading ? "Envoi en cours..." : "Envoyer pour vérification"}
+          </button>
+
+          {status === 'submitted' && (
+            <div className="mt-8 text-center text-emerald-400">
+              Documents envoyés avec succès.<br />
+              Vous serez notifié dès validation par l’administrateur.
+            </div>
+          )}
         </div>
       </div>
     </div>
