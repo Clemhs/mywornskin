@@ -25,11 +25,7 @@ export default function Sell() {
         return;
       }
       const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setImages((prev) => [...prev, event.target!.result as string]);
-        }
-      };
+      reader.onload = (event) => setImages((prev) => [...prev, event.target!.result as string]);
       reader.readAsDataURL(file);
     });
   };
@@ -46,7 +42,6 @@ export default function Sell() {
     }
 
     setUploading(true);
-
     setTimeout(() => {
       setUploading(false);
       setOrderPlaced(true);
@@ -55,18 +50,18 @@ export default function Sell() {
   };
 
   const downloadNeutralLabel = () => {
-    const labelContent = `
+    alert(`📄 Étiquette neutre générée !
+
 Adresse de l'acheteur :
 Jean Dupont
 123 Rue des Lilas
 75000 Paris
 
-Mention : Contenu personnel - Ne pas mentionner le contenu
+Mention : Contenu personnel
 
 MyWornSkin - Commande #MW-${Date.now().toString().slice(-6)}
-    `.trim();
 
-    alert("📄 Étiquette neutre générée !\n\n" + labelContent + "\n\n(Copiez ce texte ou on générera un vrai PDF plus tard)");
+(Imprimez et collez sur votre colis)`);
   };
 
   return (
@@ -79,7 +74,7 @@ MyWornSkin - Commande #MW-${Date.now().toString().slice(-6)}
 
         {!orderPlaced ? (
           <form onSubmit={handleSubmit} className="card p-10">
-            {/* Upload photos, titre, prix, taille, état, description... (identique à avant) */}
+            {/* Upload photos */}
             <div className="mb-12">
               <label className="block text-lg font-semibold mb-4">Photos de ta pièce</label>
               <label className="block border-2 border-dashed border-zinc-700 hover:border-rose-500 rounded-3xl p-16 text-center cursor-pointer transition">
@@ -94,17 +89,45 @@ MyWornSkin - Commande #MW-${Date.now().toString().slice(-6)}
                   {images.map((img, index) => (
                     <div key={index} className="relative group rounded-2xl overflow-hidden">
                       <img src={img} alt="preview" className="w-full aspect-square object-cover" />
-                      <button type="button" onClick={() => removeImage(index)} className="absolute top-3 right-3 bg-black/70 hover:bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-xl">✕</button>
+                      <button type="button" onClick={() => removeImage(index)} className="absolute top-3 right-3 bg-black/70 hover:bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-xl transition">✕</button>
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Autres champs du formulaire (titre, prix, etc.) - je les garde courts pour ne pas allonger */}
+            {/* Titre */}
             <div className="mb-8">
               <label className="block text-sm font-medium mb-3">Titre de l’annonce</label>
               <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Ex: Culotte en dentelle noire portée 3 jours" className="input w-full" required />
+            </div>
+
+            {/* Prix, Taille, État */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+              <div>
+                <label className="block text-sm font-medium mb-3">Prix (€)</label>
+                <input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} placeholder="29.90" className="input w-full" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-3">Taille</label>
+                <select value={formData.size} onChange={(e) => setFormData({ ...formData, size: e.target.value })} className="input w-full">
+                  <option value="">Choisir</option>
+                  <option value="XS">XS</option>
+                  <option value="S">S</option>
+                  <option value="M">M</option>
+                  <option value="L">L</option>
+                  <option value="XL">XL</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-3">État</label>
+                <select value={formData.condition} onChange={(e) => setFormData({ ...formData, condition: e.target.value })} className="input w-full">
+                  <option value="Neuf avec étiquette">Neuf avec étiquette</option>
+                  <option value="Excellent état">Excellent état</option>
+                  <option value="Très bon état">Très bon état</option>
+                  <option value="Bon état">Bon état</option>
+                </select>
+              </div>
             </div>
 
             <button type="submit" disabled={uploading || images.length === 0} className="btn-primary w-full py-6 text-lg">
