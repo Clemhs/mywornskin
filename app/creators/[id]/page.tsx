@@ -1,104 +1,113 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 
-const creatorsData: any = {
-  1: { 
-    username: "LilaNoir", 
-    avatar: "https://picsum.photos/id/64/300/300", 
-    banner: "https://picsum.photos/id/1015/1200/400", 
-    bio: "Je partage ce que j’ai porté avec envie...", 
-    followers: "12.4k", 
-    items: 87, 
-    joined: "Mars 2025", 
+const creators = [
+  {
+    id: '1',
+    username: '@LilaNoir',
+    name: 'Lila Noir',
+    avatar: 'https://picsum.photos/id/64/300/300',
+    banner: 'https://picsum.photos/id/1015/800/400',
+    bio: 'Vêtements portés avec passion • Odeurs intimes garanties • 127 ventes',
+    price: 9.90,
     verified: true,
-    volumeBadge: 100,
-    longevity: 1 
+    volumeBadge: 200,
+    longevity: '1 an',
   },
-  2: { 
-    username: "VelvetMuse", 
-    avatar: "https://picsum.photos/id/65/300/300", 
-    banner: "https://picsum.photos/id/102/1200/400", 
-    bio: "Des vêtements qui ont vécu avec moi...", 
-    followers: "8.9k", 
-    items: 64, 
-    joined: "Janvier 2025", 
-    verified: true,
-    volumeBadge: 50,
-    longevity: 2 
-  },
-  3: { 
-    username: "SatinSecret", 
-    avatar: "https://picsum.photos/id/66/300/300", 
-    banner: "https://picsum.photos/id/1033/1200/400", 
-    bio: "Ce que je portais quand je me sentais belle...", 
-    followers: "15.2k", 
-    items: 31, 
-    joined: "Février 2025", 
-    verified: false,
-    volumeBadge: 10,
-    longevity: 0 
-  },
-};
+  // Ajoute d'autres créateurs si tu veux
+];
 
 export default function CreatorProfile() {
   const params = useParams();
-  const id = Number(params.id);
-  const creator = creatorsData[id];
+  const router = useRouter();
+  const creator = creators.find(c => c.id === params.id);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
-  const [subscribed, setSubscribed] = useState(false);
-
-  if (!creator) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-2xl">Créateur non trouvé</div>;
+  if (!creator) {
+    return <div className="min-h-screen flex items-center justify-center text-2xl">Créateur non trouvé</div>;
+  }
 
   const handleSubscribe = () => {
-    setSubscribed(true);
-    alert(`✅ Abonnement activé à @${creator.username}`);
+    setIsSubscribed(true);
+    alert(`✅ Abonnement activé à ${creator.username} pour 9,90 €/mois !`);
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 pb-20">
-      <div className="relative h-80 md:h-96">
-        <img src={creator.banner} alt="" className="w-full h-full object-cover" />
+    <div className="min-h-screen bg-zinc-950">
+      {/* Banner */}
+      <div className="h-80 relative">
+        <img src={creator.banner} alt="banner" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/70 to-zinc-950" />
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 -mt-20 relative z-10">
+      <div className="max-w-4xl mx-auto px-6 -mt-20 relative z-10">
         <div className="flex flex-col md:flex-row gap-8">
-          <div className="flex-shrink-0 -mt-12 md:-mt-16">
-            <div className="relative">
+          {/* Avatar + Badges */}
+          <div className="flex-shrink-0 text-center md:text-left">
+            <div className="relative mx-auto md:mx-0 w-48 h-48">
               <img 
                 src={creator.avatar} 
-                alt={creator.username} 
-                className="w-40 h-40 rounded-3xl border-4 border-zinc-900 object-cover" 
+                alt={creator.name} 
+                className="w-48 h-48 rounded-full border-4 border-zinc-900 object-cover" 
               />
-              
-              {/* Badge Vérifié */}
               {creator.verified && (
-                <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">✓ Vérifié</div>
-              )}
-
-              {/* Badge Volume */}
-              {creator.volumeBadge && (
-                <div className="absolute -top-4 -left-4 bg-zinc-900 border-2 border-rose-500 text-white text-xl font-bold w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg">
-                  {creator.volumeBadge}
+                <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1">
+                  ✓ Vérifié
                 </div>
               )}
             </div>
+
+            {creator.volumeBadge && (
+              <div className="mt-4 inline-flex items-center gap-2 bg-zinc-900 border border-rose-500/30 rounded-2xl px-5 py-2">
+                <span className="text-2xl">🔥</span>
+                <span className="font-bold text-lg">{creator.volumeBadge}</span>
+                <span className="text-sm text-zinc-400">ventes</span>
+              </div>
+            )}
+
+            {creator.longevity && (
+              <div className="mt-3 text-sm text-amber-400 font-medium">
+                🏆 {creator.longevity} sur la plateforme
+              </div>
+            )}
           </div>
 
+          {/* Infos */}
           <div className="flex-1 pt-6">
-            <div className="flex justify-between">
-              <div>
-                <h1 className="text-5xl font-bold">@{creator.username}</h1>
-                <p className="text-rose-400 mt-1">{creator.followers} abonnés • {creator.items} pièces vendues</p>
-              </div>
-              <button onClick={handleSubscribe} className="btn-primary px-10 py-4">
-                S'abonner • 9,90 €/mois
-              </button>
-            </div>
+            <h1 className="text-4xl font-bold">{creator.name}</h1>
+            <p className="text-rose-400 text-xl">{creator.username}</p>
+            <p className="mt-6 text-zinc-300 leading-relaxed">{creator.bio}</p>
 
-            <p className="mt-10 text-zinc-300 text-[17px] leading-relaxed">{creator.bio}</p>
+            <div className="mt-10 flex gap-4">
+              <button 
+                onClick={handleSubscribe}
+                className="btn-primary flex-1 py-6 text-lg font-semibold"
+              >
+                {isSubscribed ? "✓ Abonné" : `S'abonner • ${creator.price} €/mois`}
+              </button>
+
+              <Link href="/messages" className="flex-1 border border-zinc-700 hover:border-rose-500 py-6 text-center rounded-3xl font-medium transition">
+                Envoyer un message
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Galerie exemple */}
+        <div className="mt-16">
+          <h2 className="text-2xl font-semibold mb-8">Derniers articles portés</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1,2,3,4,5,6,7,8].map(i => (
+              <img 
+                key={i}
+                src={`https://picsum.photos/id/${60 + i}/400/400`} 
+                alt="item" 
+                className="rounded-3xl aspect-square object-cover hover:scale-105 transition" 
+              />
+            ))}
           </div>
         </div>
       </div>
