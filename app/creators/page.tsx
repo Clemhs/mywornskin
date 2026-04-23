@@ -1,6 +1,6 @@
 'use client';
 
-// === V16 - PIÈCES 2× PLUS PETITES + CADRES MUSÉE GRAVÉS LUXUEUX ===
+// V20 - Cadres animés Shimmering Frame (style Steam) - Rose / Argent / Or
 
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
@@ -14,9 +14,9 @@ export default function Creators() {
   const creators = [
     { id: 1, username: "Lila Noir", avatar: "https://picsum.photos/id/1011/280/280", banner: "https://picsum.photos/id/1005/800/320", verified: true, new: true, price: 49, bio: "Vêtements portés avec passion • Odeur garantie", badge: 10, frame: null },
     { id: 2, username: "Velvet Muse", avatar: "https://picsum.photos/id/1009/280/280", banner: "https://picsum.photos/id/1014/800/320", verified: true, new: false, price: 39, bio: "Sensualité en édition limitée", badge: 100, frame: null },
-    { id: 3, username: "Sienna Rose", avatar: "https://picsum.photos/id/1006/280/280", banner: "https://picsum.photos/id/203/800/320", verified: false, new: true, price: 55, bio: "Chaque pièce raconte une histoire", badge: null, frame: "bronze" },
+    { id: 3, username: "Sienna Rose", avatar: "https://picsum.photos/id/1006/280/280", banner: "https://picsum.photos/id/203/800/320", verified: false, new: true, price: 55, bio: "Chaque pièce raconte une histoire", badge: null, frame: "rose" },
     { id: 4, username: "Nova Lune", avatar: "https://picsum.photos/id/1012/280/280", banner: "https://picsum.photos/id/160/800/320", verified: true, new: false, price: 65, bio: "Nuits intenses • Souvenirs à emporter", badge: 100, frame: "silver" },
-    { id: 5, username: "Luna Velvet", avatar: "https://picsum.photos/id/1001/280/280", banner: "https://picsum.photos/id/201/800/320", verified: false, new: true, price: 45, bio: "Douceur et mystère", badge: null, frame: null },
+    { id: 5, username: "Luna Velvet", avatar: "https://picsum.photos/id/1001/280/280", banner: "https://picsum.photos/id/201/800/320", verified: false, new: true, price: 45, bio: "Douceur et mystère", badge: null, frame: "gold" },
   ];
 
   const filteredCreators = useMemo(() => {
@@ -27,16 +27,6 @@ export default function Creators() {
       return matchesSearch;
     });
   }, [filter, search]);
-
-  const CoinBadge = ({ number }: { number: number }) => (
-    <svg width="26" height="26" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-xl">
-      <circle cx="26" cy="26" r="23" fill="#F8D38A" stroke="#E89C3A" strokeWidth="6"/>
-      <circle cx="26" cy="26" r="15" fill="#F5C06E" stroke="#E89C3A" strokeWidth="3"/>
-      <text x="26" y="31" textAnchor="middle" fontSize="14" fontWeight="700" fill="#2C1810" fontFamily="system-ui, sans-serif">
-        {number}
-      </text>
-    </svg>
-  );
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-12">
@@ -63,25 +53,20 @@ export default function Creators() {
           {filteredCreators.map((creator) => (
             <Link key={creator.id} href={`/creators/${creator.id}`} className="card group overflow-hidden">
               <div className="relative">
-                {/* Bannière avec cadre parfait */}
                 <div className={`relative rounded-3xl overflow-hidden ${creator.frame ? 'p-3' : ''}`}>
                   <img 
                     src={creator.banner} 
                     alt={creator.username} 
-                    className="w-full h-48 object-cover rounded-3xl"
+                    className="w-full h-48 object-cover rounded-3xl" 
                   />
-                  
-                  {/* Cadre musée gravé amélioré */}
+
+                  {/* Cadre animé Shimmering Frame */}
                   {creator.frame && (
-                    <div className={`absolute inset-0 rounded-3xl pointer-events-none ring-1 ring-inset ring-white/10
-                      ${creator.frame === 'bronze' 
-                        ? 'border-[14px] border-amber-700 shadow-inner' 
-                        : 'border-[14px] border-zinc-300 shadow-inner'}`} 
-                    />
+                    <div className={`shimmer-frame absolute inset-0 rounded-3xl pointer-events-none ${creator.frame}`} />
                   )}
                 </div>
 
-                {/* Avatar + badge */}
+                {/* Avatar + badge PNG (petit et discret) */}
                 <div className="absolute -bottom-8 left-6">
                   <div className="relative">
                     <img 
@@ -90,9 +75,11 @@ export default function Creators() {
                       className="w-20 h-20 rounded-3xl ring-4 ring-zinc-900 object-cover" 
                     />
                     {creator.badge && (
-                      <div className="absolute -top-1 -right-1">
-                        <CoinBadge number={creator.badge} />
-                      </div>
+                      <img 
+                        src={`/badges/${creator.badge}.png`} 
+                        alt="badge" 
+                        className="absolute -top-1 -right-1 w-8 h-8 drop-shadow-2xl"
+                      />
                     )}
                   </div>
                 </div>
@@ -104,15 +91,36 @@ export default function Creators() {
                   <div className="text-3xl font-semibold text-rose-400">{creator.price}€</div>
                 </div>
                 <p className="text-sm text-zinc-400 mt-1 line-clamp-2">{creator.bio}</p>
-
-                <button className="btn-primary w-full mt-8 py-4 text-lg font-medium">
-                  S’abonner
-                </button>
+                <button className="btn-primary w-full mt-8 py-4 text-lg font-medium">S’abonner</button>
               </div>
             </Link>
           ))}
         </div>
       </div>
+
+      {/* Styles des cadres animés Shimmering Frame */}
+      <style jsx>{`
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 300% 0; }
+        }
+        .shimmer-frame {
+          animation: shimmer 4s linear infinite;
+          background: linear-gradient(
+            90deg,
+            transparent 40%,
+            rgba(255,255,255,0.9) 50%,
+            transparent 60%
+          );
+          background-size: 200% 100%;
+          box-shadow: 
+            0 0 15px -2px currentColor,
+            inset 0 0 15px -2px currentColor;
+        }
+        .shimmer-frame.rose { color: #f472b6; box-shadow: 0 0 20px -3px #f472b6, inset 0 0 20px -3px #f472b6; }
+        .shimmer-frame.silver { color: #e2e8f0; box-shadow: 0 0 20px -3px #e2e8f0, inset 0 0 20px -3px #e2e8f0; }
+        .shimmer-frame.gold { color: #fbbf24; box-shadow: 0 0 20px -3px #fbbf24, inset 0 0 20px -3px #fbbf24; }
+      `}</style>
     </div>
   );
 }
