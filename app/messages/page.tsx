@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function Messages() {
+  const { t } = useLanguage();
   const [showConversations, setShowConversations] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState(0);
   const [message, setMessage] = useState('');
@@ -38,20 +40,19 @@ export default function Messages() {
 
   return (
     <div className="h-screen bg-zinc-950 flex flex-col overflow-hidden">
-      {/* Header */}
       <div className="h-16 border-b border-zinc-800 flex items-center px-4 justify-between bg-zinc-900 z-50">
         <button 
           onClick={() => setShowConversations(!showConversations)}
-          className="md:hidden p-3"
+          className="md:hidden p-3 text-lg"
         >
-          Conversations
+          ←
         </button>
-        <h1 className="font-semibold text-lg">Messages</h1>
+        <h1 className="font-semibold text-lg">{t('messages') || "Messages"}</h1>
         <div className="w-8" />
       </div>
 
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Liste des conversations (mobile overlay + desktop sidebar) */}
+        {/* Liste conversations */}
         <div className={`${showConversations ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 absolute md:relative w-full md:w-96 h-full bg-zinc-900 border-r border-zinc-800 transition-transform z-40 md:z-auto overflow-y-auto`}>
           {conversations.map((conv, i) => (
             <div 
@@ -68,7 +69,7 @@ export default function Messages() {
           ))}
         </div>
 
-        {/* Zone de chat */}
+        {/* Zone chat */}
         <div className="flex-1 flex flex-col h-full">
           <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
             {messages.map((msg) => (
@@ -80,10 +81,10 @@ export default function Messages() {
             ))}
           </div>
 
-          {/* Zone d'écriture */}
+          {/* Zone saisie */}
           <div className="p-4 border-t border-zinc-800 bg-zinc-900">
             <div className="flex gap-3 items-center">
-              <label className="p-3 hover:bg-zinc-800 rounded-2xl cursor-pointer">
+              <label className="p-3 hover:bg-zinc-800 rounded-2xl cursor-pointer text-2xl">
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
@@ -100,13 +101,13 @@ export default function Messages() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Écris un message..."
+                placeholder={t('writeMessage') || "Écris un message..."}
                 className="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 focus:outline-none focus:border-rose-500"
               />
 
               <button 
                 onClick={sendMessage}
-                className="w-12 h-12 bg-rose-600 hover:bg-rose-500 rounded-2xl flex items-center justify-center text-xl transition"
+                className="w-12 h-12 bg-rose-600 hover:bg-rose-500 rounded-2xl flex items-center justify-center text-2xl transition"
               >
                 →
               </button>
