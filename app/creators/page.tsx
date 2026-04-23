@@ -1,6 +1,6 @@
 'use client';
 
-// === V14 - BADGES PIÈCES MÉTALLIQUES LUXUEUSES (SVG amélioré) ===
+// === V15 - PIÈCES RÉDUITES x2 + CADRES MUSÉE GRAVÉS ===
 
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
@@ -29,32 +29,12 @@ export default function Creators() {
   }, [filter, search]);
 
   const CoinBadge = ({ number }: { number: number }) => (
-    <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">
-      {/* Cercle extérieur brillant */}
-      <circle cx="26" cy="26" r="24" fill="#F8D38A" stroke="#E89C3A" strokeWidth="6"/>
-      {/* Cercle intérieur avec relief */}
-      <circle cx="26" cy="26" r="17" fill="#F5C06E" stroke="#E89C3A" strokeWidth="3"/>
-      {/* Effet de brillance métallique */}
-      <circle cx="26" cy="26" r="13" fill="url(#metalGradient)" opacity="0.85"/>
-      {/* Nombre en relief */}
-      <text 
-        x="26" 
-        y="33" 
-        textAnchor="middle" 
-        fontSize="21" 
-        fontWeight="700" 
-        fill="#2C1810" 
-        fontFamily="system-ui, sans-serif"
-        style={{ filter: 'drop-shadow(1px 1px 1px rgba(0,0,0,0.3))' }}
-      >
+    <svg width="38" height="38" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl">
+      <circle cx="26" cy="26" r="23" fill="#F8D38A" stroke="#E89C3A" strokeWidth="5"/>
+      <circle cx="26" cy="26" r="16" fill="#F5C06E" stroke="#E89C3A" strokeWidth="3"/>
+      <text x="26" y="32" textAnchor="middle" fontSize="19" fontWeight="700" fill="#2C1810" fontFamily="system-ui, sans-serif">
         {number}
       </text>
-      <defs>
-        <linearGradient id="metalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FFF7D9"/>
-          <stop offset="100%" stopColor="#E8B46A"/>
-        </linearGradient>
-      </defs>
     </svg>
   );
 
@@ -79,8 +59,11 @@ export default function Creators() {
               <div className="relative">
                 <img src={creator.banner} alt={creator.username} className="w-full h-48 object-cover" />
 
+                {/* Cadre musée gravé amélioré */}
                 {creator.frame && (
-                  <div className={`absolute inset-0 border-[18px] rounded-3xl pointer-events-none ${creator.frame === 'bronze' ? 'border-amber-700' : 'border-zinc-300'}`} />
+                  <div className={`absolute inset-0 border-[14px] rounded-3xl pointer-events-none ring-1 ring-inset ring-white/10
+                    ${creator.frame === 'bronze' ? 'border-amber-700' : 'border-zinc-300'}`} 
+                  />
                 )}
 
                 <div className="absolute -bottom-8 left-6">
