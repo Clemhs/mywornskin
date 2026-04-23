@@ -1,6 +1,6 @@
 'use client';
 
-// === FORCE CLEAN BUILD V5 - 23 AVRIL 2025 - PHOTOS CRÉATRICES + BADGES PIÈCES MÉTALLIQUES + CADRES MUSÉE ===
+// === FORCE CLEAN BUILD V6 - 23 AVRIL 2025 - BADGES PIÈCES MÉTALLIQUES + CADRES MUSÉE ÉPAIS ===
 
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
@@ -14,7 +14,7 @@ export default function Creators() {
       id: 1,
       username: "Lila Noir",
       avatar: "https://picsum.photos/id/1011/280/280",
-      banner: "https://picsum.photos/id/1005/800/320",
+      banner: "https://picsum.photos/id/201/800/320",
       verified: true,
       new: true,
       price: 49,
@@ -25,8 +25,8 @@ export default function Creators() {
     {
       id: 2,
       username: "Velvet Muse",
-      avatar: "https://picsum.photos/id/1009/280/280",
-      banner: "https://picsum.photos/id/1014/800/320",
+      avatar: "https://picsum.photos/id/1005/280/280",
+      banner: "https://picsum.photos/id/202/800/320",
       verified: true,
       new: false,
       price: 39,
@@ -37,8 +37,8 @@ export default function Creators() {
     {
       id: 3,
       username: "Sienna Rose",
-      avatar: "https://picsum.photos/id/1006/280/280",
-      banner: "https://picsum.photos/id/102/800/320",
+      avatar: "https://picsum.photos/id/1009/280/280",
+      banner: "https://picsum.photos/id/203/800/320",
       verified: false,
       new: true,
       price: 55,
@@ -49,8 +49,8 @@ export default function Creators() {
     {
       id: 4,
       username: "Nova Lune",
-      avatar: "https://picsum.photos/id/1012/280/280",
-      banner: "https://picsum.photos/id/160/800/320",
+      avatar: "https://picsum.photos/id/1014/280/280",
+      banner: "https://picsum.photos/id/204/800/320",
       verified: true,
       new: false,
       price: 65,
@@ -61,8 +61,8 @@ export default function Creators() {
     {
       id: 5,
       username: "Luna Velvet",
-      avatar: "https://picsum.photos/id/1001/280/280",
-      banner: "https://picsum.photos/id/201/800/320",
+      avatar: "https://picsum.photos/id/1006/280/280",
+      banner: "https://picsum.photos/id/205/800/320",
       verified: false,
       new: true,
       price: 45,
@@ -114,8 +114,8 @@ export default function Creators() {
 
                 {/* Cadre musée large et gravé */}
                 {creator.frame && (
-                  <div className={`absolute inset-0 border-[10px] rounded-3xl pointer-events-none
-                    ${creator.frame === 'bronze' ? 'border-amber-700' : 'border-zinc-300'}`} 
+                  <div className={`absolute inset-0 border-[12px] rounded-3xl pointer-events-none
+                    ${creator.frame === 'bronze' ? 'border-amber-700 shadow-inner' : 'border-zinc-300 shadow-inner'}`} 
                   />
                 )}
 
@@ -128,7 +128,7 @@ export default function Creators() {
                       className="w-20 h-20 rounded-3xl ring-4 ring-zinc-900 object-cover"
                     />
                     {creator.badge && (
-                      <div className="absolute -top-2 -right-2 bg-gradient-to-br from-rose-300 via-rose-400 to-amber-400 text-white text-3xl font-bold w-11 h-11 rounded-2xl flex items-center justify-center shadow-2xl ring-4 ring-zinc-900 drop-shadow-xl">
+                      <div className="absolute -top-1 -right-1 bg-gradient-to-br from-rose-200 via-rose-400 to-amber-400 text-zinc-950 text-3xl font-bold w-11 h-11 rounded-2xl flex items-center justify-center shadow-2xl ring-4 ring-zinc-900 drop-shadow-2xl">
                         {creator.badge}
                       </div>
                     )}
