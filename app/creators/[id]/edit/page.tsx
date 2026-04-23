@@ -1,6 +1,6 @@
 'use client';
 
-// V9 - Intégration Supabase complète avec pending_*
+// V9 - Intégration Supabase complète avec pending_avatar_url + pending_banner_url
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -16,8 +16,8 @@ export default function CreatorEdit() {
   const params = useParams();
   const id = params.id as string;
 
-  const [avatar, setAvatar] = useState("");
-  const [banner, setBanner] = useState("");
+  const [avatar, setAvatar] = useState("https://picsum.photos/id/1011/280/280");
+  const [banner, setBanner] = useState("https://picsum.photos/id/1005/1200/400");
   const [pendingAvatar, setPendingAvatar] = useState("");
   const [pendingBanner, setPendingBanner] = useState("");
   const [avatarStatus, setAvatarStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
@@ -25,7 +25,7 @@ export default function CreatorEdit() {
   const [selectedBadge, setSelectedBadge] = useState<number | null>(10);
   const [selectedFrame, setSelectedFrame] = useState<string | null>("rose");
 
-  // Chargement des données depuis Supabase
+  // Chargement des données existantes
   useEffect(() => {
     const loadCreator = async () => {
       const { data } = await supabase
@@ -66,12 +66,12 @@ export default function CreatorEdit() {
       return;
     }
 
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
-    setPendingAvatar(urlData.publicUrl);
+    const { data } = supabase.storage.from('avatars').getPublicUrl(fileName);
+    setPendingAvatar(data.publicUrl);
 
     await supabase
       .from('creators')
-      .update({ pending_avatar_url: urlData.publicUrl })
+      .update({ pending_avatar_url: data.publicUrl })
       .eq('id', id);
   };
 
@@ -94,12 +94,12 @@ export default function CreatorEdit() {
       return;
     }
 
-    const { data: urlData } = supabase.storage.from('banners').getPublicUrl(fileName);
-    setPendingBanner(urlData.publicUrl);
+    const { data } = supabase.storage.from('banners').getPublicUrl(fileName);
+    setPendingBanner(data.publicUrl);
 
     await supabase
       .from('creators')
-      .update({ pending_banner_url: urlData.publicUrl })
+      .update({ pending_banner_url: data.publicUrl })
       .eq('id', id);
   };
 
@@ -159,7 +159,7 @@ export default function CreatorEdit() {
               {avatarStatus === 'rejected' && <p className="mt-3 text-red-400">❌ Refusé</p>}
             </div>
 
-            {/* Badges & Cadres (scroll horizontal) */}
+            {/* Badges */}
             <div>
               <h2 className="text-xl mb-4">Badge</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
@@ -173,6 +173,7 @@ export default function CreatorEdit() {
               </div>
             </div>
 
+            {/* Cadres */}
             <div>
               <h2 className="text-xl mb-4">Cadre</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
