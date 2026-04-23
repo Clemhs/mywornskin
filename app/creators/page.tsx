@@ -1,6 +1,6 @@
 'use client';
 
-// V22 - Cadres Shimmering + numéros 1an / 2ans / 5ans en bas à droite + pièces plus petites
+// V23 - Cadres Shimmering + typographie calligraphique sensuelle + positionnement parfait en bas à droite
 
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
@@ -58,10 +58,11 @@ export default function Creators() {
                   
                   {creator.frame && (
                     <div className={`shimmer-frame absolute inset-0 rounded-3xl pointer-events-none ${creator.frame}`}>
-                      <div className={`absolute bottom-4 right-4 text-sm font-semibold tracking-widest drop-shadow-md
-                        ${creator.frame === 'rose' ? 'text-rose-300' : ''}
-                        ${creator.frame === 'silver' ? 'text-zinc-200' : ''}
-                        ${creator.frame === 'gold' ? 'text-amber-300' : ''}`}>
+                      {/* Texte calligraphique sensuel en bas à droite sur le cadre */}
+                      <div className={`absolute bottom-5 right-5 text-base font-serif italic tracking-widest drop-shadow-md
+                        ${creator.frame === 'rose' ? 'text-rose-200' : ''}
+                        ${creator.frame === 'silver' ? 'text-zinc-100' : ''}
+                        ${creator.frame === 'gold' ? 'text-amber-200' : ''}`}>
                         {creator.frame === 'rose' && '1 an'}
                         {creator.frame === 'silver' && '2 ans'}
                         {creator.frame === 'gold' && '5 ans'}
