@@ -61,19 +61,19 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
-      <div className="relative h-screen flex items-center justify-center pt-12 md:pt-20">
+      <div className="relative h-screen flex items-center justify-center pt-8 md:pt-20">
         <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_65%)] opacity-30"></div>
        
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           
-          {/* Titre MyWornSkin plus haut et visible sur mobile */}
-          <div className="mb-8 md:mb-6">
-            <div className="text-5xl md:text-6xl font-light tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-100 to-zinc-300">
+          {/* Titre MyWornSkin - plus visible et plus haut sur mobile */}
+          <div className="mb-6 md:mb-8">
+            <div className="text-4xl md:text-5xl font-light tracking-[-0.04em] text-white">
               MyWornSkin
             </div>
           </div>
 
-          {/* Bandeau avec petite étoile scintillante */}
+          {/* Bandeau avec petite étoile */}
           <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-8 py-3 rounded-full border border-rose-500/20">
             <span
               className="text-rose-400 text-xl"
@@ -122,7 +122,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Animation étoile */}
       <style jsx>{`
         @keyframes gentleTwinkle {
           0%, 100% { opacity: 0.85; transform: scale(0.95); }
