@@ -79,7 +79,7 @@ export default function Home() {
             <span className="uppercase tracking-[3px] text-sm font-medium">VÊTEMENTS PORTÉS • HISTOIRES INTIMES</span>
           </div>
 
-          <h1 className="hero-text text-6xl md:text-7xl lg:text-8xl mb-10 min-h-[2.4em] leading-none tracking-tighter">
+          <h1 className="hero-text text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl mb-10 min-h-[2.4em] leading-none tracking-tighter">
             {currentText}
           </h1>
 
@@ -89,16 +89,10 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-5 justify-center">
-            <Link
-              href="/creators"
-              className="btn-primary px-12 py-7 text-xl font-medium transition-all hover:scale-105"
-            >
+            <Link href="/creators" className="btn-primary">
               Découvrir les créatrices
             </Link>
-            <Link
-              href="/sell"
-              className="btn-secondary px-12 py-7 text-xl font-medium transition-all hover:scale-105"
-            >
+            <Link href="/sell" className="btn-secondary">
               Mettre ma pièce en vente
             </Link>
           </div>
