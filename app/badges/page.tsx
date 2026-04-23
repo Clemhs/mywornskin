@@ -3,12 +3,11 @@
 import { useState } from 'react';
 
 const volumeLevels = [10, 50, 100, 200, 500, 1000];
-
 const longevityLevels = [
-  { years: 1, label: 'Bronze', color: '#CD7F32' },
-  { years: 2, label: 'Argent', color: '#C0C0C0' },
-  { years: 5, label: 'Or', color: '#FFD700' },
-  { years: 10, label: 'Platine', color: '#E5E4E2' },
+  { months: 6, label: '6 mois', color: 'bronze', frame: 'border-amber-600' },
+  { months: 12, label: '1 an', color: 'argent', frame: 'border-zinc-400' },
+  { months: 36, label: '3 ans', color: 'or', frame: 'border-yellow-400' },
+  { months: 60, label: '5 ans', color: 'platine', frame: 'border-slate-300' },
 ];
 
 export default function Badges() {
@@ -19,59 +18,74 @@ export default function Badges() {
     <div className="min-h-screen bg-zinc-950 py-12">
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Vos Badges</h1>
-          <p className="text-zinc-400">Ils apparaîtront sur votre photo de profil</p>
+          <h1 className="text-5xl font-bold mb-4">Vos Badges MyWornSkin</h1>
+          <p className="text-zinc-400 text-lg">Montrez votre expérience et votre fidélité</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-10">
-          {/* Volume Badges */}
+          {/* Volume Badge */}
           <div className="card p-10">
-            <h2 className="text-2xl font-semibold mb-8">Badge Volume de Ventes</h2>
-            <p className="text-zinc-400 mb-8">Choisissez quel niveau afficher (un seul à la fois) :</p>
-            
+            <h2 className="text-2xl font-semibold mb-8 flex items-center gap-3">
+              <span className="text-3xl">🔥</span> Badge Volume
+            </h2>
+            <p className="text-zinc-400 mb-8">Nombre de vêtements vendus</p>
+
             <div className="grid grid-cols-3 gap-4">
               {volumeLevels.map((num) => (
                 <button
                   key={num}
                   onClick={() => setSelectedVolume(num)}
-                  className={`aspect-square rounded-2xl border flex flex-col items-center justify-center transition-all hover:border-rose-500 ${
-                    selectedVolume === num ? 'border-rose-500 bg-rose-500/10' : 'border-zinc-700'
+                  className={`aspect-square rounded-3xl border-2 flex flex-col items-center justify-center transition-all hover:scale-105 ${
+                    selectedVolume === num 
+                      ? 'border-rose-500 bg-rose-950/50' 
+                      : 'border-zinc-700 hover:border-zinc-500'
                   }`}
                 >
-                  <span className="text-4xl font-bold text-white">{num}</span>
-                  <span className="text-xs text-zinc-500 mt-1">ventes</span>
+                  <span className="text-3xl font-bold text-white">{num}</span>
+                  <span className="text-xs text-zinc-400">ventes</span>
                 </button>
               ))}
             </div>
-
-            <button className="mt-8 w-full py-3.5 rounded-2xl border border-zinc-700 hover:bg-zinc-800">
-              Afficher sur mon profil
-            </button>
+            {selectedVolume && (
+              <p className="mt-6 text-center text-emerald-400 text-sm">
+                Badge {selectedVolume} ventes activé ✓
+              </p>
+            )}
           </div>
 
-          {/* Longevity Frames */}
+          {/* Longevity Frame */}
           <div className="card p-10">
-            <h2 className="text-2xl font-semibold mb-8">Cadre de Longévité</h2>
-            <p className="text-zinc-400 mb-8">Choisissez le cadre autour de votre photo :</p>
-            
-            <div className="space-y-6">
-              {longevityLevels.map((level) => (
+            <h2 className="text-2xl font-semibold mb-8 flex items-center gap-3">
+              <span className="text-3xl">🏆</span> Cadre de Longévité
+            </h2>
+            <p className="text-zinc-400 mb-8">Ancienneté sur la plateforme</p>
+
+            <div className="space-y-4">
+              {longevityLevels.map((lvl) => (
                 <button
-                  key={level.years}
-                  onClick={() => setSelectedLongevity(level.years)}
-                  className={`w-full p-6 rounded-2xl border text-left transition-all flex justify-between items-center ${
-                    selectedLongevity === level.years ? 'border-rose-500 bg-rose-500/10' : 'border-zinc-700 hover:border-zinc-500'
+                  key={lvl.months}
+                  onClick={() => setSelectedLongevity(lvl.months)}
+                  className={`w-full p-5 rounded-3xl border-2 flex justify-between items-center transition-all hover:scale-[1.02] ${
+                    selectedLongevity === lvl.months 
+                      ? 'border-yellow-400 bg-yellow-950/30' 
+                      : 'border-zinc-700 hover:border-zinc-500'
                   }`}
                 >
-                  <div>
-                    <span className="text-xl font-semibold">{level.label}</span>
-                    <span className="text-zinc-400 ml-3">— {level.years} an{level.years > 1 ? 's' : ''}</span>
-                  </div>
-                  <div className="text-3xl">🖼️</div>
+                  <span className="font-medium">{lvl.label}</span>
+                  <span className={`text-sm px-4 py-1 rounded-full ${lvl.frame.replace('border', 'bg')}/10`}>
+                    {lvl.color.toUpperCase()}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="mt-12 text-center">
+          <p className="text-zinc-500 text-sm">
+            Les badges apparaissent automatiquement sur votre photo de profil.<br />
+            Plus vous vendez et restez longtemps, plus vous gagnez en visibilité.
+          </p>
         </div>
       </div>
     </div>
