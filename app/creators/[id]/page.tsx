@@ -1,12 +1,9 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useLanguage } from '../../contexts/LanguageContext';
 
 const creators = [
   {
@@ -37,7 +34,6 @@ const creators = [
 
 export default function CreatorProfile() {
   const params = useParams();
-  const { t } = useLanguage();
   const creator = creators.find(c => c.id === params.id);
   const [isSubscribed, setIsSubscribed] = useState(false);
 
@@ -52,6 +48,7 @@ export default function CreatorProfile() {
 
   return (
     <div className="min-h-screen bg-zinc-950">
+      {/* Banner */}
       <div className="h-80 relative">
         <Image src={creator.banner} alt="banner" fill className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/70 to-zinc-950" />
@@ -59,12 +56,19 @@ export default function CreatorProfile() {
 
       <div className="max-w-4xl mx-auto px-6 -mt-20 relative z-10">
         <div className="flex flex-col md:flex-row gap-8">
+          {/* Avatar + Badges */}
           <div className="flex-shrink-0 text-center md:text-left">
             <div className="relative mx-auto md:mx-0 w-48 h-48">
-              <Image src={creator.avatar} alt={creator.name} width={192} height={192} className="rounded-full border-4 border-zinc-900 object-cover" />
+              <Image 
+                src={creator.avatar} 
+                alt={creator.name} 
+                width={192} 
+                height={192} 
+                className="rounded-full border-4 border-zinc-900 object-cover" 
+              />
               {creator.verified && (
                 <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1">
-                  ✓ {t('verified') || 'Vérifiée'}
+                  ✓ Vérifiée
                 </div>
               )}
             </div>
@@ -76,8 +80,15 @@ export default function CreatorProfile() {
                 <span className="text-sm text-zinc-400">ventes</span>
               </div>
             )}
+
+            {creator.longevity && (
+              <div className="mt-3 text-sm text-amber-400 font-medium">
+                🏆 {creator.longevity} sur la plateforme
+              </div>
+            )}
           </div>
 
+          {/* Infos */}
           <div className="flex-1 pt-6">
             <h1 className="text-4xl font-bold">{creator.name}</h1>
             <p className="text-rose-400 text-xl">{creator.username}</p>
@@ -95,6 +106,21 @@ export default function CreatorProfile() {
                 Envoyer un message
               </Link>
             </div>
+          </div>
+        </div>
+
+        {/* Galerie exemple */}
+        <div className="mt-16">
+          <h2 className="text-2xl font-semibold mb-8">Derniers articles portés</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1,2,3,4,5,6,7,8].map(i => (
+              <img 
+                key={i}
+                src={`https://picsum.photos/id/${60 + i}/400/400`} 
+                alt="item" 
+                className="rounded-3xl aspect-square object-cover hover:scale-105 transition" 
+              />
+            ))}
           </div>
         </div>
       </div>
