@@ -1,6 +1,6 @@
 'use client';
 
-// V6 - Statut visible pour avatar et couverture + tout le reste
+// V6 - Statut visible (En attente / Validé / Refusé) + boutique cosmétiques
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -34,8 +34,8 @@ export default function CreatorEdit() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = () => {
-        setAvatar(reader.result as string);
+      reader.onload = (ev) => {
+        setAvatar(ev.target?.result as string);
         setAvatarStatus('pending');
       };
       reader.readAsDataURL(file);
@@ -46,8 +46,8 @@ export default function CreatorEdit() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = () => {
-        setBanner(reader.result as string);
+      reader.onload = (ev) => {
+        setBanner(ev.target?.result as string);
         setBannerStatus('pending');
       };
       reader.readAsDataURL(file);
@@ -64,7 +64,7 @@ export default function CreatorEdit() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* Aperçu */}
+          {/* Aperçu live */}
           <div className="lg:col-span-5">
             <h2 className="text-xl mb-4">Aperçu en direct</h2>
             <div className="card p-6">
@@ -110,7 +110,7 @@ export default function CreatorEdit() {
               {avatarStatus === 'rejected' && <p className="mt-3 text-red-400">❌ Refusé</p>}
             </div>
 
-            {/* Badges et Cadres (scroll horizontal) */}
+            {/* Badges */}
             <div>
               <h2 className="text-xl mb-4">Badge</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
@@ -124,6 +124,7 @@ export default function CreatorEdit() {
               </div>
             </div>
 
+            {/* Cadres */}
             <div>
               <h2 className="text-xl mb-4">Cadre</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
