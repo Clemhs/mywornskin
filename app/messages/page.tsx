@@ -1,180 +1,119 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-
-type Message = {
-  id: number;
-  text: string;
-  isMine: boolean;
-  image?: string;
-  time: string;
-};
-
-type Conversation = {
-  id: number;
-  username: string;
-  avatar: string;
-  lastMessage: string;
-  unread: number;
-};
-
-const initialConversations: Conversation[] = [
-  { id: 1, username: "LilaNoir", avatar: "https://picsum.photos/id/64/128/128", lastMessage: "Tu as reçu ma dernière photo ?", unread: 2 },
-  { id: 2, username: "VelvetMuse", avatar: "https://picsum.photos/id/65/128/128", lastMessage: "J’ai adoré ce que tu m’as envoyé ❤️", unread: 0 },
-  { id: 3, username: "SatinSecret", avatar: "https://picsum.photos/id/66/128/128", lastMessage: "Quand est-ce que tu remets ça ?", unread: 1 },
-];
+import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 
 export default function Messages() {
-  const [conversations] = useState(initialConversations);
-  const [activeConvId, setActiveConvId] = useState(1);
-  const [messages, setMessages] = useState<Message[]>([
-    { id: 1, text: "Salut ! J’ai bien reçu ta pièce, elle est magnifique 😍", isMine: false, time: "14:32" },
-    { id: 2, text: "Merci ! Elle est encore imprégnée de mon parfum...", isMine: true, time: "14:35" },
-  ]);
-  const [newMessage, setNewMessage] = useState("");
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showConversations, setShowConversations] = useState(false);
+  const [selectedConversation, setSelectedConversation] = useState(0);
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState([
+    { id: 1, text: "Salut, j'adore ton dernier set 😍", isMe: false },
+    { id: 2, text: "Merci ! Tu veux que je te montre plus ?", isMe: true },
+  ]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const activeConv = conversations.find(c => c.id === activeConvId);
+  const conversations = [
+    { id: 0, name: "Lila Noir", avatar: "https://picsum.photos/id/64/128/128", lastMsg: "Tu as reçu ma vidéo ?" },
+    { id: 1, name: "Velvet Muse", avatar: "https://picsum.photos/id/65/128/128", lastMsg: "J'ai porté ça hier soir..." },
+    { id: 2, name: "Sienna Rose", avatar: "https://picsum.photos/id/66/128/128", lastMsg: "Envoie-moi ta demande 😉" },
+  ];
 
   const sendMessage = () => {
-    if (!newMessage.trim() && !selectedImage) return;
-
-    const newMsg: Message = {
-      id: Date.now(),
-      text: newMessage.trim(),
-      isMine: true,
-      image: selectedImage || undefined,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setMessages(prev => [...prev, newMsg]);
-    setNewMessage("");
-    setSelectedImage(null);
-  };
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => setSelectedImage(event.target?.result as string);
-      reader.readAsDataURL(file);
+    if (message.trim() || selectedImage) {
+      setMessages([...messages, { 
+        id: Date.now(), 
+        text: message || "📸 Photo envoyée", 
+        isMe: true 
+      }]);
+      setMessage('');
+      setSelectedImage(null);
+      
+      setTimeout(() => {
+        chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' });
+      }, 100);
     }
   };
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
   return (
-    <div className="min-h-screen bg-zinc-950 pt-20 flex flex-col h-screen overflow-hidden">
-      {/* Header Chat */}
-      <div className="border-b border-zinc-800 p-4 bg-zinc-900 flex items-center gap-3">
+    <div className="h-screen bg-zinc-950 flex flex-col overflow-hidden">
+      {/* Header */}
+      <div className="h-16 border-b border-zinc-800 flex items-center px-4 justify-between bg-zinc-900 z-50">
         <button 
           onClick={() => setShowConversations(!showConversations)}
-          className="md:hidden text-3xl pr-4"
+          className="md:hidden p-3"
         >
-          ☰
+          Conversations
         </button>
-        <img src={activeConv?.avatar} alt="" className="w-10 h-10 rounded-2xl" />
-        <div className="flex-1">
-          <p className="font-semibold">@{activeConv?.username}</p>
-          <p className="text-xs text-emerald-400">En ligne</p>
-        </div>
+        <h1 className="font-semibold text-lg">Messages</h1>
+        <div className="w-8" />
       </div>
 
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Sidebar Conversations */}
-        <div className={`w-80 border-r border-zinc-800 bg-zinc-900 flex flex-col absolute md:relative inset-y-0 left-0 z-40 transition-transform duration-300 ${showConversations ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-          <div className="p-6 border-b border-zinc-800">
-            <h2 className="text-2xl font-semibold">Messages</h2>
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            {conversations.map((conv) => (
-              <div
-                key={conv.id}
-                onClick={() => {
-                  setActiveConvId(conv.id);
-                  setShowConversations(false);
-                }}
-                className={`p-5 hover:bg-zinc-800 cursor-pointer flex gap-4 transition ${activeConvId === conv.id ? 'bg-zinc-800' : ''}`}
-              >
-                <img src={conv.avatar} alt="" className="w-12 h-12 rounded-2xl object-cover flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between">
-                    <p className="font-medium truncate">@{conv.username}</p>
-                    {conv.unread > 0 && <span className="bg-rose-600 text-white text-xs px-2 py-0.5 rounded-full">{conv.unread}</span>}
-                  </div>
-                  <p className="text-sm text-zinc-400 truncate">{conv.lastMessage}</p>
-                </div>
+        {/* Liste des conversations (mobile overlay + desktop sidebar) */}
+        <div className={`${showConversations ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 absolute md:relative w-full md:w-96 h-full bg-zinc-900 border-r border-zinc-800 transition-transform z-40 md:z-auto overflow-y-auto`}>
+          {conversations.map((conv, i) => (
+            <div 
+              key={i}
+              onClick={() => { setSelectedConversation(i); setShowConversations(false); }}
+              className={`p-4 border-b border-zinc-800 flex gap-4 cursor-pointer hover:bg-zinc-800 ${selectedConversation === i ? 'bg-zinc-800' : ''}`}
+            >
+              <Image src={conv.avatar} alt="" width={52} height={52} className="rounded-full" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium">{conv.name}</p>
+                <p className="text-sm text-zinc-400 truncate">{conv.lastMsg}</p>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
 
         {/* Zone de chat */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
+        <div className="flex-1 flex flex-col h-full">
+          <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
             {messages.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.isMine ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] px-5 py-3.5 rounded-3xl ${msg.isMine ? 'bg-rose-600' : 'bg-zinc-800'}`}>
-                  {msg.image && <img src={msg.image} alt="" className="rounded-2xl mb-3 max-w-full" />}
-                  {msg.text && <p className="text-[15.5px] leading-relaxed">{msg.text}</p>}
-                  <p className="text-[10px] text-right mt-1 opacity-70">{msg.time}</p>
+              <div key={msg.id} className={`flex ${msg.isMe ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[75%] px-5 py-3.5 rounded-3xl ${msg.isMe ? 'bg-rose-600 text-white' : 'bg-zinc-800'}`}>
+                  {msg.text}
                 </div>
               </div>
             ))}
-            <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
-          <div className="p-4 bg-zinc-900 border-t border-zinc-800">
-            {selectedImage && (
-              <div className="mb-3 flex gap-3 items-center bg-zinc-800 p-3 rounded-2xl">
-                <img src={selectedImage} alt="preview" className="h-16 rounded-xl" />
-                <button onClick={() => setSelectedImage(null)} className="text-red-400">Supprimer</button>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-11 h-11 flex items-center justify-center text-2xl hover:bg-zinc-800 rounded-2xl transition flex-shrink-0"
-              >
+          {/* Zone d'écriture */}
+          <div className="p-4 border-t border-zinc-800 bg-zinc-900">
+            <div className="flex gap-3 items-center">
+              <label className="p-3 hover:bg-zinc-800 rounded-2xl cursor-pointer">
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => setSelectedImage(ev.target?.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }} />
                 📸
-              </button>
+              </label>
 
               <input
                 type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Écris ton message..."
-                className="input flex-1"
+                placeholder="Écris un message..."
+                className="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 focus:outline-none focus:border-rose-500"
               />
 
-              <button
+              <button 
                 onClick={sendMessage}
-                disabled={!newMessage.trim() && !selectedImage}
-                className="btn-primary px-7 py-3.5"
+                className="w-12 h-12 bg-rose-600 hover:bg-rose-500 rounded-2xl flex items-center justify-center text-xl transition"
               >
-                Envoyer
+                →
               </button>
             </div>
           </div>
         </div>
       </div>
-
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleImageSelect} 
-        accept="image/*" 
-        className="hidden" 
-      />
     </div>
   );
 }
