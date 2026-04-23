@@ -1,6 +1,6 @@
 'use client';
 
-// V9 - Intégration Supabase complète avec pending_avatar_url + pending_banner_url
+// V10 - Version complète et robuste
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -8,8 +8,8 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 );
 
 export default function CreatorEdit() {
@@ -25,9 +25,10 @@ export default function CreatorEdit() {
   const [selectedBadge, setSelectedBadge] = useState<number | null>(10);
   const [selectedFrame, setSelectedFrame] = useState<string | null>("rose");
 
-  // Chargement des données existantes
+  // Chargement des données
   useEffect(() => {
     const loadCreator = async () => {
+      if (!id) return;
       const { data } = await supabase
         .from('creators')
         .select('avatar_url, banner_url, pending_avatar_url, pending_banner_url')
@@ -228,3 +229,16 @@ export default function CreatorEdit() {
     </div>
   );
 }
+
+const allBadges = [
+  { id: 10, unlocked: true, price: 0 },
+  { id: 50, unlocked: false, price: 9 },
+  { id: 100, unlocked: true, price: 0 },
+  { id: 500, unlocked: false, price: 29 },
+];
+
+const allFrames = [
+  { id: "rose", name: "1 an", color: "rose", unlocked: true, price: 0 },
+  { id: "silver", name: "2 ans", color: "silver", unlocked: true, price: 0 },
+  { id: "gold", name: "5 ans", color: "gold", unlocked: false, price: 19 },
+];
