@@ -66,24 +66,14 @@ export default function Home() {
        
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           
-          {/* Titre MyWornSkin */}
           <div className="mb-8 md:mb-6">
             <div className="text-5xl md:text-6xl font-light tracking-[-0.04em] text-white">
               MyWornSkin
             </div>
           </div>
 
-          {/* Bandeau avec petite étoile scintillante */}
           <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-8 py-3 rounded-full border border-rose-500/20">
-            <span
-              className="text-rose-400 text-xl"
-              style={{
-                animation: 'gentleTwinkle 3s infinite ease-in-out',
-                textShadow: '0 0 8px rgba(244, 63, 94, 0.6)'
-              }}
-            >
-              ✦
-            </span>
+            <span className="text-rose-400 text-xl" style={{ animation: 'gentleTwinkle 3s infinite ease-in-out', textShadow: '0 0 8px rgba(244, 63, 94, 0.6)' }}>✦</span>
             <span className="uppercase tracking-[3px] text-sm font-medium">VÊTEMENTS PORTÉS • HISTOIRES INTIMES</span>
           </div>
 
@@ -97,10 +87,10 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-5 justify-center">
-            <Link href="/creators" className="btn-primary px-14 py-7 text-xl font-medium">
+            <Link href="/creators" className="btn-primary">
               Découvrir les créatrices
             </Link>
-            <Link href="/sell" className="btn-secondary px-14 py-7 text-xl font-medium">
+            <Link href="/sell" className="btn-secondary">
               Mettre ma pièce en vente
             </Link>
           </div>
@@ -112,7 +102,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Trust bar */}
       <div className="border-b border-zinc-800 py-6 bg-zinc-900/50">
         <div className="max-w-5xl mx-auto px-6 flex flex-wrap justify-center gap-x-12 gap-y-4 text-sm text-zinc-400">
           <div>✅ Tous les profils vérifiés manuellement</div>
