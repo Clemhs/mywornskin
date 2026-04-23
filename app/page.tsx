@@ -1,6 +1,7 @@
 'use client';
 
-// === FORCE CLEAN BUILD - CACHE CLEAR 2025-04-23 ===
+// === FORCE CLEAN BUILD - CACHE CLEAR 2025-04-23 v2 ===
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
