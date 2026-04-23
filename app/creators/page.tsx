@@ -68,7 +68,6 @@ export default function Creators() {
           <p className="text-zinc-400 text-lg">Toutes les femmes qui partagent leur intimité</p>
         </div>
 
-        {/* Filtres */}
         <div className="flex justify-center gap-3 mb-12">
           <button onClick={() => setFilter('all')} className={`px-8 py-3 rounded-3xl transition ${filter === 'all' ? 'bg-rose-600' : 'bg-zinc-900 hover:bg-zinc-800'}`}>
             Toutes
