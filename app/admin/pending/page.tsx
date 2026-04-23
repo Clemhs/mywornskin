@@ -1,39 +1,15 @@
 'use client';
 
-// V3 - Admin Pending - Liens cliquables vers profil + toast feedback
+// V3 - Admin Pending - Liens vers profil + toast feedback
 
 import Link from 'next/link';
 import { useState } from 'react';
 
 export default function AdminPending() {
   const [pendingItems, setPendingItems] = useState([
-    { 
-      id: 1, 
-      creatorId: 3, 
-      creator: "Sienna Rose", 
-      type: "banner", 
-      oldImage: "https://picsum.photos/id/203/800/320", 
-      newImage: "https://picsum.photos/id/1005/1200/400", 
-      date: "il y a 12 min" 
-    },
-    { 
-      id: 2, 
-      creatorId: 4, 
-      creator: "Nova Lune", 
-      type: "avatar", 
-      oldImage: "https://picsum.photos/id/1012/280/280", 
-      newImage: "https://picsum.photos/id/160/280/280", 
-      date: "il y a 47 min" 
-    },
-    { 
-      id: 3, 
-      creatorId: 1, 
-      creator: "Lila Noir", 
-      type: "banner", 
-      oldImage: "https://picsum.photos/id/1005/800/320", 
-      newImage: "https://picsum.photos/id/201/1200/400", 
-      date: "il y a 2h" 
-    },
+    { id: 1, creatorId: 3, creator: "Sienna Rose", type: "banner", oldImage: "https://picsum.photos/id/203/800/320", newImage: "https://picsum.photos/id/1005/1200/400", date: "il y a 12 min" },
+    { id: 2, creatorId: 4, creator: "Nova Lune", type: "avatar", oldImage: "https://picsum.photos/id/1012/280/280", newImage: "https://picsum.photos/id/160/280/280", date: "il y a 47 min" },
+    { id: 3, creatorId: 1, creator: "Lila Noir", type: "banner", oldImage: "https://picsum.photos/id/1005/800/320", newImage: "https://picsum.photos/id/201/1200/400", date: "il y a 2h" },
   ]);
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -94,18 +70,8 @@ export default function AdminPending() {
               </div>
 
               <div className="flex gap-4 mt-8">
-                <button 
-                  onClick={() => handleApprove(item.id)}
-                  className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl font-medium transition"
-                >
-                  ✅ Valider
-                </button>
-                <button 
-                  onClick={() => handleReject(item.id)}
-                  className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-2xl font-medium transition"
-                >
-                  ❌ Refuser
-                </button>
+                <button onClick={() => handleApprove(item.id)} className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl font-medium transition">✅ Valider</button>
+                <button onClick={() => handleReject(item.id)} className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-2xl font-medium transition">❌ Refuser</button>
               </div>
             </div>
           ))}
