@@ -1,6 +1,6 @@
 'use client';
 
-// === V11 - TEST VISUEL FORT POUR FORCER LE CACHE - 23 AVRIL 2025 ===
+// === V11 - VERSION FINALE - BANDEAU ROUGE VISIBLES + BADGES PIÈCES MÉTALLIQUES + CADRES MUSÉE LARGES ===
 
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
@@ -12,11 +12,66 @@ export default function Creators() {
   const [search, setSearch] = useState('');
 
   const creators = [
-    { id: 1, username: "Lila Noir", avatar: "https://picsum.photos/id/1011/280/280", banner: "https://picsum.photos/id/1005/800/320", verified: true, new: true, price: 49, bio: "Vêtements portés avec passion • Odeur garantie", badge: 10, frame: null },
-    { id: 2, username: "Velvet Muse", avatar: "https://picsum.photos/id/1009/280/280", banner: "https://picsum.photos/id/1014/800/320", verified: true, new: false, price: 39, bio: "Sensualité en édition limitée", badge: 100, frame: null },
-    { id: 3, username: "Sienna Rose", avatar: "https://picsum.photos/id/1006/280/280", banner: "https://picsum.photos/id/203/800/320", verified: false, new: true, price: 55, bio: "Chaque pièce raconte une histoire", badge: null, frame: "bronze" },
-    { id: 4, username: "Nova Lune", avatar: "https://picsum.photos/id/1012/280/280", banner: "https://picsum.photos/id/160/800/320", verified: true, new: false, price: 65, bio: "Nuits intenses • Souvenirs à emporter", badge: 100, frame: "silver" },
-    { id: 5, username: "Luna Velvet", avatar: "https://picsum.photos/id/1001/280/280", banner: "https://picsum.photos/id/201/800/320", verified: false, new: true, price: 45, bio: "Douceur et mystère", badge: null, frame: null },
+    {
+      id: 1,
+      username: "Lila Noir",
+      avatar: "https://picsum.photos/id/1011/280/280",
+      banner: "https://picsum.photos/id/1005/800/320",
+      verified: true,
+      new: true,
+      price: 49,
+      bio: "Vêtements portés avec passion • Odeur garantie",
+      badge: 10,
+      frame: null,
+    },
+    {
+      id: 2,
+      username: "Velvet Muse",
+      avatar: "https://picsum.photos/id/1009/280/280",
+      banner: "https://picsum.photos/id/1014/800/320",
+      verified: true,
+      new: false,
+      price: 39,
+      bio: "Sensualité en édition limitée",
+      badge: 100,
+      frame: null,
+    },
+    {
+      id: 3,
+      username: "Sienna Rose",
+      avatar: "https://picsum.photos/id/1006/280/280",
+      banner: "https://picsum.photos/id/203/800/320",
+      verified: false,
+      new: true,
+      price: 55,
+      bio: "Chaque pièce raconte une histoire",
+      badge: null,
+      frame: "bronze",
+    },
+    {
+      id: 4,
+      username: "Nova Lune",
+      avatar: "https://picsum.photos/id/1012/280/280",
+      banner: "https://picsum.photos/id/160/800/320",
+      verified: true,
+      new: false,
+      price: 65,
+      bio: "Nuits intenses • Souvenirs à emporter",
+      badge: 100,
+      frame: "silver",
+    },
+    {
+      id: 5,
+      username: "Luna Velvet",
+      avatar: "https://picsum.photos/id/1001/280/280",
+      banner: "https://picsum.photos/id/201/800/320",
+      verified: false,
+      new: true,
+      price: 45,
+      bio: "Douceur et mystère",
+      badge: null,
+      frame: null,
+    },
   ];
 
   const filteredCreators = useMemo(() => {
@@ -30,17 +85,18 @@ export default function Creators() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-12">
-      {/* TEST VISUEL TRÈS VISIBLE */}
-      <div className="bg-red-600 text-white text-center py-4 text-2xl font-bold">
-        V11 - TEST CACHE - SI TU VOIS CE TEXTE ROUGE → LE NOUVEAU CODE EST CHARGÉ
-      </div>
-
       <div className="max-w-6xl mx-auto px-4 pt-8">
         <h1 className="text-4xl font-semibold mb-2">Découvrir les créatrices</h1>
         <p className="text-zinc-400 mb-8">Des femmes qui partagent leur intimité</p>
 
         <div className="flex flex-col md:flex-row gap-4 mb-10">
-          <input type="text" placeholder="Rechercher une créatrice..." value={search} onChange={(e) => setSearch(e.target.value)} className="input flex-1" />
+          <input
+            type="text"
+            placeholder="Rechercher une créatrice..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="input flex-1"
+          />
           <div className="flex gap-2">
             <button onClick={() => setFilter('all')} className={`btn-secondary px-6 py-3 ${filter === 'all' ? 'bg-zinc-800' : ''}`}>Toutes</button>
             <button onClick={() => setFilter('verified')} className={`btn-secondary px-6 py-3 ${filter === 'verified' ? 'bg-zinc-800' : ''}`}>✅ Vérifiées</button>
@@ -54,15 +110,23 @@ export default function Creators() {
               <div className="relative">
                 <img src={creator.banner} alt={creator.username} className="w-full h-48 object-cover" />
 
+                {/* Cadre musée large et gravé */}
                 {creator.frame && (
-                  <div className={`absolute inset-0 border-[14px] rounded-3xl pointer-events-none ${creator.frame === 'bronze' ? 'border-amber-700' : 'border-zinc-300'}`} />
+                  <div className={`absolute inset-0 border-[16px] rounded-3xl pointer-events-none
+                    ${creator.frame === 'bronze' ? 'border-amber-700' : 'border-zinc-300'}`} 
+                  />
                 )}
 
+                {/* Avatar + Badge style pièce métallique */}
                 <div className="absolute -bottom-8 left-6">
                   <div className="relative">
-                    <img src={creator.avatar} alt={creator.username} className="w-20 h-20 rounded-3xl ring-4 ring-zinc-900 object-cover" />
+                    <img 
+                      src={creator.avatar} 
+                      alt={creator.username}
+                      className="w-20 h-20 rounded-3xl ring-4 ring-zinc-900 object-cover" 
+                    />
                     {creator.badge && (
-                      <div className="absolute -top-1 -right-1 bg-gradient-to-br from-rose-200 via-rose-400 to-amber-400 text-zinc-950 text-3xl font-bold w-11 h-11 rounded-2xl flex items-center justify-center shadow-2xl ring-4 ring-zinc-900">
+                      <div className="absolute -top-1 -right-1 bg-gradient-to-br from-rose-200 via-rose-400 to-amber-400 text-zinc-950 text-4xl font-bold w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl ring-4 ring-zinc-900">
                         {creator.badge}
                       </div>
                     )}
