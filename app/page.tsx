@@ -1,6 +1,6 @@
 'use client';
-// FORCE REDEPLOY - CACHE CLEAR
 
+// === FORCE CLEAN BUILD - CACHE CLEAR 2025-04-23 ===
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
