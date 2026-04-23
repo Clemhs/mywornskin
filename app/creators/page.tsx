@@ -1,6 +1,6 @@
 'use client';
 
-// === V15 - PIÈCES RÉDUITES x2 + CADRES MUSÉE GRAVÉS ===
+// === V16 - PIÈCES 2× PLUS PETITES + CADRES MUSÉE GRAVÉS LUXUEUX ===
 
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
@@ -29,10 +29,10 @@ export default function Creators() {
   }, [filter, search]);
 
   const CoinBadge = ({ number }: { number: number }) => (
-    <svg width="38" height="38" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl">
-      <circle cx="26" cy="26" r="23" fill="#F8D38A" stroke="#E89C3A" strokeWidth="5"/>
-      <circle cx="26" cy="26" r="16" fill="#F5C06E" stroke="#E89C3A" strokeWidth="3"/>
-      <text x="26" y="32" textAnchor="middle" fontSize="19" fontWeight="700" fill="#2C1810" fontFamily="system-ui, sans-serif">
+    <svg width="26" height="26" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-xl">
+      <circle cx="26" cy="26" r="23" fill="#F8D38A" stroke="#E89C3A" strokeWidth="6"/>
+      <circle cx="26" cy="26" r="15" fill="#F5C06E" stroke="#E89C3A" strokeWidth="3"/>
+      <text x="26" y="31" textAnchor="middle" fontSize="14" fontWeight="700" fill="#2C1810" fontFamily="system-ui, sans-serif">
         {number}
       </text>
     </svg>
@@ -45,7 +45,13 @@ export default function Creators() {
         <p className="text-zinc-400 mb-8">Des femmes qui partagent leur intimité</p>
 
         <div className="flex flex-col md:flex-row gap-4 mb-10">
-          <input type="text" placeholder="Rechercher une créatrice..." value={search} onChange={(e) => setSearch(e.target.value)} className="input flex-1" />
+          <input 
+            type="text" 
+            placeholder="Rechercher une créatrice..." 
+            value={search} 
+            onChange={(e) => setSearch(e.target.value)} 
+            className="input flex-1" 
+          />
           <div className="flex gap-2">
             <button onClick={() => setFilter('all')} className={`btn-secondary px-6 py-3 ${filter === 'all' ? 'bg-zinc-800' : ''}`}>Toutes</button>
             <button onClick={() => setFilter('verified')} className={`btn-secondary px-6 py-3 ${filter === 'verified' ? 'bg-zinc-800' : ''}`}>✅ Vérifiées</button>
@@ -57,18 +63,32 @@ export default function Creators() {
           {filteredCreators.map((creator) => (
             <Link key={creator.id} href={`/creators/${creator.id}`} className="card group overflow-hidden">
               <div className="relative">
-                <img src={creator.banner} alt={creator.username} className="w-full h-48 object-cover" />
-
-                {/* Cadre musée gravé amélioré */}
-                {creator.frame && (
-                  <div className={`absolute inset-0 border-[14px] rounded-3xl pointer-events-none ring-1 ring-inset ring-white/10
-                    ${creator.frame === 'bronze' ? 'border-amber-700' : 'border-zinc-300'}`} 
+                {/* Bannière avec cadre parfait */}
+                <div className={`relative rounded-3xl overflow-hidden ${creator.frame ? 'p-3' : ''}`}>
+                  <img 
+                    src={creator.banner} 
+                    alt={creator.username} 
+                    className="w-full h-48 object-cover rounded-3xl"
                   />
-                )}
+                  
+                  {/* Cadre musée gravé amélioré */}
+                  {creator.frame && (
+                    <div className={`absolute inset-0 rounded-3xl pointer-events-none ring-1 ring-inset ring-white/10
+                      ${creator.frame === 'bronze' 
+                        ? 'border-[14px] border-amber-700 shadow-inner' 
+                        : 'border-[14px] border-zinc-300 shadow-inner'}`} 
+                    />
+                  )}
+                </div>
 
+                {/* Avatar + badge */}
                 <div className="absolute -bottom-8 left-6">
                   <div className="relative">
-                    <img src={creator.avatar} alt={creator.username} className="w-20 h-20 rounded-3xl ring-4 ring-zinc-900 object-cover" />
+                    <img 
+                      src={creator.avatar} 
+                      alt={creator.username} 
+                      className="w-20 h-20 rounded-3xl ring-4 ring-zinc-900 object-cover" 
+                    />
                     {creator.badge && (
                       <div className="absolute -top-1 -right-1">
                         <CoinBadge number={creator.badge} />
