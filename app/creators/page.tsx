@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const creators = [
   {
@@ -15,7 +16,6 @@ const creators = [
     price: 9.90,
     verified: true,
     volume: 127,
-    active: true,
   },
   {
     id: '2',
@@ -27,7 +27,6 @@ const creators = [
     price: 12.90,
     verified: true,
     volume: 84,
-    active: true,
   },
   {
     id: '3',
@@ -39,7 +38,6 @@ const creators = [
     price: 8.90,
     verified: false,
     volume: 43,
-    active: true,
   },
   {
     id: '4',
@@ -51,11 +49,11 @@ const creators = [
     price: 11.90,
     verified: true,
     volume: 219,
-    active: false,
   },
 ];
 
 export default function Creators() {
+  const { t } = useLanguage();
   const [filter, setFilter] = useState<'all' | 'verified' | 'new'>('all');
 
   const filteredCreators = creators.filter(creator => {
@@ -68,7 +66,7 @@ export default function Creators() {
     <div className="min-h-screen bg-zinc-950 py-12">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4">Découvre les créatrices</h1>
+          <h1 className="text-5xl font-bold mb-4">{t('discover') || "Découvrir les créatrices"}</h1>
           <p className="text-zinc-400 text-lg">Toutes les femmes qui partagent leur intimité</p>
         </div>
 
