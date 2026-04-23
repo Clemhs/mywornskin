@@ -18,6 +18,8 @@ export default function Creators() {
       new: true,
       price: 49,
       bio: "Vêtements portés avec passion • Odeur garantie",
+      badge: 10,           // petit badge rond
+      frame: null,         // pas de cadre anniversaire
     },
     {
       id: 2,
@@ -28,6 +30,8 @@ export default function Creators() {
       new: false,
       price: 39,
       bio: "Sensualité en édition limitée",
+      badge: 100,
+      frame: null,
     },
     {
       id: 3,
@@ -38,6 +42,32 @@ export default function Creators() {
       new: true,
       price: 55,
       bio: "Chaque pièce raconte une histoire",
+      badge: null,
+      frame: "bronze",     // cadre 1 an
+    },
+    {
+      id: 4,
+      username: "Nova Lune",
+      avatar: "https://picsum.photos/id/1005/128/128",
+      banner: "https://picsum.photos/id/204/800/300",
+      verified: true,
+      new: false,
+      price: 65,
+      bio: "Nuits intenses • Souvenirs à emporter",
+      badge: 100,
+      frame: "silver",     // cadre 2 ans
+    },
+    {
+      id: 5,
+      username: "Luna Velvet",
+      avatar: "https://picsum.photos/id/1009/128/128",
+      banner: "https://picsum.photos/id/205/800/300",
+      verified: false,
+      new: true,
+      price: 45,
+      bio: "Douceur et mystère",
+      badge: null,
+      frame: null,
     },
   ];
 
@@ -78,30 +108,46 @@ export default function Creators() {
             <Link key={creator.id} href={`/creators/${creator.id}`} className="card group overflow-hidden">
               <div className="relative">
                 <Image src={creator.banner} alt="" width={800} height={300} className="w-full h-48 object-cover" />
-                <div className="absolute top-4 right-4 flex gap-2">
-                  {creator.verified && <span className="bg-emerald-500 text-white text-xs px-3 py-1 rounded-2xl font-medium">✓ Vérifiée</span>}
-                  {creator.new && <span className="bg-rose-500 text-white text-xs px-3 py-1 rounded-2xl font-medium">✦ Nouvelle</span>}
+
+                {/* Cadre anniversaire plus large (vert sur ton dessin) */}
+                {creator.frame && (
+                  <div className={`absolute inset-0 border-4 rounded-3xl pointer-events-none transition-all
+                    ${creator.frame === 'bronze' ? 'border-amber-700' : ''}
+                    ${creator.frame === 'silver' ? 'border-zinc-300' : ''}`} 
+                  />
+                )}
+
+                {/* Avatar avec badge(s) */}
+                <div className="absolute -bottom-6 left-6">
+                  <div className="relative">
+                    <Image 
+                      src={creator.avatar} 
+                      alt={creator.username} 
+                      width={80} 
+                      height={80} 
+                      className="rounded-3xl ring-4 ring-zinc-900" 
+                    />
+                    
+                    {/* Petit badge rouge (10 / 100) en haut à droite */}
+                    {creator.badge && (
+                      <div className="absolute -top-1 -right-1 bg-gradient-to-br from-rose-400 to-pink-500 text-white text-xs font-bold w-7 h-7 rounded-2xl flex items-center justify-center shadow-lg ring-2 ring-zinc-900">
+                        {creator.badge}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="p-6">
-                <div className="flex items-center gap-4">
-                  <Image src={creator.avatar} alt="" width={64} height={64} className="rounded-full ring-2 ring-rose-500/30" />
-                  <div className="flex-1">
-                    <p className="font-semibold text-xl">{creator.username}</p>
-                    <p className="text-sm text-zinc-400">{creator.bio}</p>
-                  </div>
+              <div className="pt-12 pb-6 px-6">
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-xl">{creator.username}</p>
+                  <div className="text-3xl font-semibold text-rose-400">{creator.price}€</div>
                 </div>
+                <p className="text-sm text-zinc-400 mt-1">{creator.bio}</p>
 
-                <div className="mt-8 flex items-center justify-between">
-                  <div>
-                    <span className="text-3xl font-semibold text-rose-400">{creator.price}€</span>
-                    <span className="text-zinc-400 text-sm"> / pièce</span>
-                  </div>
-                  <button className="btn-primary px-8 py-4 text-lg font-medium">
-                    S’abonner
-                  </button>
-                </div>
+                <button className="btn-primary w-full mt-8 py-4 text-lg font-medium">
+                  S’abonner
+                </button>
               </div>
             </Link>
           ))}
