@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function Sell() {
+  const { t } = useLanguage();
   const [images, setImages] = useState<string[]>([]);
   const [videos, setVideos] = useState<string[]>([]);
   const [formData, setFormData] = useState({
@@ -18,9 +20,7 @@ export default function Sell() {
     if (files) {
       Array.from(files).forEach(file => {
         const reader = new FileReader();
-        reader.onload = (event) => {
-          setImages(prev => [...prev, event.target?.result as string]);
-        };
+        reader.onload = (event) => setImages(prev => [...prev, event.target?.result as string]);
         reader.readAsDataURL(file);
       });
     }
@@ -31,9 +31,7 @@ export default function Sell() {
     if (files) {
       Array.from(files).forEach(file => {
         const reader = new FileReader();
-        reader.onload = (event) => {
-          setVideos(prev => [...prev, event.target?.result as string]);
-        };
+        reader.onload = (event) => setVideos(prev => [...prev, event.target?.result as string]);
         reader.readAsDataURL(file);
       });
     }
@@ -41,26 +39,25 @@ export default function Sell() {
 
   const handleSubmit = () => {
     if (images.length === 0) {
-      alert("Ajoute au moins une photo de ton vêtement.");
+      alert(t('addAtLeastOnePhoto') || "Ajoute au moins une photo de ton vêtement.");
       return;
     }
-    alert("✅ Annonce publiée ! Elle sera visible après modération (max 24h).");
-    // Ici on pourra plus tard connecter à Supabase
+    alert(t('announcePublished') || "✅ Annonce publiée ! Elle sera visible après modération.");
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 py-12">
       <div className="max-w-3xl mx-auto px-6">
-        <h1 className="text-4xl font-bold text-center mb-12">Vends ton vêtement porté</h1>
+        <h1 className="text-4xl font-bold text-center mb-12">{t('sellItem') || "Vends ton vêtement porté"}</h1>
 
         <div className="card p-10 space-y-10">
-          {/* Upload Photos */}
+          {/* Photos */}
           <div>
-            <h3 className="font-semibold mb-4">Photos (obligatoire - min 3 recommandées)</h3>
+            <h3 className="font-semibold mb-4">{t('photos') || "Photos"} (obligatoire)</h3>
             <label className="block border-2 border-dashed border-zinc-700 hover:border-rose-500 rounded-3xl p-12 text-center cursor-pointer">
               <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
               <div className="text-5xl mb-4">📸</div>
-              <p className="text-rose-400">Clique pour ajouter des photos</p>
+              <p className="text-rose-400">Ajoute tes photos</p>
             </label>
 
             {images.length > 0 && (
@@ -72,17 +69,17 @@ export default function Sell() {
             )}
           </div>
 
-          {/* Upload Vidéo */}
+          {/* Vidéo */}
           <div>
-            <h3 className="font-semibold mb-4">Vidéo (optionnel - très recommandé)</h3>
+            <h3 className="font-semibold mb-4">{t('video') || "Vidéo"} (recommandé)</h3>
             <label className="block border-2 border-dashed border-zinc-700 hover:border-rose-500 rounded-3xl p-12 text-center cursor-pointer">
               <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" />
               <div className="text-5xl mb-4">🎥</div>
-              <p className="text-rose-400">Ajoute une vidéo courte du vêtement porté</p>
+              <p className="text-rose-400">Ajoute une courte vidéo</p>
             </label>
 
             {videos.length > 0 && (
-              <div className="mt-6">
+              <div className="mt-6 space-y-4">
                 {videos.map((vid, i) => (
                   <video key={i} src={vid} controls className="w-full rounded-3xl" />
                 ))}
@@ -94,37 +91,29 @@ export default function Sell() {
           <div className="grid md:grid-cols-2 gap-6">
             <input 
               type="text" 
-              placeholder="Titre de l'annonce" 
+              placeholder={t('title') || "Titre de l'annonce"} 
               className="input" 
               value={formData.title}
               onChange={(e) => setFormData({...formData, title: e.target.value})}
             />
             <input 
               type="number" 
-              placeholder="Prix (€)" 
+              placeholder={t('price') || "Prix (€)"} 
               className="input" 
               value={formData.price}
               onChange={(e) => setFormData({...formData, price: e.target.value})}
             />
-            <select 
-              className="input" 
-              value={formData.size}
-              onChange={(e) => setFormData({...formData, size: e.target.value})}
-            >
-              <option value="">Taille</option>
+            <select className="input" value={formData.size} onChange={(e) => setFormData({...formData, size: e.target.value})}>
+              <option value="">{t('size') || "Taille"}</option>
               <option value="XS">XS</option>
               <option value="S">S</option>
               <option value="M">M</option>
               <option value="L">L</option>
               <option value="XL">XL</option>
             </select>
-            <select 
-              className="input" 
-              value={formData.condition}
-              onChange={(e) => setFormData({...formData, condition: e.target.value})}
-            >
-              <option value="">État</option>
-              <option value="Neuf">Neuf (jamais porté)</option>
+            <select className="input" value={formData.condition} onChange={(e) => setFormData({...formData, condition: e.target.value})}>
+              <option value="">{t('condition') || "État"}</option>
+              <option value="Neuf">Neuf</option>
               <option value="Excellent">Excellent</option>
               <option value="Très bon">Très bon</option>
               <option value="Bon">Bon</option>
@@ -132,14 +121,14 @@ export default function Sell() {
           </div>
 
           <textarea 
-            placeholder="Description détaillée (odeur, sensation, moments portés...)" 
+            placeholder={t('description') || "Description détaillée (odeur, sensation, moments portés...)"} 
             className="input min-h-[140px]"
             value={formData.description}
             onChange={(e) => setFormData({...formData, description: e.target.value})}
           />
 
           <button onClick={handleSubmit} className="btn-primary w-full py-7 text-xl font-semibold">
-            Publier mon annonce
+            {t('publish') || "Publier mon annonce"}
           </button>
         </div>
       </div>
