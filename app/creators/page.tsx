@@ -12,19 +12,19 @@ export default function Creators() {
     {
       id: 1,
       username: "Lila Noir",
-      avatar: "https://picsum.photos/id/64/128/128",
+      avatar: "https://picsum.photos/id/1011/280/280",
       banner: "https://picsum.photos/id/201/800/300",
       verified: true,
       new: true,
       price: 49,
       bio: "Vêtements portés avec passion • Odeur garantie",
-      badge: 10,           // petit badge rond
-      frame: null,         // pas de cadre anniversaire
+      badge: 10,
+      frame: null,
     },
     {
       id: 2,
       username: "Velvet Muse",
-      avatar: "https://picsum.photos/id/65/128/128",
+      avatar: "https://picsum.photos/id/1005/280/280",
       banner: "https://picsum.photos/id/202/800/300",
       verified: true,
       new: false,
@@ -36,31 +36,31 @@ export default function Creators() {
     {
       id: 3,
       username: "Sienna Rose",
-      avatar: "https://picsum.photos/id/66/128/128",
+      avatar: "https://picsum.photos/id/1009/280/280",
       banner: "https://picsum.photos/id/203/800/300",
       verified: false,
       new: true,
       price: 55,
       bio: "Chaque pièce raconte une histoire",
       badge: null,
-      frame: "bronze",     // cadre 1 an
+      frame: "bronze",
     },
     {
       id: 4,
       username: "Nova Lune",
-      avatar: "https://picsum.photos/id/1005/128/128",
+      avatar: "https://picsum.photos/id/1014/280/280",
       banner: "https://picsum.photos/id/204/800/300",
       verified: true,
       new: false,
       price: 65,
       bio: "Nuits intenses • Souvenirs à emporter",
       badge: 100,
-      frame: "silver",     // cadre 2 ans
+      frame: "silver",
     },
     {
       id: 5,
       username: "Luna Velvet",
-      avatar: "https://picsum.photos/id/1009/128/128",
+      avatar: "https://picsum.photos/id/1006/280/280",
       banner: "https://picsum.photos/id/205/800/300",
       verified: false,
       new: true,
@@ -86,7 +86,6 @@ export default function Creators() {
         <h1 className="text-4xl font-semibold mb-2">Découvrir les créatrices</h1>
         <p className="text-zinc-400 mb-8">Des femmes qui partagent leur intimité</p>
 
-        {/* Search & Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
           <input
             type="text"
@@ -102,35 +101,34 @@ export default function Creators() {
           </div>
         </div>
 
-        {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredCreators.map((creator) => (
             <Link key={creator.id} href={`/creators/${creator.id}`} className="card group overflow-hidden">
               <div className="relative">
                 <Image src={creator.banner} alt="" width={800} height={300} className="w-full h-48 object-cover" />
 
-                {/* Cadre anniversaire plus large (vert sur ton dessin) */}
+                {/* Cadre anniversaire style musée (plus large et gravé) */}
                 {creator.frame && (
-                  <div className={`absolute inset-0 border-4 rounded-3xl pointer-events-none transition-all
-                    ${creator.frame === 'bronze' ? 'border-amber-700' : ''}
-                    ${creator.frame === 'silver' ? 'border-zinc-300' : ''}`} 
+                  <div className={`absolute inset-0 border-[6px] rounded-3xl pointer-events-none
+                    ${creator.frame === 'bronze' ? 'border-amber-700 shadow-inner' : ''}
+                    ${creator.frame === 'silver' ? 'border-zinc-300 shadow-inner' : ''}`} 
                   />
                 )}
 
-                {/* Avatar avec badge(s) */}
+                {/* Avatar + Badge style pièce de monnaie */}
                 <div className="absolute -bottom-6 left-6">
                   <div className="relative">
                     <Image 
                       src={creator.avatar} 
                       alt={creator.username} 
-                      width={80} 
-                      height={80} 
-                      className="rounded-3xl ring-4 ring-zinc-900" 
+                      width={88} 
+                      height={88} 
+                      className="rounded-3xl ring-4 ring-zinc-900 object-cover" 
                     />
                     
-                    {/* Petit badge rouge (10 / 100) en haut à droite */}
+                    {/* Badge pièce de monnaie */}
                     {creator.badge && (
-                      <div className="absolute -top-1 -right-1 bg-gradient-to-br from-rose-400 to-pink-500 text-white text-xs font-bold w-7 h-7 rounded-2xl flex items-center justify-center shadow-lg ring-2 ring-zinc-900">
+                      <div className="absolute -top-2 -right-2 bg-gradient-to-br from-rose-400 to-amber-400 text-white text-xl font-bold w-9 h-9 rounded-2xl flex items-center justify-center shadow-xl ring-2 ring-zinc-900">
                         {creator.badge}
                       </div>
                     )}
@@ -143,7 +141,7 @@ export default function Creators() {
                   <p className="font-semibold text-xl">{creator.username}</p>
                   <div className="text-3xl font-semibold text-rose-400">{creator.price}€</div>
                 </div>
-                <p className="text-sm text-zinc-400 mt-1">{creator.bio}</p>
+                <p className="text-sm text-zinc-400 mt-1 line-clamp-2">{creator.bio}</p>
 
                 <button className="btn-primary w-full mt-8 py-4 text-lg font-medium">
                   S’abonner
