@@ -9,7 +9,6 @@ const allCreators = [
   { id: '2', username: '@VelvetMuse', name: 'Velvet Muse', avatar: 'https://picsum.photos/id/65/300/300', banner: 'https://picsum.photos/id/201/800/400', bio: 'Lingerie fine et moments intenses', price: 12.90, verified: true, volume: 84 },
   { id: '3', username: '@SiennaRose', name: 'Sienna Rose', avatar: 'https://picsum.photos/id/66/300/300', banner: 'https://picsum.photos/id/133/800/400', bio: 'Chaussures et bas portés toute la journée', price: 8.90, verified: false, volume: 43 },
   { id: '4', username: '@LunaVelvet', name: 'Luna Velvet', avatar: 'https://picsum.photos/id/67/300/300', banner: 'https://picsum.photos/id/180/800/400', bio: 'Tout ce que j’ai porté cette semaine', price: 11.90, verified: true, volume: 219 },
-  // Tu pourras facilement en ajouter beaucoup plus ici
 ];
 
 export default function Creators() {
@@ -17,7 +16,7 @@ export default function Creators() {
   const [filter, setFilter] = useState<'all' | 'verified' | 'new'>('all');
   const [priceRange, setPriceRange] = useState<'all' | 'low' | 'mid' | 'high'>('all');
   const [sortBy, setSortBy] = useState<'popular' | 'new' | 'price-low' | 'price-high'>('popular');
-  const [visibleCount, setVisibleCount] = useState(8);
+  const [visibleCount, setVisibleCount] = useState(12);
 
   const filteredCreators = useMemo(() => {
     let filtered = allCreators.filter(creator => {
@@ -45,17 +44,7 @@ export default function Creators() {
 
   const displayedCreators = filteredCreators.slice(0, visibleCount);
 
-  const loadMore = () => {
-    setVisibleCount(prev => prev + 8);
-  };
-
-  const resetFilters = () => {
-    setSearch('');
-    setFilter('all');
-    setPriceRange('all');
-    setSortBy('popular');
-    setVisibleCount(8);
-  };
+  const loadMore = () => setVisibleCount(prev => prev + 8);
 
   return (
     <div className="min-h-screen bg-zinc-950 py-12">
@@ -65,7 +54,6 @@ export default function Creators() {
           <p className="text-zinc-400 text-lg">Trouve celle qui te correspond</p>
         </div>
 
-        {/* Filtres avancés */}
         <div className="bg-zinc-900 rounded-3xl p-6 mb-10 flex flex-wrap gap-4 items-center">
           <input
             type="text"
@@ -94,10 +82,6 @@ export default function Creators() {
             <option value="price-low">Prix croissant</option>
             <option value="price-high">Prix décroissant</option>
           </select>
-
-          <button onClick={resetFilters} className="btn-secondary px-6 py-3">
-            Réinitialiser
-          </button>
         </div>
 
         <p className="text-zinc-400 mb-6">{filteredCreators.length} créatrices trouvées</p>
@@ -156,12 +140,6 @@ export default function Creators() {
             <button onClick={loadMore} className="btn-secondary px-10 py-4 text-lg">
               Charger plus de créatrices
             </button>
-          </div>
-        )}
-
-        {filteredCreators.length === 0 && (
-          <div className="text-center py-20 text-zinc-400">
-            Aucune créatrice trouvée avec ces filtres.
           </div>
         )}
       </div>
