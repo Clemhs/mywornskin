@@ -66,21 +66,17 @@ export default function Home() {
       <div className="relative h-screen flex items-center justify-center px-6">
         <div className="max-w-4xl mx-auto text-center">
           
-          {/* Petit cadre élégant avec étoile */}
-          <div className="inline-block border border-zinc-700 bg-zinc-900/80 backdrop-blur-xl rounded-3xl p-10 md:p-14 shadow-2xl">
-            
-            {/* Petite étoile scintillante */}
+          {/* Cadre élégant avec petite étoile */}
+          <div className="inline-block border border-zinc-700 bg-zinc-900/80 backdrop-blur-2xl rounded-3xl p-10 md:p-14 shadow-2xl">
             <div className="flex justify-start mb-6">
-              <span className="text-5xl text-white/30 twinkle">✦</span>
+              <span className="text-4xl text-white/30 twinkle">✦</span>
             </div>
 
             <h1 className="hero-text text-4xl md:text-5xl font-medium leading-tight min-h-[2.8em] transition-all duration-1000">
               {heroTexts[currentText]}
             </h1>
-
           </div>
 
-          {/* Boutons en dessous du cadre */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mt-12">
             <Link href="/creators" className="btn-primary px-14 py-6 text-xl">
               Découvrir les créatrices
@@ -92,7 +88,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Trust bar */}
       <div className="border-b border-zinc-800 py-6 bg-zinc-900/50">
         <div className="max-w-5xl mx-auto px-6 flex flex-wrap justify-center gap-x-12 gap-y-4 text-sm text-zinc-400">
           <div>✅ Tous les profils vérifiés manuellement</div>
