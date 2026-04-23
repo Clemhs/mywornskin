@@ -1,6 +1,6 @@
 'use client';
 
-// V7 - Statut visible (En attente / Validé / Refusé) + boutique cosmétiques
+// V7 - Statut visible + boutique cosmétiques complète
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
