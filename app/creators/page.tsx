@@ -1,24 +1,77 @@
 'use client';
 
-// === V10 - ULTIMATE CACHE BUST - SUPPRESSION COMPLETE DU DOSSIER - 23 AVRIL 2025 ===
-// Badges pièces métalliques + cadres musée larges + vraies photos créatrices
+// === V10 - CORRECTION BUILD - SUPPRESSION REVALIDATE - 23 AVRIL 2025 ===
 
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 export default function Creators() {
   const [filter, setFilter] = useState<'all' | 'verified' | 'new'>('all');
   const [search, setSearch] = useState('');
 
   const creators = [
-    { id: 1, username: "Lila Noir", avatar: "https://picsum.photos/id/1011/280/280", banner: "https://picsum.photos/id/1005/800/320", verified: true, new: true, price: 49, bio: "Vêtements portés avec passion • Odeur garantie", badge: 10, frame: null },
-    { id: 2, username: "Velvet Muse", avatar: "https://picsum.photos/id/1009/280/280", banner: "https://picsum.photos/id/1014/800/320", verified: true, new: false, price: 39, bio: "Sensualité en édition limitée", badge: 100, frame: null },
-    { id: 3, username: "Sienna Rose", avatar: "https://picsum.photos/id/1006/280/280", banner: "https://picsum.photos/id/203/800/320", verified: false, new: true, price: 55, bio: "Chaque pièce raconte une histoire", badge: null, frame: "bronze" },
-    { id: 4, username: "Nova Lune", avatar: "https://picsum.photos/id/1012/280/280", banner: "https://picsum.photos/id/160/800/320", verified: true, new: false, price: 65, bio: "Nuits intenses • Souvenirs à emporter", badge: 100, frame: "silver" },
-    { id: 5, username: "Luna Velvet", avatar: "https://picsum.photos/id/1001/280/280", banner: "https://picsum.photos/id/201/800/320", verified: false, new: true, price: 45, bio: "Douceur et mystère", badge: null, frame: null },
+    {
+      id: 1,
+      username: "Lila Noir",
+      avatar: "https://picsum.photos/id/1011/280/280",
+      banner: "https://picsum.photos/id/1005/800/320",
+      verified: true,
+      new: true,
+      price: 49,
+      bio: "Vêtements portés avec passion • Odeur garantie",
+      badge: 10,
+      frame: null,
+    },
+    {
+      id: 2,
+      username: "Velvet Muse",
+      avatar: "https://picsum.photos/id/1009/280/280",
+      banner: "https://picsum.photos/id/1014/800/320",
+      verified: true,
+      new: false,
+      price: 39,
+      bio: "Sensualité en édition limitée",
+      badge: 100,
+      frame: null,
+    },
+    {
+      id: 3,
+      username: "Sienna Rose",
+      avatar: "https://picsum.photos/id/1006/280/280",
+      banner: "https://picsum.photos/id/203/800/320",
+      verified: false,
+      new: true,
+      price: 55,
+      bio: "Chaque pièce raconte une histoire",
+      badge: null,
+      frame: "bronze",
+    },
+    {
+      id: 4,
+      username: "Nova Lune",
+      avatar: "https://picsum.photos/id/1012/280/280",
+      banner: "https://picsum.photos/id/160/800/320",
+      verified: true,
+      new: false,
+      price: 65,
+      bio: "Nuits intenses • Souvenirs à emporter",
+      badge: 100,
+      frame: "silver",
+    },
+    {
+      id: 5,
+      username: "Luna Velvet",
+      avatar: "https://picsum.photos/id/1001/280/280",
+      banner: "https://picsum.photos/id/201/800/320",
+      verified: false,
+      new: true,
+      price: 45,
+      bio: "Douceur et mystère",
+      badge: null,
+      frame: null,
+    },
   ];
 
   const filteredCreators = useMemo(() => {
@@ -37,7 +90,13 @@ export default function Creators() {
         <p className="text-zinc-400 mb-8">Des femmes qui partagent leur intimité</p>
 
         <div className="flex flex-col md:flex-row gap-4 mb-10">
-          <input type="text" placeholder="Rechercher une créatrice..." value={search} onChange={(e) => setSearch(e.target.value)} className="input flex-1" />
+          <input
+            type="text"
+            placeholder="Rechercher une créatrice..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="input flex-1"
+          />
           <div className="flex gap-2">
             <button onClick={() => setFilter('all')} className={`btn-secondary px-6 py-3 ${filter === 'all' ? 'bg-zinc-800' : ''}`}>Toutes</button>
             <button onClick={() => setFilter('verified')} className={`btn-secondary px-6 py-3 ${filter === 'verified' ? 'bg-zinc-800' : ''}`}>✅ Vérifiées</button>
@@ -52,7 +111,9 @@ export default function Creators() {
                 <img src={creator.banner} alt={creator.username} className="w-full h-48 object-cover" />
 
                 {creator.frame && (
-                  <div className={`absolute inset-0 border-[14px] rounded-3xl pointer-events-none ${creator.frame === 'bronze' ? 'border-amber-700' : 'border-zinc-300'}`} />
+                  <div className={`absolute inset-0 border-[14px] rounded-3xl pointer-events-none
+                    ${creator.frame === 'bronze' ? 'border-amber-700' : 'border-zinc-300'}`} 
+                  />
                 )}
 
                 <div className="absolute -bottom-8 left-6">
