@@ -65,7 +65,15 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_65%)] opacity-30"></div>
        
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
-          {/* Bandeau avec une petite étoile scintillante */}
+          
+          {/* Titre MyWornSkin bien visible en haut */}
+          <div className="mb-6">
+            <div className="text-5xl md:text-6xl font-light tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-200 to-zinc-400">
+              MyWornSkin
+            </div>
+          </div>
+
+          {/* Bandeau avec petite étoile scintillante */}
           <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-8 py-3 rounded-full border border-rose-500/20">
             <span
               className="text-rose-400 text-xl"
@@ -79,7 +87,7 @@ export default function Home() {
             <span className="uppercase tracking-[3px] text-sm font-medium">VÊTEMENTS PORTÉS • HISTOIRES INTIMES</span>
           </div>
 
-          <h1 className="hero-text text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl mb-10 min-h-[2.4em] leading-none tracking-tighter">
+          <h1 className="hero-text text-5xl md:text-6xl lg:text-7xl mb-10 min-h-[2.4em] leading-none tracking-tighter">
             {currentText}
           </h1>
 
@@ -114,7 +122,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Animation de l'étoile */}
+      {/* Animation étoile */}
       <style jsx>{`
         @keyframes gentleTwinkle {
           0%, 100% { opacity: 0.85; transform: scale(0.95); }
