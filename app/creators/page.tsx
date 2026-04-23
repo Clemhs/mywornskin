@@ -1,9 +1,11 @@
 'use client';
 
-// === FORCE CLEAN BUILD V7 - 23 AVRIL 2025 - BADGES PIÈCES MÉTALLIQUES + CADRES MUSÉE ÉPAIS + VRAIES PHOTOS ===
+// === V8 - FORCE CLEAN BUILD - 23 AVRIL 2025 - BADGES PIÈCES MÉTALLIQUES + CADRES MUSÉE ===
 
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
+
+export const dynamic = 'force-dynamic';
 
 export default function Creators() {
   const [filter, setFilter] = useState<'all' | 'verified' | 'new'>('all');
@@ -119,7 +121,7 @@ export default function Creators() {
                   />
                 )}
 
-                {/* Avatar + Badge style pièce de monnaie métallique */}
+                {/* Avatar + Badge style pièce métallique */}
                 <div className="absolute -bottom-8 left-6">
                   <div className="relative">
                     <img 
