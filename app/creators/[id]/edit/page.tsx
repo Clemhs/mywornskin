@@ -1,6 +1,6 @@
 'use client';
 
-// V6 - Statut visible (En attente / Validé / Refusé) + tout le reste
+// V6 - Statut visible pour avatar et couverture + tout le reste
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -12,8 +12,8 @@ export default function CreatorEdit() {
 
   const [avatar, setAvatar] = useState("https://picsum.photos/id/1011/280/280");
   const [banner, setBanner] = useState("https://picsum.photos/id/1005/1200/400");
-  const [avatarStatus, setAvatarStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
-  const [bannerStatus, setBannerStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
+  const [avatarStatus, setAvatarStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
+  const [bannerStatus, setBannerStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
   const [selectedBadge, setSelectedBadge] = useState<number | null>(10);
   const [selectedFrame, setSelectedFrame] = useState<string | null>("rose");
 
@@ -34,8 +34,8 @@ export default function CreatorEdit() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (ev) => {
-        setAvatar(ev.target?.result as string);
+      reader.onload = () => {
+        setAvatar(reader.result as string);
         setAvatarStatus('pending');
       };
       reader.readAsDataURL(file);
@@ -46,8 +46,8 @@ export default function CreatorEdit() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (ev) => {
-        setBanner(ev.target?.result as string);
+      reader.onload = () => {
+        setBanner(reader.result as string);
         setBannerStatus('pending');
       };
       reader.readAsDataURL(file);
@@ -64,7 +64,7 @@ export default function CreatorEdit() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* Aperçu live */}
+          {/* Aperçu */}
           <div className="lg:col-span-5">
             <h2 className="text-xl mb-4">Aperçu en direct</h2>
             <div className="card p-6">
@@ -92,9 +92,9 @@ export default function CreatorEdit() {
                 <img src={banner} alt="couverture" className="w-40 h-24 object-cover rounded-2xl" />
                 <label className="btn-secondary cursor-pointer px-6 py-3">Changer la couverture<input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" /></label>
               </div>
-              {bannerStatus === 'pending' && <p className="mt-3 text-amber-400 text-sm flex items-center gap-2">⏳ En attente de validation</p>}
-              {bannerStatus === 'approved' && <p className="mt-3 text-green-400 text-sm flex items-center gap-2">✅ Validé</p>}
-              {bannerStatus === 'rejected' && <p className="mt-3 text-red-400 text-sm flex items-center gap-2">❌ Refusé</p>}
+              {bannerStatus === 'pending' && <p className="mt-3 text-amber-400">⏳ En attente de validation</p>}
+              {bannerStatus === 'approved' && <p className="mt-3 text-green-400">✅ Validé</p>}
+              {bannerStatus === 'rejected' && <p className="mt-3 text-red-400">❌ Refusé</p>}
             </div>
 
             {/* Avatar */}
@@ -105,12 +105,12 @@ export default function CreatorEdit() {
                 <img src={avatar} alt="avatar" className="w-24 h-24 rounded-3xl object-cover ring-2 ring-zinc-700" />
                 <label className="btn-secondary cursor-pointer px-6 py-3">Changer la photo<input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" /></label>
               </div>
-              {avatarStatus === 'pending' && <p className="mt-3 text-amber-400 text-sm flex items-center gap-2">⏳ En attente de validation</p>}
-              {avatarStatus === 'approved' && <p className="mt-3 text-green-400 text-sm flex items-center gap-2">✅ Validé</p>}
-              {avatarStatus === 'rejected' && <p className="mt-3 text-red-400 text-sm flex items-center gap-2">❌ Refusé</p>}
+              {avatarStatus === 'pending' && <p className="mt-3 text-amber-400">⏳ En attente de validation</p>}
+              {avatarStatus === 'approved' && <p className="mt-3 text-green-400">✅ Validé</p>}
+              {avatarStatus === 'rejected' && <p className="mt-3 text-red-400">❌ Refusé</p>}
             </div>
 
-            {/* Badges */}
+            {/* Badges et Cadres (scroll horizontal) */}
             <div>
               <h2 className="text-xl mb-4">Badge</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
@@ -124,7 +124,6 @@ export default function CreatorEdit() {
               </div>
             </div>
 
-            {/* Cadres */}
             <div>
               <h2 className="text-xl mb-4">Cadre</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
@@ -139,7 +138,7 @@ export default function CreatorEdit() {
               </div>
             </div>
 
-            {/* Boutique cosmétiques (restaurée) */}
+            {/* Boutique cosmétiques */}
             <div className="pt-8 border-t border-zinc-800">
               <h2 className="text-2xl font-semibold mb-2">Boutique cosmétiques</h2>
               <p className="text-zinc-400 mb-6">Débloque des badges et cadres exclusifs</p>
