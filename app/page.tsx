@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useLanguage } from './contexts/LanguageContext';
 
-const heroTextsFR = [
+const heroTexts = [
   "Vêtements portés avec passion. Histoires intimes à vendre.",
   "L’odeur de ma peau encore imprégnée dans le tissu.",
   "Ce que j’ai porté hier soir… maintenant à toi.",
@@ -53,12 +52,7 @@ const heroTextsFR = [
 ];
 
 export default function Home() {
-  const languageContext = useLanguage();
-  const { lang = 'fr' } = languageContext || {};
-  
   const [currentText, setCurrentText] = useState(0);
-
-  const heroTexts = heroTextsFR; // Pour l'instant on reste en FR pour éviter les erreurs
 
   useEffect(() => {
     const interval = setInterval(() => {
