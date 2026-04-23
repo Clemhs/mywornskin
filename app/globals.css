@@ -10,32 +10,36 @@
 
 @layer components {
   .card {
-    @apply bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden hover:border-rose-500/30 transition-all duration-300;
+    @apply bg-zinc-900 border border-zinc-800 rounded-3xl p-8 transition-all hover:border-zinc-700;
   }
 
   .btn-primary {
-    @apply bg-rose-600 hover:bg-rose-500 active:scale-[0.985] transition-all font-semibold rounded-2xl px-8 py-4 text-lg;
+    @apply bg-rose-600 hover:bg-rose-500 text-white font-medium rounded-3xl transition-all active:scale-[0.985];
   }
 
   .btn-secondary {
-    @apply border border-zinc-700 hover:border-rose-500 active:scale-[0.985] transition-all font-semibold rounded-2xl px-8 py-4 text-lg;
+    @apply border border-zinc-700 hover:border-rose-500 text-white font-medium rounded-3xl transition-all;
   }
 
   .input {
-    @apply bg-zinc-800 border border-zinc-700 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/30 rounded-2xl px-6 py-4 text-base transition-all;
+    @apply bg-zinc-900 border border-zinc-700 focus:border-rose-500 rounded-3xl px-6 py-4 text-white placeholder:text-zinc-500 focus:outline-none transition;
   }
 
   .hero-text {
-    @apply font-bold tracking-tighter leading-none;
+    @apply text-white leading-tight tracking-tight;
+  }
+
+  .glass {
+    @apply bg-zinc-900/70 backdrop-blur-xl border border-zinc-700;
   }
 }
 
-/* Améliorations globales */
-.glass {
-  background: rgba(24, 24, 27, 0.85);
-  backdrop-filter: blur(12px);
+/* Animations subtiles */
+@keyframes gentleTwinkle {
+  0%, 100% { opacity: 0.6; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.05); }
 }
 
-.smooth-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.twinkle {
+  animation: gentleTwinkle 4s ease-in-out infinite;
 }
