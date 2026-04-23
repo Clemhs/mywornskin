@@ -13,7 +13,7 @@ export default function Creators() {
       id: 1,
       username: "Lila Noir",
       avatar: "https://picsum.photos/id/1011/280/280",
-      banner: "https://picsum.photos/id/201/800/300",
+      banner: "https://picsum.photos/id/201/800/320",
       verified: true,
       new: true,
       price: 49,
@@ -25,7 +25,7 @@ export default function Creators() {
       id: 2,
       username: "Velvet Muse",
       avatar: "https://picsum.photos/id/1005/280/280",
-      banner: "https://picsum.photos/id/202/800/300",
+      banner: "https://picsum.photos/id/202/800/320",
       verified: true,
       new: false,
       price: 39,
@@ -37,7 +37,7 @@ export default function Creators() {
       id: 3,
       username: "Sienna Rose",
       avatar: "https://picsum.photos/id/1009/280/280",
-      banner: "https://picsum.photos/id/203/800/300",
+      banner: "https://picsum.photos/id/203/800/320",
       verified: false,
       new: true,
       price: 55,
@@ -49,7 +49,7 @@ export default function Creators() {
       id: 4,
       username: "Nova Lune",
       avatar: "https://picsum.photos/id/1014/280/280",
-      banner: "https://picsum.photos/id/204/800/300",
+      banner: "https://picsum.photos/id/204/800/320",
       verified: true,
       new: false,
       price: 65,
@@ -61,7 +61,7 @@ export default function Creators() {
       id: 5,
       username: "Luna Velvet",
       avatar: "https://picsum.photos/id/1006/280/280",
-      banner: "https://picsum.photos/id/205/800/300",
+      banner: "https://picsum.photos/id/205/800/320",
       verified: false,
       new: true,
       price: 45,
@@ -105,18 +105,17 @@ export default function Creators() {
           {filteredCreators.map((creator) => (
             <Link key={creator.id} href={`/creators/${creator.id}`} className="card group overflow-hidden">
               <div className="relative">
-                <Image src={creator.banner} alt="" width={800} height={300} className="w-full h-48 object-cover" />
+                <Image src={creator.banner} alt="" width={800} height={320} className="w-full h-48 object-cover" />
 
-                {/* Cadre anniversaire style musée (plus large et gravé) */}
+                {/* Cadre musée style gravé (plus large) */}
                 {creator.frame && (
-                  <div className={`absolute inset-0 border-[6px] rounded-3xl pointer-events-none
-                    ${creator.frame === 'bronze' ? 'border-amber-700 shadow-inner' : ''}
-                    ${creator.frame === 'silver' ? 'border-zinc-300 shadow-inner' : ''}`} 
+                  <div className={`absolute inset-0 border-[8px] rounded-3xl pointer-events-none
+                    ${creator.frame === 'bronze' ? 'border-amber-700' : 'border-zinc-300'}`} 
                   />
                 )}
 
-                {/* Avatar + Badge style pièce de monnaie */}
-                <div className="absolute -bottom-6 left-6">
+                {/* Avatar + Badge pièce de monnaie */}
+                <div className="absolute -bottom-8 left-6">
                   <div className="relative">
                     <Image 
                       src={creator.avatar} 
@@ -126,9 +125,9 @@ export default function Creators() {
                       className="rounded-3xl ring-4 ring-zinc-900 object-cover" 
                     />
                     
-                    {/* Badge pièce de monnaie */}
+                    {/* Badge style pièce métallique rose-gold */}
                     {creator.badge && (
-                      <div className="absolute -top-2 -right-2 bg-gradient-to-br from-rose-400 to-amber-400 text-white text-xl font-bold w-9 h-9 rounded-2xl flex items-center justify-center shadow-xl ring-2 ring-zinc-900">
+                      <div className="absolute -top-2 -right-2 bg-gradient-to-br from-rose-300 via-rose-400 to-amber-400 text-white text-2xl font-bold w-10 h-10 rounded-2xl flex items-center justify-center shadow-2xl ring-4 ring-zinc-900">
                         {creator.badge}
                       </div>
                     )}
@@ -136,7 +135,7 @@ export default function Creators() {
                 </div>
               </div>
 
-              <div className="pt-12 pb-6 px-6">
+              <div className="pt-14 pb-6 px-6">
                 <div className="flex items-center justify-between">
                   <p className="font-semibold text-xl">{creator.username}</p>
                   <div className="text-3xl font-semibold text-rose-400">{creator.price}€</div>
