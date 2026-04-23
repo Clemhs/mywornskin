@@ -1,11 +1,8 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
-// === FORCE CLEAN BUILD - CACHE CLEAR 2025-04-23 v5 ===
-
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useLanguage } from './contexts/LanguageContext';
 
 const heroTexts = [
   "Vêtements portés avec passion. Histoires intimes à vendre.",
@@ -56,12 +53,13 @@ const heroTexts = [
 ];
 
 export default function Home() {
+  const { t } = useLanguage();
   const [currentText, setCurrentText] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentText((prev) => (prev + 1) % heroTexts.length);
-    }, 4000);
+    }, 4200);
     return () => clearInterval(interval);
   }, []);
 
@@ -71,6 +69,11 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_70%)] opacity-30" />
         
         <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
+          {/* Petite étoile scintillante */}
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 text-white/30 text-[180px] leading-none twinkle pointer-events-none">
+            ✦
+          </div>
+
           <div className="mb-8 flex justify-center">
             <div className="text-[160px] md:text-[210px] leading-none font-light tracking-[-0.05em] text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-200 to-zinc-400">
               MyWornSkin
@@ -83,10 +86,10 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <Link href="/creators" className="btn-primary px-12 py-6 text-xl">
-              Découvrir les créatrices
+              {t('discover') || "Découvrir les créatrices"}
             </Link>
             <Link href="/sell" className="border border-zinc-700 hover:border-rose-500 px-12 py-6 text-xl rounded-3xl transition">
-              Vendre mon vêtement
+              {t('sellItem') || "Vendre mon vêtement"}
             </Link>
           </div>
         </div>
