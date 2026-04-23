@@ -4,12 +4,12 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-const creators = [
-  { id: '1', username: '@LilaNoir', name: 'Lila Noir', avatar: 'https://picsum.photos/id/64/300/300', banner: 'https://picsum.photos/id/1015/800/400', bio: 'Vêtements portés avec passion • Odeurs intimes garanties', price: 9.90, verified: true, volume: 127, joined: '2024-02' },
-  { id: '2', username: '@VelvetMuse', name: 'Velvet Muse', avatar: 'https://picsum.photos/id/65/300/300', banner: 'https://picsum.photos/id/201/800/400', bio: 'Lingerie fine et moments intenses', price: 12.90, verified: true, volume: 84, joined: '2025-01' },
-  { id: '3', username: '@SiennaRose', name: 'Sienna Rose', avatar: 'https://picsum.photos/id/66/300/300', banner: 'https://picsum.photos/id/133/800/400', bio: 'Chaussures et bas portés toute la journée', price: 8.90, verified: false, volume: 43, joined: '2025-03' },
-  { id: '4', username: '@LunaVelvet', name: 'Luna Velvet', avatar: 'https://picsum.photos/id/67/300/300', banner: 'https://picsum.photos/id/180/800/400', bio: 'Tout ce que j’ai porté cette semaine', price: 11.90, verified: true, volume: 219, joined: '2024-11' },
-  // Tu pourras en ajouter beaucoup plus facilement par la suite
+const allCreators = [
+  { id: '1', username: '@LilaNoir', name: 'Lila Noir', avatar: 'https://picsum.photos/id/64/300/300', banner: 'https://picsum.photos/id/1015/800/400', bio: 'Vêtements portés avec passion • Odeurs intimes garanties', price: 9.90, verified: true, volume: 127 },
+  { id: '2', username: '@VelvetMuse', name: 'Velvet Muse', avatar: 'https://picsum.photos/id/65/300/300', banner: 'https://picsum.photos/id/201/800/400', bio: 'Lingerie fine et moments intenses', price: 12.90, verified: true, volume: 84 },
+  { id: '3', username: '@SiennaRose', name: 'Sienna Rose', avatar: 'https://picsum.photos/id/66/300/300', banner: 'https://picsum.photos/id/133/800/400', bio: 'Chaussures et bas portés toute la journée', price: 8.90, verified: false, volume: 43 },
+  { id: '4', username: '@LunaVelvet', name: 'Luna Velvet', avatar: 'https://picsum.photos/id/67/300/300', banner: 'https://picsum.photos/id/180/800/400', bio: 'Tout ce que j’ai porté cette semaine', price: 11.90, verified: true, volume: 219 },
+  // Tu pourras facilement en ajouter beaucoup plus ici
 ];
 
 export default function Creators() {
@@ -17,9 +17,10 @@ export default function Creators() {
   const [filter, setFilter] = useState<'all' | 'verified' | 'new'>('all');
   const [priceRange, setPriceRange] = useState<'all' | 'low' | 'mid' | 'high'>('all');
   const [sortBy, setSortBy] = useState<'popular' | 'new' | 'price-low' | 'price-high'>('popular');
+  const [visibleCount, setVisibleCount] = useState(8);
 
   const filteredCreators = useMemo(() => {
-    let filtered = creators.filter(creator => {
+    let filtered = allCreators.filter(creator => {
       const matchesSearch = creator.name.toLowerCase().includes(search.toLowerCase()) || 
                            creator.username.toLowerCase().includes(search.toLowerCase());
       
@@ -35,13 +36,26 @@ export default function Creators() {
       return matchesSearch && matchesFilter && matchesPrice;
     });
 
-    // Tri
     if (sortBy === 'new') filtered.sort((a, b) => b.id.localeCompare(a.id));
     if (sortBy === 'price-low') filtered.sort((a, b) => a.price - b.price);
     if (sortBy === 'price-high') filtered.sort((a, b) => b.price - a.price);
 
     return filtered;
   }, [search, filter, priceRange, sortBy]);
+
+  const displayedCreators = filteredCreators.slice(0, visibleCount);
+
+  const loadMore = () => {
+    setVisibleCount(prev => prev + 8);
+  };
+
+  const resetFilters = () => {
+    setSearch('');
+    setFilter('all');
+    setPriceRange('all');
+    setSortBy('popular');
+    setVisibleCount(8);
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 py-12">
@@ -80,10 +94,16 @@ export default function Creators() {
             <option value="price-low">Prix croissant</option>
             <option value="price-high">Prix décroissant</option>
           </select>
+
+          <button onClick={resetFilters} className="btn-secondary px-6 py-3">
+            Réinitialiser
+          </button>
         </div>
 
+        <p className="text-zinc-400 mb-6">{filteredCreators.length} créatrices trouvées</p>
+
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {filteredCreators.map((creator) => (
+          {displayedCreators.map((creator) => (
             <div key={creator.id} className="card group overflow-hidden">
               <div className="relative h-56">
                 <Image src={creator.banner} alt="" fill className="object-cover" />
@@ -130,6 +150,20 @@ export default function Creators() {
             </div>
           ))}
         </div>
+
+        {visibleCount < filteredCreators.length && (
+          <div className="flex justify-center mt-12">
+            <button onClick={loadMore} className="btn-secondary px-10 py-4 text-lg">
+              Charger plus de créatrices
+            </button>
+          </div>
+        )}
+
+        {filteredCreators.length === 0 && (
+          <div className="text-center py-20 text-zinc-400">
+            Aucune créatrice trouvée avec ces filtres.
+          </div>
+        )}
       </div>
     </div>
   );
