@@ -69,29 +69,34 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_70%)] opacity-30" />
         
         <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
-          {/* Petite étoile scintillante */}
-          <div className="absolute top-12 left-1/2 -translate-x-1/2 text-white/30 text-[180px] leading-none twinkle pointer-events-none">
+          {/* Petite étoile scintillante élégante */}
+          <div className="absolute top-8 right-12 md:right-24 text-white/20 text-7xl twinkle pointer-events-none">
             ✦
           </div>
 
-          <div className="mb-8 flex justify-center">
-            <div className="text-[160px] md:text-[210px] leading-none font-light tracking-[-0.05em] text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-200 to-zinc-400">
+          <div className="mb-10">
+            <div className="text-6xl md:text-7xl font-light tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-200 to-zinc-400">
               MyWornSkin
             </div>
           </div>
 
-          <h1 className="hero-text text-5xl md:text-6xl font-medium mb-8 min-h-[3.8em] transition-all duration-1000">
+          <h1 className="hero-text text-4xl md:text-5xl font-medium mb-10 min-h-[2.8em] transition-all duration-1000 leading-tight">
             {heroTexts[currentText]}
           </h1>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <Link href="/creators" className="btn-primary px-12 py-6 text-xl">
-              {t('discover') || "Découvrir les créatrices"}
+            <Link href="/creators" className="btn-primary px-14 py-6 text-xl">
+              Découvrir les créatrices
             </Link>
-            <Link href="/sell" className="border border-zinc-700 hover:border-rose-500 px-12 py-6 text-xl rounded-3xl transition">
-              {t('sellItem') || "Vendre mon vêtement"}
+            <Link href="/sell" className="border border-zinc-700 hover:border-rose-500 px-14 py-6 text-xl rounded-3xl transition">
+              Vendre mon vêtement
             </Link>
           </div>
+        </div>
+
+        {/* Trust bar */}
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-zinc-500 text-sm flex flex-col items-center">
+          Scroll pour explorer
         </div>
       </div>
 
