@@ -66,7 +66,7 @@ export default function Home() {
        
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           
-          {/* Titre MyWornSkin plus haut et plus visible sur mobile */}
+          {/* Titre MyWornSkin plus haut et visible sur mobile */}
           <div className="mb-8 md:mb-6">
             <div className="text-5xl md:text-6xl font-light tracking-[-0.04em] text-white">
               MyWornSkin
@@ -122,6 +122,7 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Animation étoile */}
       <style jsx>{`
         @keyframes gentleTwinkle {
           0%, 100% { opacity: 0.85; transform: scale(0.95); }
