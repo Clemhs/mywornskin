@@ -2,6 +2,8 @@
 
 export const dynamic = 'force-dynamic';
 
+// === FORCE CLEAN BUILD - CACHE CLEAR 2025-04-23 v5 ===
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
