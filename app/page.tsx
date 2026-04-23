@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useLanguage } from './contexts/LanguageContext';
 
 const heroTexts = [
   "Vêtements portés avec passion. Histoires intimes à vendre.",
@@ -53,7 +52,6 @@ const heroTexts = [
 ];
 
 export default function Home() {
-  const { t } = useLanguage();
   const [currentText, setCurrentText] = useState(0);
 
   useEffect(() => {
@@ -65,26 +63,25 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white overflow-hidden">
-      <div className="relative h-screen flex items-center justify-center">
-        <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_70%)] opacity-30" />
-        
-        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
-          {/* Petite étoile scintillante élégante */}
-          <div className="absolute top-8 right-12 md:right-24 text-white/20 text-7xl twinkle pointer-events-none">
-            ✦
-          </div>
-
-          <div className="mb-10">
-            <div className="text-6xl md:text-7xl font-light tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-200 to-zinc-400">
-              MyWornSkin
+      <div className="relative h-screen flex items-center justify-center px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          
+          {/* Petit cadre élégant avec étoile */}
+          <div className="inline-block border border-zinc-700 bg-zinc-900/80 backdrop-blur-xl rounded-3xl p-10 md:p-14 shadow-2xl">
+            
+            {/* Petite étoile scintillante */}
+            <div className="flex justify-start mb-6">
+              <span className="text-5xl text-white/30 twinkle">✦</span>
             </div>
+
+            <h1 className="hero-text text-4xl md:text-5xl font-medium leading-tight min-h-[2.8em] transition-all duration-1000">
+              {heroTexts[currentText]}
+            </h1>
+
           </div>
 
-          <h1 className="hero-text text-4xl md:text-5xl font-medium mb-10 min-h-[2.8em] transition-all duration-1000 leading-tight">
-            {heroTexts[currentText]}
-          </h1>
-
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+          {/* Boutons en dessous du cadre */}
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mt-12">
             <Link href="/creators" className="btn-primary px-14 py-6 text-xl">
               Découvrir les créatrices
             </Link>
@@ -93,13 +90,9 @@ export default function Home() {
             </Link>
           </div>
         </div>
-
-        {/* Trust bar */}
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-zinc-500 text-sm flex flex-col items-center">
-          Scroll pour explorer
-        </div>
       </div>
 
+      {/* Trust bar */}
       <div className="border-b border-zinc-800 py-6 bg-zinc-900/50">
         <div className="max-w-5xl mx-auto px-6 flex flex-wrap justify-center gap-x-12 gap-y-4 text-sm text-zinc-400">
           <div>✅ Tous les profils vérifiés manuellement</div>
