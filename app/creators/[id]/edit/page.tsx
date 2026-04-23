@@ -1,10 +1,10 @@
 'use client';
 
-// V8 - Intégration Supabase (upload réel + statut)
+// V9 - Intégration Supabase complète avec pending_*
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -16,25 +16,36 @@ export default function CreatorEdit() {
   const params = useParams();
   const id = params.id as string;
 
-  const [avatar, setAvatar] = useState("https://picsum.photos/id/1011/280/280");
-  const [banner, setBanner] = useState("https://picsum.photos/id/1005/1200/400");
+  const [avatar, setAvatar] = useState("");
+  const [banner, setBanner] = useState("");
+  const [pendingAvatar, setPendingAvatar] = useState("");
+  const [pendingBanner, setPendingBanner] = useState("");
   const [avatarStatus, setAvatarStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
   const [bannerStatus, setBannerStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
   const [selectedBadge, setSelectedBadge] = useState<number | null>(10);
   const [selectedFrame, setSelectedFrame] = useState<string | null>("rose");
 
-  const allBadges = [
-    { id: 10, unlocked: true, price: 0 },
-    { id: 50, unlocked: false, price: 9 },
-    { id: 100, unlocked: true, price: 0 },
-    { id: 500, unlocked: false, price: 29 },
-  ];
+  // Chargement des données depuis Supabase
+  useEffect(() => {
+    const loadCreator = async () => {
+      const { data } = await supabase
+        .from('creators')
+        .select('avatar_url, banner_url, pending_avatar_url, pending_banner_url')
+        .eq('id', id)
+        .single();
 
-  const allFrames = [
-    { id: "rose", name: "1 an", color: "rose", unlocked: true, price: 0 },
-    { id: "silver", name: "2 ans", color: "silver", unlocked: true, price: 0 },
-    { id: "gold", name: "5 ans", color: "gold", unlocked: false, price: 19 },
-  ];
+      if (data) {
+        setAvatar(data.avatar_url || "https://picsum.photos/id/1011/280/280");
+        setBanner(data.banner_url || "https://picsum.photos/id/1005/1200/400");
+        setPendingAvatar(data.pending_avatar_url || "");
+        setPendingBanner(data.pending_banner_url || "");
+
+        if (data.pending_avatar_url) setAvatarStatus('pending');
+        if (data.pending_banner_url) setBannerStatus('pending');
+      }
+    };
+    loadCreator();
+  }, [id]);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -43,7 +54,7 @@ export default function CreatorEdit() {
     setAvatarStatus('pending');
 
     const fileExt = file.name.split('.').pop();
-    const fileName = `${id}-avatar-${Date.now()}.${fileExt}`;
+    const fileName = `pending-avatar-${id}-${Date.now()}.${fileExt}`;
 
     const { error } = await supabase.storage
       .from('avatars')
@@ -55,9 +66,13 @@ export default function CreatorEdit() {
       return;
     }
 
-    const { data } = supabase.storage.from('avatars').getPublicUrl(fileName);
-    setAvatar(data.publicUrl);
-    setAvatarStatus('pending'); // restera pending jusqu'à validation admin
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
+    setPendingAvatar(urlData.publicUrl);
+
+    await supabase
+      .from('creators')
+      .update({ pending_avatar_url: urlData.publicUrl })
+      .eq('id', id);
   };
 
   const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,7 +82,7 @@ export default function CreatorEdit() {
     setBannerStatus('pending');
 
     const fileExt = file.name.split('.').pop();
-    const fileName = `${id}-banner-${Date.now()}.${fileExt}`;
+    const fileName = `pending-banner-${id}-${Date.now()}.${fileExt}`;
 
     const { error } = await supabase.storage
       .from('banners')
@@ -79,9 +94,13 @@ export default function CreatorEdit() {
       return;
     }
 
-    const { data } = supabase.storage.from('banners').getPublicUrl(fileName);
-    setBanner(data.publicUrl);
-    setBannerStatus('pending');
+    const { data: urlData } = supabase.storage.from('banners').getPublicUrl(fileName);
+    setPendingBanner(urlData.publicUrl);
+
+    await supabase
+      .from('creators')
+      .update({ pending_banner_url: urlData.publicUrl })
+      .eq('id', id);
   };
 
   return (
@@ -99,11 +118,11 @@ export default function CreatorEdit() {
             <h2 className="text-xl mb-4">Aperçu en direct</h2>
             <div className="card p-6">
               <div className="relative rounded-3xl overflow-hidden">
-                <img src={banner} alt="couverture" className="w-full h-48 object-cover" />
+                <img src={pendingBanner || banner} alt="couverture" className="w-full h-48 object-cover" />
                 {selectedFrame && <div className={`shimmer-frame absolute inset-0 rounded-3xl pointer-events-none ${selectedFrame}`} />}
                 <div className="absolute -bottom-8 left-6">
                   <div className="relative">
-                    <img src={avatar} alt="avatar" className="w-20 h-20 rounded-3xl ring-4 ring-zinc-900 object-cover" />
+                    <img src={pendingAvatar || avatar} alt="avatar" className="w-20 h-20 rounded-3xl ring-4 ring-zinc-900 object-cover" />
                     {selectedBadge && <img src={`/badges/${selectedBadge}.png`} alt="badge" className="absolute -top-1 -right-1 w-7 h-7 drop-shadow-2xl" />}
                   </div>
                 </div>
@@ -119,7 +138,7 @@ export default function CreatorEdit() {
               <h2 className="text-xl mb-2">Image de couverture</h2>
               <p className="text-zinc-400 text-sm mb-4">1200 × 400 px • Max 8 Mo</p>
               <div className="flex items-center gap-6">
-                <img src={banner} alt="couverture" className="w-40 h-24 object-cover rounded-2xl" />
+                <img src={pendingBanner || banner} alt="couverture" className="w-40 h-24 object-cover rounded-2xl" />
                 <label className="btn-secondary cursor-pointer px-6 py-3">Changer la couverture<input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" /></label>
               </div>
               {bannerStatus === 'pending' && <p className="mt-3 text-amber-400">⏳ En attente de validation</p>}
@@ -132,7 +151,7 @@ export default function CreatorEdit() {
               <h2 className="text-xl mb-2">Photo de profil</h2>
               <p className="text-zinc-400 text-sm mb-4">512 × 512 px • Max 5 Mo</p>
               <div className="flex items-center gap-6">
-                <img src={avatar} alt="avatar" className="w-24 h-24 rounded-3xl object-cover ring-2 ring-zinc-700" />
+                <img src={pendingAvatar || avatar} alt="avatar" className="w-24 h-24 rounded-3xl object-cover ring-2 ring-zinc-700" />
                 <label className="btn-secondary cursor-pointer px-6 py-3">Changer la photo<input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" /></label>
               </div>
               {avatarStatus === 'pending' && <p className="mt-3 text-amber-400">⏳ En attente de validation</p>}
@@ -140,7 +159,7 @@ export default function CreatorEdit() {
               {avatarStatus === 'rejected' && <p className="mt-3 text-red-400">❌ Refusé</p>}
             </div>
 
-            {/* Badges et Cadres (scroll horizontal) */}
+            {/* Badges & Cadres (scroll horizontal) */}
             <div>
               <h2 className="text-xl mb-4">Badge</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
