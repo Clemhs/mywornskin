@@ -1,6 +1,6 @@
 'use client';
 
-// V3 - Admin Pending - Liens cliquables vers profil créateur
+// V3 - Admin Pending - Liens cliquables vers profil + toast feedback
 
 import Link from 'next/link';
 import { useState } from 'react';
