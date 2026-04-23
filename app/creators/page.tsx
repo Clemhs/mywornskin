@@ -1,6 +1,6 @@
 'use client';
 
-// V20 - Cadres animés Shimmering Frame (style Steam) - Rose / Argent / Or
+// V21 - Cadres Shimmering Frame BEAUCOUP PLUS LENTS (10s)
 
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
@@ -54,26 +54,16 @@ export default function Creators() {
             <Link key={creator.id} href={`/creators/${creator.id}`} className="card group overflow-hidden">
               <div className="relative">
                 <div className={`relative rounded-3xl overflow-hidden ${creator.frame ? 'p-3' : ''}`}>
-                  <img 
-                    src={creator.banner} 
-                    alt={creator.username} 
-                    className="w-full h-48 object-cover rounded-3xl" 
-                  />
-
-                  {/* Cadre animé Shimmering Frame */}
+                  <img src={creator.banner} alt={creator.username} className="w-full h-48 object-cover rounded-3xl" />
+                  
                   {creator.frame && (
                     <div className={`shimmer-frame absolute inset-0 rounded-3xl pointer-events-none ${creator.frame}`} />
                   )}
                 </div>
 
-                {/* Avatar + badge PNG (petit et discret) */}
                 <div className="absolute -bottom-8 left-6">
                   <div className="relative">
-                    <img 
-                      src={creator.avatar} 
-                      alt={creator.username} 
-                      className="w-20 h-20 rounded-3xl ring-4 ring-zinc-900 object-cover" 
-                    />
+                    <img src={creator.avatar} alt={creator.username} className="w-20 h-20 rounded-3xl ring-4 ring-zinc-900 object-cover" />
                     {creator.badge && (
                       <img 
                         src={`/badges/${creator.badge}.png`} 
@@ -98,28 +88,20 @@ export default function Creators() {
         </div>
       </div>
 
-      {/* Styles des cadres animés Shimmering Frame */}
       <style jsx>{`
         @keyframes shimmer {
           0% { background-position: -200% 0; }
           100% { background-position: 300% 0; }
         }
         .shimmer-frame {
-          animation: shimmer 4s linear infinite;
-          background: linear-gradient(
-            90deg,
-            transparent 40%,
-            rgba(255,255,255,0.9) 50%,
-            transparent 60%
-          );
+          animation: shimmer 10s linear infinite;   /* ← beaucoup plus lent */
+          background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.9) 50%, transparent 60%);
           background-size: 200% 100%;
-          box-shadow: 
-            0 0 15px -2px currentColor,
-            inset 0 0 15px -2px currentColor;
+          box-shadow: 0 0 20px -3px currentColor, inset 0 0 20px -3px currentColor;
         }
-        .shimmer-frame.rose { color: #f472b6; box-shadow: 0 0 20px -3px #f472b6, inset 0 0 20px -3px #f472b6; }
-        .shimmer-frame.silver { color: #e2e8f0; box-shadow: 0 0 20px -3px #e2e8f0, inset 0 0 20px -3px #e2e8f0; }
-        .shimmer-frame.gold { color: #fbbf24; box-shadow: 0 0 20px -3px #fbbf24, inset 0 0 20px -3px #fbbf24; }
+        .shimmer-frame.rose   { color: #f472b6; }
+        .shimmer-frame.silver { color: #e2e8f0; }
+        .shimmer-frame.gold   { color: #fbbf24; }
       `}</style>
     </div>
   );
