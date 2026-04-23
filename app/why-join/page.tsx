@@ -1,60 +1,89 @@
 'use client';
 
+import { useLanguage } from '../contexts/LanguageContext';
 import Link from 'next/link';
 
 export default function WhyJoin() {
+  const { t } = useLanguage();
+
   return (
     <div className="min-h-screen bg-zinc-950 py-16">
       <div className="max-w-5xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold tracking-tighter mb-4">Pourquoi rejoindre MyWornSkin ?</h1>
-          <p className="text-xl text-zinc-400">Le premier site spécialisé dans les vêtements déjà portés.</p>
+          <h1 className="text-5xl font-bold mb-6">{t('whyJoin') || "Pourquoi nous rejoindre ?"}</h1>
+          <p className="text-xl text-zinc-400">La plateforme la plus intime et authentique pour vendre tes vêtements portés</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12">
-
-          {/* Version Créatrice */}
+          {/* Pour les Créatrices */}
           <div className="card p-10">
             <h2 className="text-3xl font-semibold mb-8 text-rose-400">Pour les Créatrices</h2>
-            <p className="text-zinc-300 text-lg mb-8">
-              Vous vendez vos vêtements portés ? MyWornSkin vous permet de centraliser toutes vos ventes au même endroit.
-            </p>
-            <ul className="space-y-4 text-zinc-400 mb-10">
-              <li>✓ Un seul espace au lieu de multiples messageries</li>
-              <li>✓ Commission à seulement 10% (8% pour les premières créatrices)</li>
-              <li>✓ Mise en avant automatique pendant vos 3 premières semaines</li>
-              <li>✓ Audience ciblée : les acheteurs viennent pour ce type de contenu</li>
-              <li>✓ Contrôle total sur vos annonces et vos messages</li>
-            </ul>
-            <Link href="/sell" className="btn-primary w-full text-center block">
-              Créer mon compte créatrice
+            
+            <div className="space-y-8">
+              <div className="flex gap-5">
+                <div className="text-4xl">💰</div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">Gagnez de l’argent avec ce que vous portez tous les jours</h3>
+                  <p className="text-zinc-400">10% de commission seulement – l’un des meilleurs taux du marché.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-5">
+                <div className="text-4xl">🔒</div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">Contrôle total sur votre contenu</h3>
+                  <p className="text-zinc-400">Vous décidez ce que vous montrez et à qui.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-5">
+                <div className="text-4xl">🌟</div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">Visibilité et badges</h3>
+                  <p className="text-zinc-400">Badges de volume et longévité qui boostent votre visibilité.</p>
+                </div>
+              </div>
+            </div>
+
+            <Link href="/sell" className="btn-primary w-full py-6 mt-10 block text-center">
+              Commencer à vendre maintenant
             </Link>
           </div>
 
-          {/* Version Acheteur */}
+          {/* Pour les Acheteurs */}
           <div className="card p-10">
             <h2 className="text-3xl font-semibold mb-8 text-rose-400">Pour les Acheteurs</h2>
-            <p className="text-zinc-300 text-lg mb-8">
-              Vous cherchez des pièces authentiques et chargées d’histoire ?
-            </p>
-            <ul className="space-y-4 text-zinc-400 mb-10">
-              <li>✓ Large choix de vêtements réellement portés</li>
-              <li>✓ Interaction directe avec les créatrices</li>
-              <li>✓ Authenticité garantie par vérification des profils</li>
-              <li>✓ Paiement sécurisé et anonymat respecté</li>
-              <li>✓ Expérience intime et fetish-friendly</li>
-            </ul>
-            <Link href="/creators" className="btn-primary w-full text-center block">
+            
+            <div className="space-y-8">
+              <div className="flex gap-5">
+                <div className="text-4xl">👃</div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">Vêtements avec une vraie odeur intime</h3>
+                  <p className="text-zinc-400">Pas de produits neufs stériles – uniquement du porté authentique.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-5">
+                <div className="text-4xl">🔍</div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">Créatrices vérifiées</h3>
+                  <p className="text-zinc-400">Chaque profil est contrôlé manuellement avant publication.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-5">
+                <div className="text-4xl">💬</div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">Discussion privée directe</h3>
+                  <p className="text-zinc-400">Demandez des photos, vidéos ou précisions aux créatrices.</p>
+                </div>
+              </div>
+            </div>
+
+            <Link href="/creators" className="btn-primary w-full py-6 mt-10 block text-center">
               Découvrir les créatrices
             </Link>
           </div>
-
-        </div>
-
-        {/* Texte de confiance */}
-        <div className="mt-16 text-center">
-          <p className="text-emerald-400 font-medium">Tous les créateurs sont vérifiés manuellement par notre équipe.</p>
-          <p className="text-zinc-500 mt-2">Vous achetez en toute confiance sur MyWornSkin.</p>
         </div>
       </div>
     </div>
