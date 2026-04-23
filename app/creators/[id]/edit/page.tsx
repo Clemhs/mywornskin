@@ -1,6 +1,6 @@
 'use client';
 
-// V5 - Version mobile optimisée (barre du haut propre + scroll horizontal badges/cadres)
+// V5 - Page Personnalisation complète (mobile optimisé + boutique cosmétiques remise)
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -52,7 +52,7 @@ export default function CreatorEdit() {
     <div className="min-h-screen bg-zinc-950 text-white pb-12">
       <div className="max-w-6xl mx-auto px-4 pt-6">
         
-        {/* Barre du haut - optimisée mobile */}
+        {/* Barre du haut optimisée mobile */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex items-center gap-2 text-sm">
             ← Retour au profil
@@ -107,7 +107,7 @@ export default function CreatorEdit() {
               {avatarPending && <p className="mt-3 text-amber-400 text-sm flex items-center gap-2">⏳ Changement en attente de validation</p>}
             </div>
 
-            {/* Badges avec scroll horizontal */}
+            {/* Badges */}
             <div>
               <h2 className="text-xl mb-4">Badge</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
@@ -121,7 +121,7 @@ export default function CreatorEdit() {
               </div>
             </div>
 
-            {/* Cadres avec scroll horizontal */}
+            {/* Cadres */}
             <div>
               <h2 className="text-xl mb-4">Cadre</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
@@ -132,6 +132,33 @@ export default function CreatorEdit() {
                     {!f.unlocked && <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 text-xs"><span>{f.price}€</span><span className="underline text-[10px]">Débloquer</span></div>}
                     <div className="absolute bottom-3 right-3 text-sm font-semibold text-white drop-shadow-md">{f.name}</div>
                   </button>
+                ))}
+              </div>
+            </div>
+
+            {/* ====================== BOUTIQUE COSMÉTIQUES ====================== */}
+            <div className="pt-8 border-t border-zinc-800">
+              <h2 className="text-2xl font-semibold mb-2">Boutique cosmétiques</h2>
+              <p className="text-zinc-400 mb-6">Débloque des badges et cadres exclusifs pour te démarquer</p>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {[
+                  { name: "Badge 250", price: 15, type: "badge" },
+                  { name: "Badge 1000", price: 39, type: "badge" },
+                  { name: "Cadre Platine", price: 49, type: "frame" },
+                  { name: "Cadre Émeraude", price: 29, type: "frame" },
+                  { name: "Badge Diamant", price: 59, type: "badge" },
+                  { name: "Cadre Rubis", price: 35, type: "frame" },
+                  { name: "Badge Légende", price: 79, type: "badge" },
+                  { name: "Cadre Obsidienne", price: 45, type: "frame" },
+                ].map((item, i) => (
+                  <div key={i} className="card p-4 hover:scale-105 transition-all cursor-pointer group">
+                    <div className="h-40 bg-zinc-900 rounded-2xl flex items-center justify-center text-5xl mb-4 group-hover:scale-110 transition-transform">
+                      {item.type === "badge" ? "🏆" : "🖼️"}
+                    </div>
+                    <p className="font-medium text-center">{item.name}</p>
+                    <p className="text-rose-400 text-xl text-center mt-1">{item.price}€</p>
+                  </div>
                 ))}
               </div>
             </div>
