@@ -89,10 +89,16 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-5 justify-center">
-            <Link href="/creators" className="btn-primary">
+            <Link
+              href="/creators"
+              className="btn-primary px-12 py-7 text-xl font-medium transition-all hover:scale-105"
+            >
               Découvrir les créatrices
             </Link>
-            <Link href="/sell" className="btn-secondary">
+            <Link
+              href="/sell"
+              className="btn-secondary px-12 py-7 text-xl font-medium transition-all hover:scale-105"
+            >
               Mettre ma pièce en vente
             </Link>
           </div>
