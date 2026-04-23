@@ -1,6 +1,6 @@
 'use client';
 
-// V7 - Statut visible + tout le reste (final)
+// V7 - Statut visible (En attente / Validé / Refusé) + boutique cosmétiques
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -141,4 +141,41 @@ export default function CreatorEdit() {
 
             {/* Boutique cosmétiques */}
             <div className="pt-8 border-t border-zinc-800">
-             
+              <h2 className="text-2xl font-semibold mb-2">Boutique cosmétiques</h2>
+              <p className="text-zinc-400 mb-6">Débloque des badges et cadres exclusifs</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {[
+                  { name: "Badge 250", price: 15, type: "badge" },
+                  { name: "Badge 1000", price: 39, type: "badge" },
+                  { name: "Cadre Platine", price: 49, type: "frame" },
+                  { name: "Cadre Émeraude", price: 29, type: "frame" },
+                  { name: "Badge Diamant", price: 59, type: "badge" },
+                  { name: "Cadre Rubis", price: 35, type: "frame" },
+                  { name: "Badge Légende", price: 79, type: "badge" },
+                  { name: "Cadre Obsidienne", price: 45, type: "frame" },
+                ].map((item, i) => (
+                  <div key={i} className="card p-4 hover:scale-105 transition-all cursor-pointer group">
+                    <div className="h-40 bg-zinc-900 rounded-2xl flex items-center justify-center text-5xl mb-4 group-hover:scale-110 transition-transform">
+                      {item.type === "badge" ? "🏆" : "🖼️"}
+                    </div>
+                    <p className="font-medium text-center">{item.name}</p>
+                    <p className="text-rose-400 text-xl text-center mt-1">{item.price}€</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 300% 0; } }
+        .shimmer-frame { animation: shimmer 10s linear infinite; background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.85) 50%, transparent 60%); background-size: 200% 100%; box-shadow: 0 0 20px -3px currentColor, inset 0 0 20px -3px currentColor; }
+        .shimmer-frame.rose { color: #f472b6; }
+        .shimmer-frame.silver { color: #e2e8f0; }
+        .shimmer-frame.gold { color: #fbbf24; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+      `}</style>
+    </div>
+  );
+}
