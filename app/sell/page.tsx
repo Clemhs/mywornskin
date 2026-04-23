@@ -51,6 +51,7 @@ export default function Sell() {
         <h1 className="text-4xl font-bold text-center mb-12">Vends ton vêtement porté</h1>
 
         <div className="card p-10 space-y-10">
+          {/* Photos */}
           <div>
             <h3 className="font-semibold mb-4">Photos (minimum 3 recommandées)</h3>
             <label className="block border-2 border-dashed border-zinc-700 hover:border-rose-500 rounded-3xl p-12 text-center cursor-pointer">
@@ -68,6 +69,7 @@ export default function Sell() {
             )}
           </div>
 
+          {/* Vidéo */}
           <div>
             <h3 className="font-semibold mb-4">Vidéo (fortement recommandée)</h3>
             <label className="block border-2 border-dashed border-zinc-700 hover:border-rose-500 rounded-3xl p-12 text-center cursor-pointer">
@@ -85,9 +87,22 @@ export default function Sell() {
             )}
           </div>
 
+          {/* Formulaire */}
           <div className="grid md:grid-cols-2 gap-6">
-            <input type="text" placeholder="Titre de l'annonce" className="input" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
-            <input type="number" placeholder="Prix (€)" className="input" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} />
+            <input 
+              type="text" 
+              placeholder="Titre de l'annonce" 
+              className="input" 
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+            />
+            <input 
+              type="number" 
+              placeholder="Prix (€)" 
+              className="input" 
+              value={formData.price}
+              onChange={(e) => setFormData({...formData, price: e.target.value})}
+            />
             <select className="input" value={formData.size} onChange={(e) => setFormData({...formData, size: e.target.value})}>
               <option value="">Taille</option>
               <option value="XS">XS</option>
