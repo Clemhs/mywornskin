@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useLanguage } from '../contexts/LanguageContext';
 
 const creators = [
   {
@@ -53,7 +52,6 @@ const creators = [
 ];
 
 export default function Creators() {
-  const { t } = useLanguage();
   const [filter, setFilter] = useState<'all' | 'verified' | 'new'>('all');
 
   const filteredCreators = creators.filter(creator => {
@@ -66,7 +64,7 @@ export default function Creators() {
     <div className="min-h-screen bg-zinc-950 py-12">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4">{t('discover') || "Découvrir les créatrices"}</h1>
+          <h1 className="text-5xl font-bold mb-4">Découvrir les créatrices</h1>
           <p className="text-zinc-400 text-lg">Toutes les femmes qui partagent leur intimité</p>
         </div>
 
@@ -90,13 +88,11 @@ export default function Creators() {
                 <Image src={creator.banner} alt="" fill className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-transparent" />
                 
-                <div className="absolute top-4 right-4">
-                  {creator.verified && (
-                    <div className="bg-emerald-500 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                      ✓ Vérifiée
-                    </div>
-                  )}
-                </div>
+                {creator.verified && (
+                  <div className="absolute top-4 right-4 bg-emerald-500 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                    ✓ Vérifiée
+                  </div>
+                )}
               </div>
 
               <div className="p-6">
