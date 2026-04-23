@@ -1,6 +1,6 @@
 'use client';
 
-// === V11 - VERSION FINALE - BANDEAU ROUGE VISIBLES + BADGES PIÈCES MÉTALLIQUES + CADRES MUSÉE LARGES ===
+// === V12 - VERSION FINALE TRÈS VISIBLE - BADGES PIÈCES MÉTALLIQUES + CADRES MUSÉE LARGES ===
 
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
@@ -112,12 +112,12 @@ export default function Creators() {
 
                 {/* Cadre musée large et gravé */}
                 {creator.frame && (
-                  <div className={`absolute inset-0 border-[16px] rounded-3xl pointer-events-none
+                  <div className={`absolute inset-0 border-[18px] rounded-3xl pointer-events-none
                     ${creator.frame === 'bronze' ? 'border-amber-700' : 'border-zinc-300'}`} 
                   />
                 )}
 
-                {/* Avatar + Badge style pièce métallique */}
+                {/* Avatar + Badge style pièce métallique (très visible) */}
                 <div className="absolute -bottom-8 left-6">
                   <div className="relative">
                     <img 
@@ -126,7 +126,7 @@ export default function Creators() {
                       className="w-20 h-20 rounded-3xl ring-4 ring-zinc-900 object-cover" 
                     />
                     {creator.badge && (
-                      <div className="absolute -top-1 -right-1 bg-gradient-to-br from-rose-200 via-rose-400 to-amber-400 text-zinc-950 text-4xl font-bold w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl ring-4 ring-zinc-900">
+                      <div className="absolute -top-1 -right-1 bg-gradient-to-br from-rose-300 via-rose-400 to-amber-400 text-zinc-950 text-4xl font-bold w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl ring-4 ring-zinc-900 drop-shadow-2xl">
                         {creator.badge}
                       </div>
                     )}
