@@ -3,11 +3,12 @@
 import { useState } from 'react';
 
 const volumeLevels = [10, 50, 100, 200, 500, 1000];
+
 const longevityLevels = [
-  { months: 6, label: '6 mois', color: 'bronze', frame: 'border-amber-600' },
-  { months: 12, label: '1 an', color: 'argent', frame: 'border-zinc-400' },
-  { months: 36, label: '3 ans', color: 'or', frame: 'border-yellow-400' },
-  { months: 60, label: '5 ans', color: 'platine', frame: 'border-slate-300' },
+  { months: 6, label: '6 mois', color: 'bronze' },
+  { months: 12, label: '1 an', color: 'argent' },
+  { months: 36, label: '3 ans', color: 'or' },
+  { months: 60, label: '5 ans', color: 'platine' },
 ];
 
 export default function Badges() {
@@ -72,7 +73,7 @@ export default function Badges() {
                   }`}
                 >
                   <span className="font-medium">{lvl.label}</span>
-                  <span className={`text-sm px-4 py-1 rounded-full ${lvl.frame.replace('border', 'bg')}/10`}>
+                  <span className="text-sm px-4 py-1 rounded-full bg-yellow-400/10 text-yellow-400">
                     {lvl.color.toUpperCase()}
                   </span>
                 </button>
