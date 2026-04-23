@@ -66,14 +66,14 @@ export default function Home() {
        
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           
-          {/* Titre MyWornSkin - plus visible et plus haut sur mobile */}
-          <div className="mb-6 md:mb-8">
-            <div className="text-4xl md:text-5xl font-light tracking-[-0.04em] text-white">
+          {/* Titre MyWornSkin plus haut et plus visible sur mobile */}
+          <div className="mb-8 md:mb-6">
+            <div className="text-5xl md:text-6xl font-light tracking-[-0.04em] text-white">
               MyWornSkin
             </div>
           </div>
 
-          {/* Bandeau avec petite étoile */}
+          {/* Bandeau avec petite étoile scintillante */}
           <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-8 py-3 rounded-full border border-rose-500/20">
             <span
               className="text-rose-400 text-xl"
