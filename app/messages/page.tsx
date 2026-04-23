@@ -50,7 +50,6 @@ export default function Messages() {
       </div>
 
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Liste des conversations */}
         <div className={`${showConversations ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 absolute md:relative w-full md:w-96 h-full bg-zinc-900 border-r border-zinc-800 transition-transform z-40 md:z-auto overflow-y-auto`}>
           {conversations.map((conv, i) => (
             <div 
@@ -67,7 +66,6 @@ export default function Messages() {
           ))}
         </div>
 
-        {/* Zone de chat */}
         <div className="flex-1 flex flex-col h-full">
           <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
             {messages.map((msg) => (
@@ -79,7 +77,6 @@ export default function Messages() {
             ))}
           </div>
 
-          {/* Zone de saisie */}
           <div className="p-4 border-t border-zinc-800 bg-zinc-900">
             <div className="flex gap-3 items-center">
               <label className="p-3 hover:bg-zinc-800 rounded-2xl cursor-pointer text-2xl">
