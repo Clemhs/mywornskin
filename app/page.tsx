@@ -73,7 +73,15 @@ export default function Home() {
           </div>
 
           <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-8 py-3 rounded-full border border-rose-500/20">
-            <span className="text-rose-400 text-xl" style={{ animation: 'gentleTwinkle 3s infinite ease-in-out', textShadow: '0 0 8px rgba(244, 63, 94, 0.6)' }}>✦</span>
+            <span
+              className="text-rose-400 text-xl"
+              style={{
+                animation: 'gentleTwinkle 3s infinite ease-in-out',
+                textShadow: '0 0 8px rgba(244, 63, 94, 0.6)'
+              }}
+            >
+              ✦
+            </span>
             <span className="uppercase tracking-[3px] text-sm font-medium">VÊTEMENTS PORTÉS • HISTOIRES INTIMES</span>
           </div>
 
@@ -87,10 +95,10 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-5 justify-center">
-            <Link href="/creators" className="btn-primary">
+            <Link href="/creators" className="btn-primary px-14 py-7 text-xl font-medium">
               Découvrir les créatrices
             </Link>
-            <Link href="/sell" className="btn-secondary">
+            <Link href="/sell" className="btn-secondary px-14 py-7 text-xl font-medium">
               Mettre ma pièce en vente
             </Link>
           </div>
