@@ -1,7 +1,5 @@
 'use client';
 
-// === V13 - VERSION FINALE PROPRE - BADGES PIÈCES MÉTALLIQUES + CADRES MUSÉE LARGES ===
-
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
 
@@ -110,14 +108,10 @@ export default function Creators() {
               <div className="relative">
                 <img src={creator.banner} alt={creator.username} className="w-full h-48 object-cover" />
 
-                {/* Cadre musée large et gravé */}
                 {creator.frame && (
-                  <div className={`absolute inset-0 border-[18px] rounded-3xl pointer-events-none
-                    ${creator.frame === 'bronze' ? 'border-amber-700' : 'border-zinc-300'}`} 
-                  />
+                  <div className={`absolute inset-0 border-[18px] rounded-3xl pointer-events-none ${creator.frame === 'bronze' ? 'border-amber-700' : 'border-zinc-300'}`} />
                 )}
 
-                {/* Avatar + Badge pièce métallique */}
                 <div className="absolute -bottom-8 left-6">
                   <div className="relative">
                     <img 
@@ -126,9 +120,11 @@ export default function Creators() {
                       className="w-20 h-20 rounded-3xl ring-4 ring-zinc-900 object-cover" 
                     />
                     {creator.badge && (
-                      <div className="absolute -top-1 -right-1 bg-gradient-to-br from-amber-300 via-rose-400 to-rose-500 text-zinc-950 text-4xl font-bold w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl ring-4 ring-zinc-900 border-2 border-amber-100">
-                        {creator.badge}
-                      </div>
+                      <img 
+                        src={`/badges/${creator.badge}.png`} 
+                        alt={`${creator.badge} pièces`}
+                        className="absolute -top-1 -right-1 w-12 h-12 drop-shadow-2xl"
+                      />
                     )}
                   </div>
                 </div>
