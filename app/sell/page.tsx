@@ -3,151 +3,145 @@
 import { useState } from 'react';
 
 export default function Sell() {
+  const [images, setImages] = useState<string[]>([]);
+  const [videos, setVideos] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: '',
+    description: '',
     price: '',
     size: '',
-    condition: 'Très bon état',
-    description: '',
+    condition: '',
   });
-
-  const [images, setImages] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [orderPlaced, setOrderPlaced] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
-
-    Array.from(files).forEach((file) => {
-      if (file.size > 10 * 1024 * 1024) {
-        alert("L'image est trop lourde (maximum 10 Mo)");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (event) => setImages((prev) => [...prev, event.target!.result as string]);
-      reader.readAsDataURL(file);
-    });
+    if (files) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setImages(prev => [...prev, event.target?.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
   };
 
-  const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setVideos(prev => [...prev, event.target?.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     if (images.length === 0) {
-      alert("Veuillez ajouter au moins une photo.");
+      alert("Ajoute au moins une photo de ton vêtement.");
       return;
     }
-
-    setUploading(true);
-    setTimeout(() => {
-      setUploading(false);
-      setOrderPlaced(true);
-      alert("✅ Annonce publiée avec succès !");
-    }, 1400);
-  };
-
-  const downloadNeutralLabel = () => {
-    alert(`📄 Étiquette neutre générée !
-
-Adresse de l'acheteur :
-Jean Dupont
-123 Rue des Lilas
-75000 Paris
-
-Mention : Contenu personnel
-
-MyWornSkin - Commande #MW-${Date.now().toString().slice(-6)}
-
-(Imprimez et collez sur votre colis)`);
+    alert("✅ Annonce publiée ! Elle sera visible après modération (max 24h).");
+    // Ici on pourra plus tard connecter à Supabase
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 py-12">
-      <div className="max-w-4xl mx-auto px-6">
-        <div className="text-center mb-12">
-          <h1 className="hero-text text-5xl tracking-tighter mb-4">Mettre une pièce en vente</h1>
-          <p className="text-xl text-zinc-400">Partage un vêtement que tu as porté. Avec son histoire et son odeur.</p>
-        </div>
+      <div className="max-w-3xl mx-auto px-6">
+        <h1 className="text-4xl font-bold text-center mb-12">Vends ton vêtement porté</h1>
 
-        {!orderPlaced ? (
-          <form onSubmit={handleSubmit} className="card p-10">
-            {/* Upload photos */}
-            <div className="mb-12">
-              <label className="block text-lg font-semibold mb-4">Photos de ta pièce</label>
-              <label className="block border-2 border-dashed border-zinc-700 hover:border-rose-500 rounded-3xl p-16 text-center cursor-pointer transition">
-                <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
-                <div className="text-7xl mb-4">📸</div>
-                <p className="text-rose-400 text-2xl font-medium">Ajoute des photos</p>
-                <p className="text-zinc-500 mt-3">Minimum 3 photos recommandées • Max 10 Mo par image</p>
-              </label>
+        <div className="card p-10 space-y-10">
+          {/* Upload Photos */}
+          <div>
+            <h3 className="font-semibold mb-4">Photos (obligatoire - min 3 recommandées)</h3>
+            <label className="block border-2 border-dashed border-zinc-700 hover:border-rose-500 rounded-3xl p-12 text-center cursor-pointer">
+              <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
+              <div className="text-5xl mb-4">📸</div>
+              <p className="text-rose-400">Clique pour ajouter des photos</p>
+            </label>
 
-              {images.length > 0 && (
-                <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {images.map((img, index) => (
-                    <div key={index} className="relative group rounded-2xl overflow-hidden">
-                      <img src={img} alt="preview" className="w-full aspect-square object-cover" />
-                      <button type="button" onClick={() => removeImage(index)} className="absolute top-3 right-3 bg-black/70 hover:bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-xl transition">✕</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Titre */}
-            <div className="mb-8">
-              <label className="block text-sm font-medium mb-3">Titre de l’annonce</label>
-              <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Ex: Culotte en dentelle noire portée 3 jours" className="input w-full" required />
-            </div>
-
-            {/* Prix, Taille, État */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-              <div>
-                <label className="block text-sm font-medium mb-3">Prix (€)</label>
-                <input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} placeholder="29.90" className="input w-full" required />
+            {images.length > 0 && (
+              <div className="grid grid-cols-3 gap-4 mt-6">
+                {images.map((img, i) => (
+                  <img key={i} src={img} alt="preview" className="rounded-2xl aspect-square object-cover" />
+                ))}
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-3">Taille</label>
-                <select value={formData.size} onChange={(e) => setFormData({ ...formData, size: e.target.value })} className="input w-full">
-                  <option value="">Choisir</option>
-                  <option value="XS">XS</option>
-                  <option value="S">S</option>
-                  <option value="M">M</option>
-                  <option value="L">L</option>
-                  <option value="XL">XL</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-3">État</label>
-                <select value={formData.condition} onChange={(e) => setFormData({ ...formData, condition: e.target.value })} className="input w-full">
-                  <option value="Neuf avec étiquette">Neuf avec étiquette</option>
-                  <option value="Excellent état">Excellent état</option>
-                  <option value="Très bon état">Très bon état</option>
-                  <option value="Bon état">Bon état</option>
-                </select>
-              </div>
-            </div>
-
-            <button type="submit" disabled={uploading || images.length === 0} className="btn-primary w-full py-6 text-lg">
-              {uploading ? "Publication en cours..." : "Publier mon annonce"}
-            </button>
-          </form>
-        ) : (
-          <div className="card p-12 text-center">
-            <h2 className="text-3xl font-semibold mb-6">Annonce publiée avec succès !</h2>
-            
-            <button onClick={downloadNeutralLabel} className="btn-primary w-full py-6 text-lg mb-6">
-              📄 Télécharger l'étiquette neutre d'envoi
-            </button>
-
-            <p className="text-zinc-400">
-              Délai d'envoi maximum : <strong>72 heures</strong><br />
-              Utilisez un emballage discret et neutre.
-            </p>
+            )}
           </div>
-        )}
+
+          {/* Upload Vidéo */}
+          <div>
+            <h3 className="font-semibold mb-4">Vidéo (optionnel - très recommandé)</h3>
+            <label className="block border-2 border-dashed border-zinc-700 hover:border-rose-500 rounded-3xl p-12 text-center cursor-pointer">
+              <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" />
+              <div className="text-5xl mb-4">🎥</div>
+              <p className="text-rose-400">Ajoute une vidéo courte du vêtement porté</p>
+            </label>
+
+            {videos.length > 0 && (
+              <div className="mt-6">
+                {videos.map((vid, i) => (
+                  <video key={i} src={vid} controls className="w-full rounded-3xl" />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Formulaire */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <input 
+              type="text" 
+              placeholder="Titre de l'annonce" 
+              className="input" 
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+            />
+            <input 
+              type="number" 
+              placeholder="Prix (€)" 
+              className="input" 
+              value={formData.price}
+              onChange={(e) => setFormData({...formData, price: e.target.value})}
+            />
+            <select 
+              className="input" 
+              value={formData.size}
+              onChange={(e) => setFormData({...formData, size: e.target.value})}
+            >
+              <option value="">Taille</option>
+              <option value="XS">XS</option>
+              <option value="S">S</option>
+              <option value="M">M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+            </select>
+            <select 
+              className="input" 
+              value={formData.condition}
+              onChange={(e) => setFormData({...formData, condition: e.target.value})}
+            >
+              <option value="">État</option>
+              <option value="Neuf">Neuf (jamais porté)</option>
+              <option value="Excellent">Excellent</option>
+              <option value="Très bon">Très bon</option>
+              <option value="Bon">Bon</option>
+            </select>
+          </div>
+
+          <textarea 
+            placeholder="Description détaillée (odeur, sensation, moments portés...)" 
+            className="input min-h-[140px]"
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+          />
+
+          <button onClick={handleSubmit} className="btn-primary w-full py-7 text-xl font-semibold">
+            Publier mon annonce
+          </button>
+        </div>
       </div>
     </div>
   );
