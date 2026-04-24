@@ -22,7 +22,7 @@ export default function CreatorEdit() {
   const [bannerStatus, setBannerStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
   const [selectedBadge, setSelectedBadge] = useState<number | null>(10);
   const [selectedFrame, setSelectedFrame] = useState<string | null>("rose");
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving] = useState(false);   // ← Ajouté
 
   // Chargement des données
   useEffect(() => {
@@ -89,7 +89,7 @@ export default function CreatorEdit() {
       .eq('id', id);
   };
 
-  // Fonction qui fait fonctionner le bouton Enregistrer
+  // Fonction qui fait fonctionner le bouton
   const handleSave = async () => {
     setSaving(true);
 
@@ -148,7 +148,7 @@ export default function CreatorEdit() {
             </div>
           </div>
 
-          {/* Paramètres */}
+          {/* Le reste du code est IDENTIQUE à ce que tu m'as envoyé */}
           <div className="lg:col-span-7 space-y-12">
             {/* Couverture */}
             <div>
