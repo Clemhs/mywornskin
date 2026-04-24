@@ -1,5 +1,5 @@
 'use client';
-// V11 - Version complète et fonctionnelle (bouton Enregistrer OK + toast + pending)
+// V12 - Version complète riche (aperçu + badges + cadres + boutique + bouton Enregistrer OK)
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -25,22 +25,19 @@ export default function CreatorEdit() {
   const [saving, setSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Chargement des données
   useEffect(() => {
     const loadCreator = async () => {
       if (!id) return;
-      const { data } = await supabase
-        .from('creators')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const { data } = await supabase.from('creators').select('*').eq('id', id).single();
       if (data) {
-        setAvatar(data.avatar_url || avatar);
-        setBanner(data.banner_url || banner);
+        setAvatar(data.avatar_url || "https://picsum.photos/id/1011/280/280");
+        setBanner(data.banner_url || "https://picsum.photos/id/1005/1200/400");
         setPendingAvatar(data.pending_avatar_url || "");
         setPendingBanner(data.pending_banner_url || "");
         if (data.pending_avatar_url) setAvatarStatus('pending');
         if (data.pending_banner_url) setBannerStatus('pending');
-        if (data.badge) setSelectedBadge(data.badge);
+        if (data.badge !== null) setSelectedBadge(data.badge);
         if (data.frame) setSelectedFrame(data.frame);
       }
     };
@@ -52,14 +49,8 @@ export default function CreatorEdit() {
     if (!file) return;
     setAvatarStatus('pending');
     const fileName = `pending-avatar-${id}-${Date.now()}`;
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(fileName, file, { upsert: true });
-    if (uploadError) {
-      console.error(uploadError);
-      setAvatarStatus('rejected');
-      return;
-    }
+    const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true });
+    if (uploadError) { console.error(uploadError); setAvatarStatus('rejected'); return; }
     const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
     await supabase.from('creators').update({ pending_avatar_url: urlData.publicUrl }).eq('id', id);
     setPendingAvatar(urlData.publicUrl);
@@ -72,14 +63,8 @@ export default function CreatorEdit() {
     if (!file) return;
     setBannerStatus('pending');
     const fileName = `pending-banner-${id}-${Date.now()}`;
-    const { error: uploadError } = await supabase.storage
-      .from('banners')
-      .upload(fileName, file, { upsert: true });
-    if (uploadError) {
-      console.error(uploadError);
-      setBannerStatus('rejected');
-      return;
-    }
+    const { error: uploadError } = await supabase.storage.from('banners').upload(fileName, file, { upsert: true });
+    if (uploadError) { console.error(uploadError); setBannerStatus('rejected'); return; }
     const { data: urlData } = supabase.storage.from('banners').getPublicUrl(fileName);
     await supabase.from('creators').update({ pending_banner_url: urlData.publicUrl }).eq('id', id);
     setPendingBanner(urlData.publicUrl);
@@ -120,22 +105,22 @@ export default function CreatorEdit() {
           </button>
         </div>
 
-        {/* Aperçu en direct */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* Aperçu en direct */}
           <div className="lg:col-span-5">
-            <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800">
-              <img src={pendingBanner || banner} alt="banner" className="w-full h-48 object-cover" />
+            <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
+              <img src={pendingBanner || banner} alt="Bannière" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-zinc-950/70" />
-              <div className="absolute bottom-6 left-6 flex items-end gap-4">
-                <img src={pendingAvatar || avatar} alt="avatar" className="w-24 h-24 rounded-2xl border-4 border-zinc-950 object-cover" />
-                {selectedFrame && (
-                  <div className={`shimmer-frame ${selectedFrame} absolute -inset-1 rounded-3xl pointer-events-none`} />
-                )}
-                {selectedBadge && (
-                  <div className="absolute -top-1 -right-1 bg-gradient-to-br from-yellow-400 to-amber-500 text-black text-xs font-bold w-8 h-8 rounded-full flex items-center justify-center shadow-xl">
-                    {selectedBadge}
-                  </div>
-                )}
+              <div className="absolute bottom-8 left-8 flex items-end gap-6">
+                <div className="relative">
+                  <img src={pendingAvatar || avatar} alt="Avatar" className="w-28 h-28 rounded-2xl border-4 border-zinc-950 object-cover" />
+                  {selectedFrame && <div className={`shimmer-frame ${selectedFrame} absolute -inset-2 rounded-3xl pointer-events-none`} />}
+                  {selectedBadge && (
+                    <div className="absolute -top-2 -right-2 bg-gradient-to-br from-yellow-400 to-amber-500 text-black text-xs font-bold w-9 h-9 rounded-full flex items-center justify-center shadow-2xl">
+                      {selectedBadge}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -148,36 +133,85 @@ export default function CreatorEdit() {
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <p className="text-sm text-zinc-400 mb-2">Image de couverture</p>
-                  <label className="block border border-dashed border-zinc-700 rounded-3xl p-8 text-center cursor-pointer hover:border-pink-500">
+                  <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500">
                     <input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
-                    <span className="text-pink-400">Changer la couverture</span>
+                    <span className="text-pink-400 text-lg">Changer la couverture</span>
                   </label>
                   {bannerStatus === 'pending' && <p className="text-amber-400 text-sm mt-2">En attente de validation</p>}
                 </div>
                 <div>
                   <p className="text-sm text-zinc-400 mb-2">Photo de profil</p>
-                  <label className="block border border-dashed border-zinc-700 rounded-3xl p-8 text-center cursor-pointer hover:border-pink-500">
+                  <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500">
                     <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
-                    <span className="text-pink-400">Changer la photo</span>
+                    <span className="text-pink-400 text-lg">Changer la photo</span>
                   </label>
                   {avatarStatus === 'pending' && <p className="text-amber-400 text-sm mt-2">En attente de validation</p>}
                 </div>
               </div>
             </div>
 
-            {/* Badges & Cadres */}
-            {/* (le reste du code V10 que tu aimais est ici) */}
-            {/* Je te le remets en entier si tu veux, mais pour gagner du temps je te donne d'abord le minimum vital. */}
-
-            {/* Toast */}
-            {toastMessage && (
-              <div className="fixed bottom-8 right-8 bg-green-600 text-white px-8 py-4 rounded-3xl shadow-2xl z-50 text-sm">
-                {toastMessage}
+            {/* Badges */}
+            <div>
+              <h2 className="text-xl mb-4">Badges</h2>
+              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                {[10,50,100,500].map(b => (
+                  <button
+                    key={b}
+                    onClick={() => setSelectedBadge(b)}
+                    className={`px-6 py-3 rounded-2xl border ${selectedBadge === b ? 'border-pink-500 bg-pink-500/10' : 'border-zinc-700 hover:border-zinc-500'}`}
+                  >
+                    {b} pièces
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
+
+            {/* Cadres */}
+            <div>
+              <h2 className="text-xl mb-4">Cadres</h2>
+              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                {['rose','silver','gold'].map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setSelectedFrame(f)}
+                    className={`px-6 py-3 rounded-2xl border ${selectedFrame === f ? 'border-pink-500 bg-pink-500/10' : 'border-zinc-700 hover:border-zinc-500'}`}
+                  >
+                    {f === 'rose' ? '1 an' : f === 'silver' ? '2 ans' : '5 ans'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Boutique cosmétiques */}
+            <div className="pt-8 border-t border-zinc-800">
+              <h2 className="text-xl mb-6">Boutique cosmétiques</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {/* Tu peux ajouter ici les articles factices */}
+                <div className="bg-zinc-900 rounded-3xl p-4 text-center">Article 1</div>
+                <div className="bg-zinc-900 rounded-3xl p-4 text-center">Article 2</div>
+                <div className="bg-zinc-900 rounded-3xl p-4 text-center">Article 3</div>
+                <div className="bg-zinc-900 rounded-3xl p-4 text-center">Article 4</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Toast */}
+      {toastMessage && (
+        <div className="fixed bottom-8 right-8 bg-green-600 text-white px-8 py-4 rounded-3xl shadow-2xl z-50">
+          {toastMessage}
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 300% 0; } }
+        .shimmer-frame { animation: shimmer 10s linear infinite; background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.85) 50%, transparent 60%); background-size: 200% 100%; box-shadow: 0 0 20px -3px currentColor, inset 0 0 20px -3px currentColor; }
+        .shimmer-frame.rose { color: #f472b6; }
+        .shimmer-frame.silver { color: #e2e8f0; }
+        .shimmer-frame.gold { color: #fbbf24; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+      `}</style>
     </div>
   );
 }
