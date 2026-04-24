@@ -1,5 +1,5 @@
 'use client';
-// V12 - Version complète riche (aperçu + badges + cadres + boutique + bouton OK)
+// V12 - Version riche complète (aperçu en direct + badges + cadres + boutique + bouton OK)
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -73,7 +73,10 @@ export default function CreatorEdit() {
 
   const handleSave = async () => {
     setSaving(true);
-    const { error } = await supabase.from('creators').update({ badge: selectedBadge, frame: selectedFrame }).eq('id', id);
+    const { error } = await supabase
+      .from('creators')
+      .update({ badge: selectedBadge, frame: selectedFrame })
+      .eq('id', id);
     if (error) {
       console.error(error);
       setToastMessage('❌ Erreur lors de la sauvegarde');
@@ -90,7 +93,11 @@ export default function CreatorEdit() {
         <div className="flex justify-between items-center mb-8">
           <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex items-center gap-2">← Retour au profil</Link>
           <h1 className="text-3xl font-semibold">Personnaliser mon profil</h1>
-          <button onClick={handleSave} disabled={saving} className="bg-pink-600 hover:bg-pink-500 px-8 py-3 rounded-3xl text-white font-medium disabled:opacity-50">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-pink-600 hover:bg-pink-500 px-8 py-3 rounded-3xl text-white font-medium disabled:opacity-50"
+          >
             {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
           </button>
         </div>
@@ -145,8 +152,11 @@ export default function CreatorEdit() {
               <h2 className="text-xl mb-4">Badges</h2>
               <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
                 {[10,50,100,500].map(b => (
-                  <button key={b} onClick={() => setSelectedBadge(b)}
-                    className={`px-6 py-3 rounded-2xl whitespace-nowrap border ${selectedBadge === b ? 'border-pink-500 bg-pink-500/10 text-pink-400' : 'border-zinc-700 hover:border-zinc-500'}`}>
+                  <button
+                    key={b}
+                    onClick={() => setSelectedBadge(b)}
+                    className={`px-6 py-3 rounded-2xl whitespace-nowrap border ${selectedBadge === b ? 'border-pink-500 bg-pink-500/10 text-pink-400' : 'border-zinc-700 hover:border-zinc-500'}`}
+                  >
                     {b} pièces
                   </button>
                 ))}
@@ -158,8 +168,11 @@ export default function CreatorEdit() {
               <h2 className="text-xl mb-4">Cadres</h2>
               <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
                 {['rose','silver','gold'].map(f => (
-                  <button key={f} onClick={() => setSelectedFrame(f)}
-                    className={`px-6 py-3 rounded-2xl whitespace-nowrap border ${selectedFrame === f ? 'border-pink-500 bg-pink-500/10 text-pink-400' : 'border-zinc-700 hover:border-zinc-500'}`}>
+                  <button
+                    key={f}
+                    onClick={() => setSelectedFrame(f)}
+                    className={`px-6 py-3 rounded-2xl whitespace-nowrap border ${selectedFrame === f ? 'border-pink-500 bg-pink-500/10 text-pink-400' : 'border-zinc-700 hover:border-zinc-500'}`}
+                  >
                     {f === 'rose' ? '1 an' : f === 'silver' ? '2 ans' : '5 ans'}
                   </button>
                 ))}
@@ -180,7 +193,7 @@ export default function CreatorEdit() {
         </div>
       </div>
 
-      {/* Toast */}
+      {/* Toast vert */}
       {toastMessage && (
         <div className="fixed bottom-8 right-8 bg-green-600 text-white px-8 py-4 rounded-3xl shadow-2xl z-50">
           {toastMessage}
