@@ -1,32 +1,72 @@
 'use client';
 
-// V3 - Admin Pending - Liens vers profil + toast feedback
+// V4 - Admin Pending - Validation réelle dans Supabase
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function AdminPending() {
-  const [pendingItems, setPendingItems] = useState([
-    { id: 1, creatorId: 3, creator: "Sienna Rose", type: "banner", oldImage: "https://picsum.photos/id/203/800/320", newImage: "https://picsum.photos/id/1005/1200/400", date: "il y a 12 min" },
-    { id: 2, creatorId: 4, creator: "Nova Lune", type: "avatar", oldImage: "https://picsum.photos/id/1012/280/280", newImage: "https://picsum.photos/id/160/280/280", date: "il y a 47 min" },
-    { id: 3, creatorId: 1, creator: "Lila Noir", type: "banner", oldImage: "https://picsum.photos/id/1005/800/320", newImage: "https://picsum.photos/id/201/1200/400", date: "il y a 2h" },
-  ]);
-
+  const [pendingItems, setPendingItems] = useState<any[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 2800);
+    setTimeout(() => setToast(null), 3000);
   };
 
-  const handleApprove = (id: number) => {
-    setPendingItems(prev => prev.filter(item => item.id !== id));
-    showToast('✅ Changement validé avec succès', 'success');
+  const loadPending = async () => {
+    const { data } = await supabase
+      .from('creators')
+      .select('id, username, pending_avatar_url, pending_banner_url')
+      .or('pending_avatar_url.is.null,pending_banner_url.is.null')
+      .not('pending_avatar_url', 'is', null)
+      .or('pending_avatar_url.is.null,pending_banner_url.is.null')
+      .not('pending_banner_url', 'is', null);
+
+    setPendingItems(data || []);
   };
 
-  const handleReject = (id: number) => {
-    setPendingItems(prev => prev.filter(item => item.id !== id));
-    showToast('❌ Changement refusé', 'error');
+  useEffect(() => {
+    loadPending();
+  }, []);
+
+  const handleApprove = async (creatorId: string, type: 'avatar' | 'banner') => {
+    const updateData = type === 'avatar' 
+      ? { avatar_url: pendingItems.find(i => i.id === creatorId)?.pending_avatar_url, pending_avatar_url: null }
+      : { banner_url: pendingItems.find(i => i.id === creatorId)?.pending_banner_url, pending_banner_url: null };
+
+    const { error } = await supabase
+      .from('creators')
+      .update(updateData)
+      .eq('id', creatorId);
+
+    if (error) {
+      showToast('❌ Erreur lors de la validation', 'error');
+      return;
+    }
+
+    showToast('✅ Image validée avec succès', 'success');
+    loadPending(); // rafraîchir la liste
+  };
+
+  const handleReject = async (creatorId: string, type: 'avatar' | 'banner') => {
+    const updateData = type === 'avatar' 
+      ? { pending_avatar_url: null }
+      : { pending_banner_url: null };
+
+    await supabase
+      .from('creators')
+      .update(updateData)
+      .eq('id', creatorId);
+
+    showToast('❌ Image refusée', 'error');
+    loadPending();
   };
 
   return (
@@ -49,30 +89,38 @@ export default function AdminPending() {
           {pendingItems.map((item) => (
             <div key={item.id} className="card p-6">
               <div className="flex justify-between items-start mb-4">
-                <Link 
-                  href={`/creators/${item.creatorId}`}
-                  className="font-semibold text-lg hover:text-rose-400 transition-colors"
-                >
-                  {item.creator}
+                <Link href={`/creators/${item.id}`} className="font-semibold text-lg hover:text-rose-400">
+                  {item.username}
                 </Link>
-                <span className="text-xs text-zinc-500">{item.date}</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <p className="text-xs text-zinc-400 mb-2">Image actuelle</p>
-                  <img src={item.oldImage} alt="ancienne" className="w-full rounded-2xl border border-zinc-700" />
+              {item.pending_avatar_url && (
+                <div className="mb-8">
+                  <p className="text-xs text-rose-400 mb-2">Photo de profil proposée</p>
+                  <div className="grid grid-cols-2 gap-6">
+                    <img src={item.avatar_url || "https://picsum.photos/id/1011/280/280"} alt="actuelle" className="rounded-2xl" />
+                    <img src={item.pending_avatar_url} alt="proposée" className="rounded-2xl border-2 border-rose-400" />
+                  </div>
+                  <div className="flex gap-4 mt-4">
+                    <button onClick={() => handleApprove(item.id, 'avatar')} className="flex-1 bg-green-600 hover:bg-green-500 py-3 rounded-2xl">✅ Valider avatar</button>
+                    <button onClick={() => handleReject(item.id, 'avatar')} className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-2xl">❌ Refuser avatar</button>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-rose-400 mb-2">Nouvelle image proposée</p>
-                  <img src={item.newImage} alt="nouvelle" className="w-full rounded-2xl border-2 border-rose-400" />
-                </div>
-              </div>
+              )}
 
-              <div className="flex gap-4 mt-8">
-                <button onClick={() => handleApprove(item.id)} className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl font-medium transition">✅ Valider</button>
-                <button onClick={() => handleReject(item.id)} className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-2xl font-medium transition">❌ Refuser</button>
-              </div>
+              {item.pending_banner_url && (
+                <div>
+                  <p className="text-xs text-rose-400 mb-2">Image de couverture proposée</p>
+                  <div className="grid grid-cols-2 gap-6">
+                    <img src={item.banner_url || "https://picsum.photos/id/1005/1200/400"} alt="actuelle" className="rounded-2xl" />
+                    <img src={item.pending_banner_url} alt="proposée" className="rounded-2xl border-2 border-rose-400" />
+                  </div>
+                  <div className="flex gap-4 mt-4">
+                    <button onClick={() => handleApprove(item.id, 'banner')} className="flex-1 bg-green-600 hover:bg-green-500 py-3 rounded-2xl">✅ Valider couverture</button>
+                    <button onClick={() => handleReject(item.id, 'banner')} className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-2xl">❌ Refuser couverture</button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
