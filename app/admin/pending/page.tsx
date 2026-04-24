@@ -1,4 +1,5 @@
 'use client';
+// Pending page - Version corrigée (Approuver fonctionne correctement)
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
@@ -21,24 +22,37 @@ export default function Pending() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchPending(); }, []);
-
-  const approve = async (id: string, type: 'avatar' | 'banner') => {
-    const updateData = type === 'avatar' 
-      ? { avatar_url: null, pending_avatar_url: null, rejection_message: null }
-      : { banner_url: null, pending_banner_url: null, rejection_message: null };
-    
-    await supabase.from('creators').update(updateData).eq('id', id);
+  useEffect(() => {
     fetchPending();
+  }, []);
+
+  // ✅ CORRECTION : on copie bien la photo pending vers la photo définitive
+  const approve = async (id: string, type: 'avatar' | 'banner') => {
+    const creator = creators.find((c: any) => c.id === id);
+    if (!creator) return;
+
+    const updateData: any = { rejection_message: null };
+
+    if (type === 'avatar' && creator.pending_avatar_url) {
+      updateData.avatar_url = creator.pending_avatar_url;
+      updateData.pending_avatar_url = null;
+    }
+    if (type === 'banner' && creator.pending_banner_url) {
+      updateData.banner_url = creator.pending_banner_url;
+      updateData.pending_banner_url = null;
+    }
+
+    const { error } = await supabase.from('creators').update(updateData).eq('id', id);
+    if (!error) fetchPending();
   };
 
   const reject = async (id: string, type: 'avatar' | 'banner') => {
-    const updateData = type === 'avatar' 
+    const updateData: any = type === 'avatar' 
       ? { pending_avatar_url: null, rejection_message: "Votre photo de profil a été refusée. Veuillez en uploader une autre." }
       : { pending_banner_url: null, rejection_message: "Votre image de couverture a été refusée. Veuillez en uploader une autre." };
-    
-    await supabase.from('creators').update(updateData).eq('id', id);
-    fetchPending();
+
+    const { error } = await supabase.from('creators').update(updateData).eq('id', id);
+    if (!error) fetchPending();
   };
 
   return (
