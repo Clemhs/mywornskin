@@ -89,7 +89,7 @@ export default function CreatorEdit() {
       .eq('id', id);
   };
 
-  // Fonction qui fait fonctionner le bouton
+  // Fonction qui fait fonctionner le bouton Enregistrer
   const handleSave = async () => {
     setSaving(true);
 
@@ -131,7 +131,7 @@ export default function CreatorEdit() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* Aperçu live */}
+          {/* Aperçu en direct */}
           <div className="lg:col-span-5">
             <h2 className="text-xl mb-4">Aperçu en direct</h2>
             <div className="card p-6">
@@ -148,8 +148,9 @@ export default function CreatorEdit() {
             </div>
           </div>
 
-          {/* Le reste de ton code (couverture, avatar, badges, cadres, boutique) est identique à ce que tu m'as envoyé */}
+          {/* Paramètres */}
           <div className="lg:col-span-7 space-y-12">
+            {/* Couverture */}
             <div>
               <h2 className="text-xl mb-2">Image de couverture</h2>
               <p className="text-zinc-400 text-sm mb-4">1200 × 400 px • Max 8 Mo</p>
@@ -160,6 +161,7 @@ export default function CreatorEdit() {
               {bannerStatus === 'pending' && <p className="mt-3 text-amber-400">⏳ En attente de validation</p>}
             </div>
 
+            {/* Avatar */}
             <div>
               <h2 className="text-xl mb-2">Photo de profil</h2>
               <p className="text-zinc-400 text-sm mb-4">512 × 512 px • Max 5 Mo</p>
@@ -170,9 +172,60 @@ export default function CreatorEdit() {
               {avatarStatus === 'pending' && <p className="mt-3 text-amber-400">⏳ En attente de validation</p>}
             </div>
 
-            {/* Badges, Cadres et Boutique restent exactement comme avant */}
-            {/* ... (le reste de ton code original) ... */}
+            {/* Badges */}
+            <div>
+              <h2 className="text-xl mb-4">Badge</h2>
+              <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+                <button onClick={() => setSelectedBadge(null)} className={`flex-shrink-0 px-6 py-3 rounded-2xl border whitespace-nowrap ${selectedBadge === null ? 'border-rose-400 bg-zinc-900' : 'border-zinc-700 hover:border-zinc-500'}`}>Aucun badge</button>
+                {allBadges.map(b => (
+                  <button key={b.id} onClick={() => b.unlocked && setSelectedBadge(b.id)} className={`flex-shrink-0 relative w-20 aspect-square rounded-2xl overflow-hidden transition-all snap-center ${!b.unlocked ? 'grayscale opacity-40 cursor-not-allowed' : 'hover:scale-105'} ${selectedBadge === b.id ? 'ring-4 ring-rose-400' : ''}`}>
+                    <img src={`/badges/${b.id}.png`} className="w-full h-full object-contain p-2" />
+                    {!b.unlocked && <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 text-xs"><span>{b.price}€</span><span className="underline text-[10px]">Débloquer</span></div>}
+                  </button>
+                ))}
+              </div>
+            </div>
 
+            {/* Cadres */}
+            <div>
+              <h2 className="text-xl mb-4">Cadre</h2>
+              <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+                <button onClick={() => setSelectedFrame(null)} className={`flex-shrink-0 px-6 py-3 rounded-2xl border whitespace-nowrap ${selectedFrame === null ? 'border-rose-400 bg-zinc-900' : 'border-zinc-700 hover:border-zinc-500'}`}>Aucun cadre</button>
+                {allFrames.map(f => (
+                  <button key={f.id} onClick={() => f.unlocked && setSelectedFrame(f.id)} className={`flex-shrink-0 relative flex-1 min-w-[160px] rounded-3xl overflow-hidden transition-all snap-center ${!f.unlocked ? 'grayscale opacity-40 cursor-not-allowed' : 'hover:scale-105'} ${selectedFrame === f.id ? 'ring-4 ring-rose-400' : ''}`}>
+                    <img src={`/frames/${f.id}-frame.png`} className="w-full aspect-video object-cover" />
+                    {!f.unlocked && <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 text-xs"><span>{f.price}€</span><span className="underline text-[10px]">Débloquer</span></div>}
+                    <div className="absolute bottom-3 right-3 text-sm font-semibold text-white drop-shadow-md">{f.name}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Boutique cosmétiques */}
+            <div className="pt-8 border-t border-zinc-800">
+              <h2 className="text-2xl font-semibold mb-2">Boutique cosmétiques</h2>
+              <p className="text-zinc-400 mb-6">Débloque des badges et cadres exclusifs</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {[
+                  { name: "Badge 250", price: 15, type: "badge" },
+                  { name: "Badge 1000", price: 39, type: "badge" },
+                  { name: "Cadre Platine", price: 49, type: "frame" },
+                  { name: "Cadre Émeraude", price: 29, type: "frame" },
+                  { name: "Badge Diamant", price: 59, type: "badge" },
+                  { name: "Cadre Rubis", price: 35, type: "frame" },
+                  { name: "Badge Légende", price: 79, type: "badge" },
+                  { name: "Cadre Obsidienne", price: 45, type: "frame" },
+                ].map((item, i) => (
+                  <div key={i} className="card p-4 hover:scale-105 transition-all cursor-pointer group">
+                    <div className="h-40 bg-zinc-900 rounded-2xl flex items-center justify-center text-5xl mb-4 group-hover:scale-110 transition-transform">
+                      {item.type === "badge" ? "🏆" : "🖼️"}
+                    </div>
+                    <p className="font-medium text-center">{item.name}</p>
+                    <p className="text-rose-400 text-xl text-center mt-1">{item.price}€</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
