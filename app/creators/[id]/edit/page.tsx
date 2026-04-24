@@ -1,5 +1,5 @@
 'use client';
-// V10 - Version complète et robuste (bouton Enregistrer corrigé + toast vert)
+// V10 - Version complète et robuste (bouton Enregistrer corrigé)
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -25,7 +25,6 @@ export default function CreatorEdit() {
   const [saving, setSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Chargement des données
   useEffect(() => {
     const loadCreator = async () => {
       if (!id) return;
@@ -145,7 +144,7 @@ export default function CreatorEdit() {
             </div>
           </div>
 
-          {/* Paramètres */}
+          {/* Le reste du code est exactement comme ta version V10 */}
           <div className="lg:col-span-7 space-y-12">
             {/* Couverture */}
             <div>
