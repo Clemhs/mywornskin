@@ -1,5 +1,5 @@
 'use client';
-// V10 - Version complète et robuste (bouton Enregistrer corrigé + toast vert)
+// V10 - Version complète et robuste (bouton Enregistrer corrigé)
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -22,8 +22,8 @@ export default function CreatorEdit() {
   const [bannerStatus, setBannerStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
   const [selectedBadge, setSelectedBadge] = useState<number | null>(10);
   const [selectedFrame, setSelectedFrame] = useState<string | null>("rose");
-  const [saving, setSaving] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);   // Toast vert
+  const [saving, setSaving] = useState(false);           // ← Ajouté
+  const [toastMessage, setToastMessage] = useState<string | null>(null); // ← Toast vert
 
   // Chargement des données
   useEffect(() => {
@@ -128,6 +128,7 @@ export default function CreatorEdit() {
           </button>
         </div>
 
+        {/* Tout le reste est EXACTEMENT comme ta version V10 */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Aperçu en direct */}
           <div className="lg:col-span-5">
@@ -146,7 +147,7 @@ export default function CreatorEdit() {
             </div>
           </div>
 
-          {/* Tout le reste est exactement comme ta version V10 */}
+          {/* Le reste du code (couverture, avatar, badges, cadres, boutique) est identique à ce que tu m'as envoyé */}
           <div className="lg:col-span-7 space-y-12">
             {/* Couverture */}
             <div>
@@ -228,6 +229,7 @@ export default function CreatorEdit() {
         </div>
       </div>
 
+      {/* Toast vert */}
       {toastMessage && (
         <div className="fixed bottom-8 right-8 bg-green-600 text-white px-8 py-4 rounded-3xl shadow-2xl z-50">
           {toastMessage}
