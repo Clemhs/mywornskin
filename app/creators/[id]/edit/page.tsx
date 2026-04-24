@@ -45,7 +45,7 @@ export default function CreatorEdit() {
       .upload(fileName, file, { upsert: true });
 
     if (uploadError) {
-      showToast('❌ Erreur upload', 'error');
+      showToast('❌ Erreur lors de l’upload', 'error');
       setSaving(false);
       return;
     }
@@ -59,7 +59,7 @@ export default function CreatorEdit() {
       .eq('id', id);
 
     setCreator((prev: any) => ({ ...prev, [field]: urlData.publicUrl }));
-    showToast(`✅ ${type === 'avatar' ? 'Photo de profil' : 'Couverture'} mise en attente`, 'success');
+    showToast(`✅ ${type === 'avatar' ? 'Photo de profil' : 'Couverture'} mise en attente de validation`, 'success');
     setSaving(false);
   };
 
@@ -76,19 +76,17 @@ export default function CreatorEdit() {
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-semibold">Personnaliser mon profil</h1>
-          <Link href={`/creators/${id}`} className="text-rose-400 hover:text-white flex items-center gap-1">
-            ← Retour au profil
-          </Link>
+          <Link href={`/creators/${id}`} className="text-rose-400 hover:text-white">← Retour au profil</Link>
         </div>
 
-        {/* Preview */}
-        <div className="relative h-64 md:h-80 rounded-3xl overflow-hidden mb-10 border border-zinc-800">
+        {/* Grande preview */}
+        <div className="relative h-64 rounded-3xl overflow-hidden mb-10 border border-zinc-800">
           <img
             src={creator?.pending_banner_url || creator?.banner_url || "https://picsum.photos/id/1005/1200/400"}
             alt="Bannière"
             className="w-full h-full object-cover"
           />
-          <div className="absolute -bottom-6 left-8 w-28 h-28 rounded-3xl border-4 border-zinc-950 overflow-hidden">
+          <div className="absolute -bottom-8 left-8 w-28 h-28 rounded-3xl border-4 border-zinc-950 overflow-hidden">
             <img
               src={creator?.pending_avatar_url || creator?.avatar_url || "https://picsum.photos/id/1011/280/280"}
               alt="Avatar"
@@ -100,25 +98,25 @@ export default function CreatorEdit() {
         {/* Uploads */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           <div>
-            <label className="block text-zinc-400 text-sm mb-2">Photo de profil</label>
+            <label className="block text-zinc-400 mb-2">Photo de profil</label>
             <input
               type="file"
               accept="image/*"
               onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'avatar')}
               className="block w-full text-sm text-zinc-400 file:mr-4 file:py-4 file:px-8 file:rounded-3xl file:border-0 file:text-sm file:font-medium file:bg-rose-600 file:text-white hover:file:bg-rose-500 cursor-pointer"
             />
-            {creator?.pending_avatar_url && <p className="mt-3 text-amber-400 flex items-center gap-1">⏳ En attente de validation</p>}
+            {creator?.pending_avatar_url && <p className="mt-3 text-amber-400">⏳ En attente de validation</p>}
           </div>
 
           <div>
-            <label className="block text-zinc-400 text-sm mb-2">Image de couverture</label>
+            <label className="block text-zinc-400 mb-2">Image de couverture</label>
             <input
               type="file"
               accept="image/*"
               onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'banner')}
               className="block w-full text-sm text-zinc-400 file:mr-4 file:py-4 file:px-8 file:rounded-3xl file:border-0 file:text-sm file:font-medium file:bg-rose-600 file:text-white hover:file:bg-rose-500 cursor-pointer"
             />
-            {creator?.pending_banner_url && <p className="mt-3 text-amber-400 flex items-center gap-1">⏳ En attente de validation</p>}
+            {creator?.pending_banner_url && <p className="mt-3 text-amber-400">⏳ En attente de validation</p>}
           </div>
         </div>
 
