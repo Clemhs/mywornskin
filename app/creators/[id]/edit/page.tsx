@@ -23,7 +23,7 @@ export default function CreatorEdit() {
   const [selectedBadge, setSelectedBadge] = useState<number | null>(10);
   const [selectedFrame, setSelectedFrame] = useState<string | null>("rose");
   const [saving, setSaving] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);   // ← Toast React
+  const [toastMessage, setToastMessage] = useState<string | null>(null);   // Toast vert
 
   // Chargement des données
   useEffect(() => {
@@ -90,6 +90,7 @@ export default function CreatorEdit() {
       .eq('id', id);
   };
 
+  // Fonction qui fait fonctionner le bouton
   const handleSave = async () => {
     setSaving(true);
 
@@ -145,7 +146,7 @@ export default function CreatorEdit() {
             </div>
           </div>
 
-          {/* Le reste est exactement comme ta version V10 */}
+          {/* Tout le reste est exactement comme ta version V10 */}
           <div className="lg:col-span-7 space-y-12">
             {/* Couverture */}
             <div>
