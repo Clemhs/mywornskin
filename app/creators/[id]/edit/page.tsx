@@ -148,7 +148,7 @@ export default function CreatorEdit() {
             </div>
           </div>
 
-          {/* Le reste du code est IDENTIQUE à ce que tu m'as envoyé */}
+          {/* Paramètres */}
           <div className="lg:col-span-7 space-y-12">
             {/* Couverture */}
             <div>
