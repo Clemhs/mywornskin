@@ -70,45 +70,67 @@ export default function AdminPending() {
         <p className="text-zinc-400 mb-8">Vous avez {items.length} demande(s) en attente</p>
 
         {toast && (
-          <div className="fixed bottom-8 right-8 bg-green-600 text-white px-8 py-4 rounded-3xl shadow-xl">
+          <div className="fixed bottom-8 right-8 bg-green-600 text-white px-8 py-4 rounded-3xl shadow-xl z-50">
             {toast}
           </div>
         )}
 
         {items.length === 0 ? (
-          <p className="text-center text-zinc-400 py-20">Aucune demande en attente pour le moment 🎉</p>
+          <p className="text-center text-zinc-400 py-20 text-lg">
+            Aucune demande en attente pour le moment 🎉
+          </p>
         ) : (
           <div className="space-y-8">
-            {items.map(item => (
+            {items.map((item) => (
               <div key={item.id} className="bg-zinc-900 rounded-3xl p-6">
-                <Link href={`/creators/${item.id}`} className="text-xl font-semibold hover:text-rose-400">
+                <Link href={`/creators/${item.id}`} className="text-xl font-semibold hover:text-rose-400 block mb-4">
                   {item.username}
                 </Link>
 
                 {item.pending_avatar_url && (
-                  <div className="mt-6">
-                    <p className="text-amber-400 mb-2">📸 Photo de profil proposée</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <img src={item.avatar_url} className="rounded-2xl" />
-                      <img src={item.pending_avatar_url} className="rounded-2xl border-2 border-amber-400" />
+                  <div className="mb-8">
+                    <p className="text-amber-400 mb-3">📸 Photo de profil proposée</p>
+                    <div className="grid grid-cols-2 gap-6">
+                      <img src={item.avatar_url} alt="actuelle" className="rounded-2xl" />
+                      <img src={item.pending_avatar_url} alt="proposée" className="rounded-2xl border-2 border-amber-400" />
                     </div>
-                    <div className="flex gap-3 mt-4">
-                      <button onClick={() => approve(item.id, 'avatar')} className="flex-1 bg-green-600 py-3 rounded-2xl">✅ Valider</button>
-                      <button onClick={() => reject(item.id, 'avatar')} className="flex-1 bg-red-600 py-3 rounded-2xl">❌ Refuser</button>
+                    <div className="flex gap-4 mt-4">
+                      <button 
+                        onClick={() => approve(item.id, 'avatar')} 
+                        className="flex-1 bg-green-600 hover:bg-green-500 py-3 rounded-2xl font-medium"
+                      >
+                        ✅ Valider avatar
+                      </button>
+                      <button 
+                        onClick={() => reject(item.id, 'avatar')} 
+                        className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-2xl font-medium"
+                      >
+                        ❌ Refuser avatar
+                      </button>
                     </div>
                   </div>
                 )}
 
                 {item.pending_banner_url && (
-                  <div className="mt-6">
-                    <p className="text-amber-400 mb-2">🖼️ Image de couverture proposée</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <img src={item.banner_url} className="rounded-2xl" />
-                      <img src={item.pending_banner_url} className="rounded-2xl border-2 border-amber-400" />
+                  <div>
+                    <p className="text-amber-400 mb-3">🖼️ Image de couverture proposée</p>
+                    <div className="grid grid-cols-2 gap-6">
+                      <img src={item.banner_url} alt="actuelle" className="rounded-2xl" />
+                      <img src={item.pending_banner_url} alt="proposée" className="rounded-2xl border-2 border-amber-400" />
                     </div>
-                    <div className="flex gap-3 mt-4">
-                      <button onClick={() => approve(item.id, 'banner')} className="flex-1 bg-green-600 py-3 rounded-2xl">✅ Valider</button>
-                      <button onClick={() => reject(item.id, 'banner')} className="flex-1 bg-red-600 py-3 rounded-2xl">❌ Refuser</button>
+                    <div className="flex gap-4 mt-4">
+                      <button 
+                        onClick={() => approve(item.id, 'banner')} 
+                        className="flex-1 bg-green-600 hover:bg-green-500 py-3 rounded-2xl font-medium"
+                      >
+                        ✅ Valider couverture
+                      </button>
+                      <button 
+                        onClick={() => reject(item.id, 'banner')} 
+                        className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-2xl font-medium"
+                      >
+                        ❌ Refuser couverture
+                      </button>
                     </div>
                   </div>
                 )}
