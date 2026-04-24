@@ -1,5 +1,5 @@
 'use client';
-// V12 - Version complète riche (aperçu en direct + badges + cadres + boutique + bouton Enregistrer OK)
+// V12 - Version complète riche (aperçu + badges + cadres + boutique + bouton OK)
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -73,10 +73,7 @@ export default function CreatorEdit() {
 
   const handleSave = async () => {
     setSaving(true);
-    const { error } = await supabase
-      .from('creators')
-      .update({ badge: selectedBadge, frame: selectedFrame })
-      .eq('id', id);
+    const { error } = await supabase.from('creators').update({ badge: selectedBadge, frame: selectedFrame }).eq('id', id);
     if (error) {
       console.error(error);
       setToastMessage('❌ Erreur lors de la sauvegarde');
@@ -93,7 +90,7 @@ export default function CreatorEdit() {
         <div className="flex justify-between items-center mb-8">
           <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex items-center gap-2">← Retour au profil</Link>
           <h1 className="text-3xl font-semibold">Personnaliser mon profil</h1>
-          <button onClick={handleSave} disabled={saving} className="bg-pink-600 hover:bg-pink-500 px-8 py-3 rounded-3xl text-white font-medium">
+          <button onClick={handleSave} disabled={saving} className="bg-pink-600 hover:bg-pink-500 px-8 py-3 rounded-3xl text-white font-medium disabled:opacity-50">
             {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
           </button>
         </div>
@@ -120,13 +117,13 @@ export default function CreatorEdit() {
 
           {/* Paramètres */}
           <div className="lg:col-span-7 space-y-12">
-            {/* Uploads */}
+            {/* Changer les images */}
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <p className="text-sm text-zinc-400 mb-2">Image de couverture (1200×400 px • Max 8 Mo)</p>
-                  <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500 transition">
+                  <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500">
                     <input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
                     <span className="text-pink-400">Changer la couverture</span>
                   </label>
@@ -134,7 +131,7 @@ export default function CreatorEdit() {
                 </div>
                 <div>
                   <p className="text-sm text-zinc-400 mb-2">Photo de profil (512×512 px • Max 5 Mo)</p>
-                  <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500 transition">
+                  <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500">
                     <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
                     <span className="text-pink-400">Changer la photo</span>
                   </label>
@@ -147,7 +144,7 @@ export default function CreatorEdit() {
             <div>
               <h2 className="text-xl mb-4">Badges</h2>
               <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
-                {[10, 50, 100, 500].map(b => (
+                {[10,50,100,500].map(b => (
                   <button key={b} onClick={() => setSelectedBadge(b)}
                     className={`px-6 py-3 rounded-2xl whitespace-nowrap border ${selectedBadge === b ? 'border-pink-500 bg-pink-500/10 text-pink-400' : 'border-zinc-700 hover:border-zinc-500'}`}>
                     {b} pièces
@@ -160,7 +157,7 @@ export default function CreatorEdit() {
             <div>
               <h2 className="text-xl mb-4">Cadres</h2>
               <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
-                {['rose', 'silver', 'gold'].map(f => (
+                {['rose','silver','gold'].map(f => (
                   <button key={f} onClick={() => setSelectedFrame(f)}
                     className={`px-6 py-3 rounded-2xl whitespace-nowrap border ${selectedFrame === f ? 'border-pink-500 bg-pink-500/10 text-pink-400' : 'border-zinc-700 hover:border-zinc-500'}`}>
                     {f === 'rose' ? '1 an' : f === 'silver' ? '2 ans' : '5 ans'}
@@ -183,7 +180,7 @@ export default function CreatorEdit() {
         </div>
       </div>
 
-      {/* Toast vert */}
+      {/* Toast */}
       {toastMessage && (
         <div className="fixed bottom-8 right-8 bg-green-600 text-white px-8 py-4 rounded-3xl shadow-2xl z-50">
           {toastMessage}
