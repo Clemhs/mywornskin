@@ -31,7 +31,7 @@ export default function CreatorEdit() {
       if (!id) return;
       const { data } = await supabase
         .from('creators')
-        .select('avatar_url, banner_url, pending_avatar_url, pending_banner_url')
+        .select('avatar_url, banner_url, pending_avatar_url, pending_banner_url, badge, frame')
         .eq('id', id)
         .single();
       if (data) {
@@ -41,6 +41,8 @@ export default function CreatorEdit() {
         setPendingBanner(data.pending_banner_url || "");
         if (data.pending_avatar_url) setAvatarStatus('pending');
         if (data.pending_banner_url) setBannerStatus('pending');
+        if (data.badge !== null) setSelectedBadge(data.badge);
+        if (data.frame) setSelectedFrame(data.frame);
       }
     };
     loadCreator();
@@ -92,7 +94,6 @@ export default function CreatorEdit() {
 
   const handleSave = async () => {
     setSaving(true);
-
     const { error } = await supabase
       .from('creators')
       .update({
@@ -100,14 +101,12 @@ export default function CreatorEdit() {
         frame: selectedFrame
       })
       .eq('id', id);
-
     if (error) {
       console.error(error);
       setToastMessage('❌ Erreur lors de la sauvegarde');
     } else {
       setToastMessage('✅ Modifications enregistrées avec succès');
     }
-
     setTimeout(() => setToastMessage(null), 4000);
     setSaving(false);
   };
@@ -118,8 +117,8 @@ export default function CreatorEdit() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex items-center gap-2 text-sm">← Retour au profil</Link>
           <h1 className="text-2xl font-semibold text-center sm:text-left">Personnaliser mon profil</h1>
-          
-          <button 
+         
+          <button
             onClick={handleSave}
             disabled={saving}
             className="btn-primary px-8 py-3 text-sm sm:text-base"
@@ -154,7 +153,10 @@ export default function CreatorEdit() {
               <p className="text-zinc-400 text-sm mb-4">1200 × 400 px • Max 8 Mo</p>
               <div className="flex items-center gap-6">
                 <img src={pendingBanner || banner} alt="couverture" className="w-40 h-24 object-cover rounded-2xl" />
-                <label className="btn-secondary cursor-pointer px-6 py-3">Changer la couverture<input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" /></label>
+                <label className="btn-secondary cursor-pointer px-6 py-3">
+                  Changer la couverture
+                  <input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
+                </label>
               </div>
               {bannerStatus === 'pending' && <p className="mt-3 text-amber-400">⏳ En attente de validation</p>}
             </div>
@@ -165,11 +167,15 @@ export default function CreatorEdit() {
               <p className="text-zinc-400 text-sm mb-4">512 × 512 px • Max 5 Mo</p>
               <div className="flex items-center gap-6">
                 <img src={pendingAvatar || avatar} alt="avatar" className="w-24 h-24 rounded-3xl object-cover ring-2 ring-zinc-700" />
-                <label className="btn-secondary cursor-pointer px-6 py-3">Changer la photo<input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" /></label>
+                <label className="btn-secondary cursor-pointer px-6 py-3">
+                  Changer la photo
+                  <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+                </label>
               </div>
               {avatarStatus === 'pending' && <p className="mt-3 text-amber-400">⏳ En attente de validation</p>}
             </div>
 
+            {/* Badges + Cadres + Boutique (identique à ta version précédente) */}
             {/* Badges */}
             <div>
               <h2 className="text-xl mb-4">Badge</h2>
@@ -252,6 +258,7 @@ const allBadges = [
   { id: 100, unlocked: true, price: 0 },
   { id: 500, unlocked: false, price: 29 },
 ];
+
 const allFrames = [
   { id: "rose", name: "1 an", color: "rose", unlocked: true, price: 0 },
   { id: "silver", name: "2 ans", color: "silver", unlocked: true, price: 0 },
