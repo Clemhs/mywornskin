@@ -89,7 +89,7 @@ export default function CreatorEdit() {
       .eq('id', id);
   };
 
-  // Fonction qui fait fonctionner le bouton
+  // Fonction qui fait fonctionner le bouton "Enregistrer les modifications"
   const handleSave = async () => {
     setSaving(true);
 
@@ -148,7 +148,7 @@ export default function CreatorEdit() {
             </div>
           </div>
 
-          {/* Paramètres */}
+          {/* Le reste est exactement comme avant */}
           <div className="lg:col-span-7 space-y-12">
             {/* Couverture */}
             <div>
