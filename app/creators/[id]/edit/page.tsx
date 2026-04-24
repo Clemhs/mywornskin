@@ -1,5 +1,5 @@
 'use client';
-// V10 - Version complète et robuste (bouton Enregistrer corrigé - design inchangé)
+// V10 - Version complète et robuste (bouton Enregistrer corrigé + toast vert)
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -23,6 +23,7 @@ export default function CreatorEdit() {
   const [selectedBadge, setSelectedBadge] = useState<number | null>(10);
   const [selectedFrame, setSelectedFrame] = useState<string | null>("rose");
   const [saving, setSaving] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);   // ← Toast React
 
   // Chargement des données
   useEffect(() => {
@@ -89,7 +90,6 @@ export default function CreatorEdit() {
       .eq('id', id);
   };
 
-  // Fonction qui fait fonctionner le bouton
   const handleSave = async () => {
     setSaving(true);
 
@@ -104,11 +104,8 @@ export default function CreatorEdit() {
     if (error) {
       console.error(error);
     } else {
-      const toast = document.createElement('div');
-      toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#10b981;color:white;padding:16px 24px;border-radius:9999px;box-shadow:0 10px 15px -3px rgb(0 0 0 / 0.3);z-index:9999;';
-      toast.textContent = '✅ Modifications enregistrées avec succès';
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 4000);
+      setToastMessage('✅ Modifications enregistrées avec succès');
+      setTimeout(() => setToastMessage(null), 4000);
     }
 
     setSaving(false);
@@ -148,7 +145,7 @@ export default function CreatorEdit() {
             </div>
           </div>
 
-          {/* Paramètres */}
+          {/* Le reste est exactement comme ta version V10 */}
           <div className="lg:col-span-7 space-y-12">
             {/* Couverture */}
             <div>
@@ -229,6 +226,12 @@ export default function CreatorEdit() {
           </div>
         </div>
       </div>
+
+      {toastMessage && (
+        <div className="fixed bottom-8 right-8 bg-green-600 text-white px-8 py-4 rounded-3xl shadow-2xl z-50">
+          {toastMessage}
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 300% 0; } }
