@@ -1,5 +1,5 @@
 'use client';
-// V12 - Version complète riche (aperçu + badges + cadres + boutique + bouton Enregistrer OK)
+// V12 - Version complète riche (aperçu en direct + badges + cadres + boutique + bouton Enregistrer OK)
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -25,14 +25,13 @@ export default function CreatorEdit() {
   const [saving, setSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Chargement des données
   useEffect(() => {
     const loadCreator = async () => {
       if (!id) return;
       const { data } = await supabase.from('creators').select('*').eq('id', id).single();
       if (data) {
-        setAvatar(data.avatar_url || "https://picsum.photos/id/1011/280/280");
-        setBanner(data.banner_url || "https://picsum.photos/id/1005/1200/400");
+        setAvatar(data.avatar_url || avatar);
+        setBanner(data.banner_url || banner);
         setPendingAvatar(data.pending_avatar_url || "");
         setPendingBanner(data.pending_banner_url || "");
         if (data.pending_avatar_url) setAvatarStatus('pending');
@@ -49,12 +48,12 @@ export default function CreatorEdit() {
     if (!file) return;
     setAvatarStatus('pending');
     const fileName = `pending-avatar-${id}-${Date.now()}`;
-    const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true });
-    if (uploadError) { console.error(uploadError); setAvatarStatus('rejected'); return; }
+    const { error } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true });
+    if (error) { console.error(error); setAvatarStatus('rejected'); return; }
     const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
     await supabase.from('creators').update({ pending_avatar_url: urlData.publicUrl }).eq('id', id);
     setPendingAvatar(urlData.publicUrl);
-    setToastMessage('✅ Photo de profil mise en attente de validation');
+    setToastMessage('✅ Photo de profil mise en attente');
     setTimeout(() => setToastMessage(null), 3000);
   };
 
@@ -63,12 +62,12 @@ export default function CreatorEdit() {
     if (!file) return;
     setBannerStatus('pending');
     const fileName = `pending-banner-${id}-${Date.now()}`;
-    const { error: uploadError } = await supabase.storage.from('banners').upload(fileName, file, { upsert: true });
-    if (uploadError) { console.error(uploadError); setBannerStatus('rejected'); return; }
+    const { error } = await supabase.storage.from('banners').upload(fileName, file, { upsert: true });
+    if (error) { console.error(error); setBannerStatus('rejected'); return; }
     const { data: urlData } = supabase.storage.from('banners').getPublicUrl(fileName);
     await supabase.from('creators').update({ pending_banner_url: urlData.publicUrl }).eq('id', id);
     setPendingBanner(urlData.publicUrl);
-    setToastMessage('✅ Image de couverture mise en attente de validation');
+    setToastMessage('✅ Image de couverture mise en attente');
     setTimeout(() => setToastMessage(null), 3000);
   };
 
@@ -92,15 +91,9 @@ export default function CreatorEdit() {
     <div className="min-h-screen bg-zinc-950 text-white pb-12">
       <div className="max-w-6xl mx-auto px-4 pt-6">
         <div className="flex justify-between items-center mb-8">
-          <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex items-center gap-2">
-            ← Retour au profil
-          </Link>
+          <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex items-center gap-2">← Retour au profil</Link>
           <h1 className="text-3xl font-semibold">Personnaliser mon profil</h1>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-pink-600 hover:bg-pink-500 px-8 py-3 rounded-3xl text-white font-medium disabled:opacity-50"
-          >
+          <button onClick={handleSave} disabled={saving} className="bg-pink-600 hover:bg-pink-500 px-8 py-3 rounded-3xl text-white font-medium">
             {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
           </button>
         </div>
@@ -110,7 +103,7 @@ export default function CreatorEdit() {
           <div className="lg:col-span-5">
             <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
               <img src={pendingBanner || banner} alt="Bannière" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-zinc-950/70" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-zinc-950/70" />
               <div className="absolute bottom-8 left-8 flex items-end gap-6">
                 <div className="relative">
                   <img src={pendingAvatar || avatar} alt="Avatar" className="w-28 h-28 rounded-2xl border-4 border-zinc-950 object-cover" />
@@ -132,18 +125,18 @@ export default function CreatorEdit() {
               <h2 className="text-xl mb-4">Changer les images</h2>
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <p className="text-sm text-zinc-400 mb-2">Image de couverture</p>
-                  <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500">
+                  <p className="text-sm text-zinc-400 mb-2">Image de couverture (1200×400 px • Max 8 Mo)</p>
+                  <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500 transition">
                     <input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
-                    <span className="text-pink-400 text-lg">Changer la couverture</span>
+                    <span className="text-pink-400">Changer la couverture</span>
                   </label>
                   {bannerStatus === 'pending' && <p className="text-amber-400 text-sm mt-2">En attente de validation</p>}
                 </div>
                 <div>
-                  <p className="text-sm text-zinc-400 mb-2">Photo de profil</p>
-                  <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500">
+                  <p className="text-sm text-zinc-400 mb-2">Photo de profil (512×512 px • Max 5 Mo)</p>
+                  <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500 transition">
                     <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
-                    <span className="text-pink-400 text-lg">Changer la photo</span>
+                    <span className="text-pink-400">Changer la photo</span>
                   </label>
                   {avatarStatus === 'pending' && <p className="text-amber-400 text-sm mt-2">En attente de validation</p>}
                 </div>
@@ -153,13 +146,10 @@ export default function CreatorEdit() {
             {/* Badges */}
             <div>
               <h2 className="text-xl mb-4">Badges</h2>
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                {[10,50,100,500].map(b => (
-                  <button
-                    key={b}
-                    onClick={() => setSelectedBadge(b)}
-                    className={`px-6 py-3 rounded-2xl border ${selectedBadge === b ? 'border-pink-500 bg-pink-500/10' : 'border-zinc-700 hover:border-zinc-500'}`}
-                  >
+              <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+                {[10, 50, 100, 500].map(b => (
+                  <button key={b} onClick={() => setSelectedBadge(b)}
+                    className={`px-6 py-3 rounded-2xl whitespace-nowrap border ${selectedBadge === b ? 'border-pink-500 bg-pink-500/10 text-pink-400' : 'border-zinc-700 hover:border-zinc-500'}`}>
                     {b} pièces
                   </button>
                 ))}
@@ -169,13 +159,10 @@ export default function CreatorEdit() {
             {/* Cadres */}
             <div>
               <h2 className="text-xl mb-4">Cadres</h2>
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                {['rose','silver','gold'].map(f => (
-                  <button
-                    key={f}
-                    onClick={() => setSelectedFrame(f)}
-                    className={`px-6 py-3 rounded-2xl border ${selectedFrame === f ? 'border-pink-500 bg-pink-500/10' : 'border-zinc-700 hover:border-zinc-500'}`}
-                  >
+              <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+                {['rose', 'silver', 'gold'].map(f => (
+                  <button key={f} onClick={() => setSelectedFrame(f)}
+                    className={`px-6 py-3 rounded-2xl whitespace-nowrap border ${selectedFrame === f ? 'border-pink-500 bg-pink-500/10 text-pink-400' : 'border-zinc-700 hover:border-zinc-500'}`}>
                     {f === 'rose' ? '1 an' : f === 'silver' ? '2 ans' : '5 ans'}
                   </button>
                 ))}
@@ -186,7 +173,6 @@ export default function CreatorEdit() {
             <div className="pt-8 border-t border-zinc-800">
               <h2 className="text-xl mb-6">Boutique cosmétiques</h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {/* Tu peux ajouter ici les articles factices */}
                 <div className="bg-zinc-900 rounded-3xl p-4 text-center">Article 1</div>
                 <div className="bg-zinc-900 rounded-3xl p-4 text-center">Article 2</div>
                 <div className="bg-zinc-900 rounded-3xl p-4 text-center">Article 3</div>
@@ -197,7 +183,7 @@ export default function CreatorEdit() {
         </div>
       </div>
 
-      {/* Toast */}
+      {/* Toast vert */}
       {toastMessage && (
         <div className="fixed bottom-8 right-8 bg-green-600 text-white px-8 py-4 rounded-3xl shadow-2xl z-50">
           {toastMessage}
