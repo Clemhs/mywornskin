@@ -19,12 +19,10 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-zinc-950/90 backdrop-blur-lg border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
           <span className="text-2xl font-light tracking-tighter">MyWornSkin</span>
         </Link>
 
-        {/* Navigation Desktop */}
         <nav className="hidden md:flex items-center gap-8 text-sm">
           <Link href="/creators" className="hover:text-pink-400 transition">{t('creators')}</Link>
           <Link href="/sell" className="hover:text-pink-400 transition">{t('sell')}</Link>
@@ -32,9 +30,8 @@ export default function Header() {
           <Link href="/why-join" className="hover:text-pink-400 transition">Pourquoi nous rejoindre ?</Link>
         </nav>
 
-        {/* Droite : Langues + Messages */}
         <div className="flex items-center gap-3">
-          {/* Sélecteur langue compact (un seul drapeau + menu) */}
+          {/* Sélecteur langue compact */}
           <div className="relative">
             <button
               onClick={() => setShowLangMenu(!showLangMenu)}
@@ -64,7 +61,6 @@ export default function Header() {
             )}
           </div>
 
-          {/* Messages */}
           <Link
             href="/messages"
             className="w-9 h-9 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 rounded-2xl transition text-xl"
