@@ -1,7 +1,7 @@
 'use client';
 // Homepage - Version améliorée et moderne (V1)
 import Link from 'next/link';
-import Header from '@/components/Header';
+import Header from '../components/Header';   // ← Import relatif sûr
 
 export default function Home() {
   return (
@@ -76,7 +76,7 @@ export default function Home() {
               <div className="text-center">
                 <div className="text-6xl mb-4">💰</div>
                 <h3 className="text-xl font-medium mb-2">Gagnez vraiment</h3>
-                <p className="text-zinc-400">Gardez jusqu&apos;à 85% de vos revenus. Sans intermédiaire inutile.</p>
+                <p className="text-zinc-400">Gardez jusqu&apos;à 85% de vos revenus.</p>
               </div>
               <div className="text-center">
                 <div className="text-6xl mb-4">❤️</div>
