@@ -1,5 +1,5 @@
 'use client';
-// V16 - Version propre restaurée (sans bouton langue dans la page)
+// V17 - Version corrigée : cadres visibles + header compact + design riche
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -90,21 +90,22 @@ export default function CreatorEdit() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-12">
-      <div className="max-w-6xl mx-auto px-4 pt-6">
-        <div className="flex justify-between items-center mb-8">
-          <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex items-center gap-2">← Retour au profil</Link>
-          <h1 className="text-3xl font-semibold">Personnaliser mon profil</h1>
+      <div className="max-w-6xl mx-auto px-4 pt-4">
+        {/* Header compact */}
+        <div className="flex justify-between items-center mb-6">
+          <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex items-center gap-2 text-sm">← Retour au profil</Link>
+          <h1 className="text-2xl font-semibold">Mon profil</h1>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="bg-pink-600 hover:bg-pink-500 px-8 py-3 rounded-3xl text-white font-medium disabled:opacity-50"
+            className="bg-pink-600 hover:bg-pink-500 px-6 py-2.5 rounded-3xl text-sm font-medium disabled:opacity-50"
           >
-            {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
+            {saving ? '...' : 'Enregistrer'}
           </button>
         </div>
 
         {rejectionMessage && (
-          <div className="bg-red-900/30 border border-red-500 text-red-400 p-4 rounded-3xl mb-8">
+          <div className="bg-red-900/30 border border-red-500 text-red-400 p-4 rounded-3xl mb-8 text-sm">
             ⚠️ {rejectionMessage}
           </div>
         )}
@@ -166,7 +167,7 @@ export default function CreatorEdit() {
               </div>
             </div>
 
-            {/* Cadres avec aperçu */}
+            {/* Cadres - visibles et sélectionnables */}
             <div>
               <h2 className="text-xl mb-4">Cadres</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
@@ -174,7 +175,7 @@ export default function CreatorEdit() {
                   <button
                     key={f}
                     onClick={() => setSelectedFrame(f)}
-                    className={`flex-shrink-0 px-6 py-3 rounded-2xl whitespace-nowrap border ${selectedFrame === f ? 'border-pink-500 bg-pink-500/10' : 'border-zinc-700 hover:border-zinc-500'}`}
+                    className={`flex-shrink-0 px-6 py-3 rounded-2xl whitespace-nowrap border ${selectedFrame === f ? 'border-pink-500 bg-pink-500/10 text-pink-400' : 'border-zinc-700 hover:border-zinc-500'}`}
                   >
                     {f === 'rose' ? '1 an' : f === 'silver' ? '2 ans' : '5 ans'}
                   </button>
@@ -182,7 +183,7 @@ export default function CreatorEdit() {
               </div>
             </div>
 
-            {/* Boutique */}
+            {/* Boutique cosmétiques */}
             <div className="pt-8 border-t border-zinc-800">
               <h2 className="text-xl mb-6">Boutique cosmétiques</h2>
               <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide snap-x snap-mandatory">
