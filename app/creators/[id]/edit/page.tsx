@@ -91,7 +91,7 @@ export default function CreatorEdit() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-12">
       <div className="max-w-6xl mx-auto px-4 pt-4">
-        {/* Header mobile-friendly */}
+        {/* Header compact mobile */}
         <div className="flex items-center justify-between mb-6">
           <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm">
             ← Retour
@@ -201,6 +201,9 @@ export default function CreatorEdit() {
                   <div className="h-28 bg-zinc-800 rounded-2xl mb-3 flex items-center justify-center text-4xl">🏆</div>
                   <p className="font-medium">{item.name}</p>
                   <p className="text-pink-400 text-lg">{item.price}€</p>
+                  <button className="mt-4 w-full bg-pink-600 hover:bg-pink-500 py-2 rounded-2xl text-sm font-medium">
+                    Acheter
+                  </button>
                 </div>
               ))}
             </div>
