@@ -1,5 +1,5 @@
 'use client';
-// V17 - Version corrigée : cadres visibles + header compact + design riche
+// V17 - Version revue : retour en 2 lignes + aperçu cadres + ring fin
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -80,20 +80,23 @@ export default function CreatorEdit() {
     const { error } = await supabase.from('creators').update({ badge: selectedBadge, frame: selectedFrame }).eq('id', id);
     if (error) {
       console.error(error);
-      setToastMessage('❌ Erreur lors de la sauvegarde');
+      setToastMessage('❌ Erreur');
     } else {
-      setToastMessage('✅ Modifications enregistrées avec succès');
+      setToastMessage('✅ Enregistré');
     }
-    setTimeout(() => setToastMessage(null), 4000);
+    setTimeout(() => setToastMessage(null), 3000);
     setSaving(false);
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-12">
       <div className="max-w-6xl mx-auto px-4 pt-4">
-        {/* Header compact */}
+        {/* Header très compact */}
         <div className="flex justify-between items-center mb-6">
-          <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex items-center gap-2 text-sm">← Retour au profil</Link>
+          <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex flex-col text-xs leading-none">
+            <span>Retour</span>
+            <span>au profil</span>
+          </Link>
           <h1 className="text-2xl font-semibold">Mon profil</h1>
           <button
             onClick={handleSave}
@@ -159,7 +162,7 @@ export default function CreatorEdit() {
                   <button
                     key={b}
                     onClick={() => setSelectedBadge(b)}
-                    className={`flex-shrink-0 relative w-20 aspect-square rounded-2xl overflow-hidden border ${selectedBadge === b ? 'border-pink-500 ring-2 ring-pink-500' : 'border-zinc-700'}`}
+                    className={`flex-shrink-0 relative w-20 aspect-square rounded-2xl overflow-hidden border ${selectedBadge === b ? 'border-pink-400 ring-2 ring-pink-400/50' : 'border-zinc-700'}`}
                   >
                     <img src={`/badges/${b}.png`} className="w-full h-full object-contain p-2" />
                   </button>
@@ -167,7 +170,7 @@ export default function CreatorEdit() {
               </div>
             </div>
 
-            {/* Cadres - visibles et sélectionnables */}
+            {/* Cadres avec aperçu visuel */}
             <div>
               <h2 className="text-xl mb-4">Cadres</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
@@ -175,9 +178,12 @@ export default function CreatorEdit() {
                   <button
                     key={f}
                     onClick={() => setSelectedFrame(f)}
-                    className={`flex-shrink-0 px-6 py-3 rounded-2xl whitespace-nowrap border ${selectedFrame === f ? 'border-pink-500 bg-pink-500/10 text-pink-400' : 'border-zinc-700 hover:border-zinc-500'}`}
+                    className={`flex-shrink-0 relative w-28 h-20 rounded-2xl overflow-hidden border flex items-center justify-center ${selectedFrame === f ? 'border-pink-400 ring-2 ring-pink-400/50' : 'border-zinc-700'}`}
                   >
-                    {f === 'rose' ? '1 an' : f === 'silver' ? '2 ans' : '5 ans'}
+                    <div className={`shimmer-frame w-24 h-14 rounded-xl ${f}`} />
+                    <span className="absolute text-xs font-medium bottom-1 text-white drop-shadow-md">
+                      {f === 'rose' ? '1 an' : f === 'silver' ? '2 ans' : '5 ans'}
+                    </span>
                   </button>
                 ))}
               </div>
