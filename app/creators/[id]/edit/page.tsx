@@ -1,5 +1,5 @@
 'use client';
-// V17 - Version revue : retour en 2 lignes + aperçu cadres + ring fin
+// V20 - Règles précises de déblocage (badges = ventes / cadres = ancienneté)
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -25,6 +25,8 @@ export default function CreatorEdit() {
   const [rejectionMessage, setRejectionMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [salesCount, setSalesCount] = useState(0);
+  const [yearsOld, setYearsOld] = useState(0);
 
   useEffect(() => {
     const loadCreator = async () => {
@@ -36,6 +38,16 @@ export default function CreatorEdit() {
         setPendingAvatar(data.pending_avatar_url || "");
         setPendingBanner(data.pending_banner_url || "");
         setRejectionMessage(data.rejection_message || null);
+        setSalesCount(data.sales_count || 0);
+
+        // Calcul de l'ancienneté en années
+        if (data.created_at) {
+          const created = new Date(data.created_at);
+          const now = new Date();
+          const years = Math.floor((now.getTime() - created.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+          setYearsOld(years);
+        }
+
         if (data.pending_avatar_url) setAvatarStatus('pending');
         if (data.pending_banner_url) setBannerStatus('pending');
         if (data.badge !== null) setSelectedBadge(data.badge);
@@ -44,6 +56,20 @@ export default function CreatorEdit() {
     };
     loadCreator();
   }, [id]);
+
+  // === RÈGLES EXACTES ===
+  const allBadges = [
+    { id: 10,  unlocked: salesCount >= 10,  price: 0 },
+    { id: 50,  unlocked: salesCount >= 50,  price: 9 },
+    { id: 100, unlocked: salesCount >= 100, price: 0 },
+    { id: 500, unlocked: salesCount >= 500, price: 29 },
+  ];
+
+  const allFrames = [
+    { id: "rose",   name: "1 an",  unlocked: yearsOld >= 1, price: 0 },
+    { id: "silver", name: "2 ans", unlocked: yearsOld >= 2, price: 0 },
+    { id: "gold",   name: "5 ans", unlocked: yearsOld >= 5, price: 19 },
+  ];
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -80,29 +106,24 @@ export default function CreatorEdit() {
     const { error } = await supabase.from('creators').update({ badge: selectedBadge, frame: selectedFrame }).eq('id', id);
     if (error) {
       console.error(error);
-      setToastMessage('❌ Erreur');
+      setToastMessage('❌ Erreur lors de la sauvegarde');
     } else {
-      setToastMessage('✅ Enregistré');
+      setToastMessage('✅ Modifications enregistrées avec succès');
     }
-    setTimeout(() => setToastMessage(null), 3000);
+    setTimeout(() => setToastMessage(null), 4000);
     setSaving(false);
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-12">
       <div className="max-w-6xl mx-auto px-4 pt-4">
-        {/* Header très compact */}
         <div className="flex justify-between items-center mb-6">
           <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex flex-col text-xs leading-none">
             <span>Retour</span>
             <span>au profil</span>
           </Link>
           <h1 className="text-2xl font-semibold">Mon profil</h1>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-pink-600 hover:bg-pink-500 px-6 py-2.5 rounded-3xl text-sm font-medium disabled:opacity-50"
-          >
+          <button onClick={handleSave} disabled={saving} className="bg-pink-600 hover:bg-pink-500 px-6 py-2.5 rounded-3xl text-sm font-medium disabled:opacity-50">
             {saving ? '...' : 'Enregistrer'}
           </button>
         </div>
@@ -154,36 +175,38 @@ export default function CreatorEdit() {
               </div>
             </div>
 
-            {/* Badges PNG */}
+            {/* Badges */}
             <div>
               <h2 className="text-xl mb-4">Badges</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
-                {[10,50,100,500].map(b => (
+                {allBadges.map(b => (
                   <button
-                    key={b}
-                    onClick={() => setSelectedBadge(b)}
-                    className={`flex-shrink-0 relative w-20 aspect-square rounded-2xl overflow-hidden border ${selectedBadge === b ? 'border-pink-400 ring-2 ring-pink-400/50' : 'border-zinc-700'}`}
+                    key={b.id}
+                    onClick={() => b.unlocked && setSelectedBadge(b.id)}
+                    className={`flex-shrink-0 relative w-20 aspect-square rounded-2xl overflow-hidden border ${selectedBadge === b.id ? 'border-pink-400 ring-2 ring-pink-400/50' : 'border-zinc-700'} ${!b.unlocked ? 'grayscale opacity-40 cursor-not-allowed' : ''}`}
                   >
-                    <img src={`/badges/${b}.png`} className="w-full h-full object-contain p-2" />
+                    <img src={`/badges/${b.id}.png`} className="w-full h-full object-contain p-2" />
+                    {!b.unlocked && <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-xs text-white">🔒</div>}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Cadres avec aperçu visuel */}
+            {/* Cadres */}
             <div>
               <h2 className="text-xl mb-4">Cadres</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
-                {['rose','silver','gold'].map(f => (
+                {allFrames.map(f => (
                   <button
-                    key={f}
-                    onClick={() => setSelectedFrame(f)}
-                    className={`flex-shrink-0 relative w-28 h-20 rounded-2xl overflow-hidden border flex items-center justify-center ${selectedFrame === f ? 'border-pink-400 ring-2 ring-pink-400/50' : 'border-zinc-700'}`}
+                    key={f.id}
+                    onClick={() => f.unlocked && setSelectedFrame(f.id)}
+                    className={`flex-shrink-0 relative w-28 h-20 rounded-2xl overflow-hidden border flex items-center justify-center ${selectedFrame === f.id ? 'border-pink-400 ring-2 ring-pink-400/50' : 'border-zinc-700'} ${!f.unlocked ? 'grayscale opacity-40 cursor-not-allowed' : ''}`}
                   >
-                    <div className={`shimmer-frame w-24 h-14 rounded-xl ${f}`} />
+                    <div className={`shimmer-frame w-24 h-14 rounded-xl ${f.id}`} />
                     <span className="absolute text-xs font-medium bottom-1 text-white drop-shadow-md">
-                      {f === 'rose' ? '1 an' : f === 'silver' ? '2 ans' : '5 ans'}
+                      {f.name}
                     </span>
+                    {!f.unlocked && <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-xs text-white">🔒</div>}
                   </button>
                 ))}
               </div>
@@ -231,16 +254,3 @@ export default function CreatorEdit() {
     </div>
   );
 }
-
-const allBadges = [
-  { id: 10, unlocked: true, price: 0 },
-  { id: 50, unlocked: false, price: 9 },
-  { id: 100, unlocked: true, price: 0 },
-  { id: 500, unlocked: false, price: 29 },
-];
-
-const allFrames = [
-  { id: "rose", name: "1 an", color: "rose", unlocked: true, price: 0 },
-  { id: "silver", name: "2 ans", color: "silver", unlocked: true, price: 0 },
-  { id: "gold", name: "5 ans", color: "gold", unlocked: false, price: 19 },
-];
