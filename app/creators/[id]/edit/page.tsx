@@ -156,31 +156,34 @@ export default function CreatorEdit() {
               </div>
             </div>
 
-            {/* Cadres */}
-            <div>
-              <h2 className="text-xl mb-4">Cadres</h2>
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
-                {allFrames.map(f => (
-                  <button
-                    key={f.id}
-                    onClick={() => f.unlocked && setSelectedFrame(f.id)}
-                    className={`flex-shrink-0 relative w-28 h-20 rounded-2xl overflow-hidden border flex flex-col items-center justify-center ${selectedFrame === f.id ? 'border-pink-400 ring-2 ring-pink-400/50' : 'border-zinc-700'} ${!f.unlocked ? 'grayscale opacity-40 cursor-not-allowed' : ''}`}
-                  >
-                    <div className={`shimmer-frame w-24 h-14 rounded-xl ${f.id}`} />
-                    <span className="absolute text-xs font-medium bottom-1 text-white drop-shadow-md">
-                      {f.name}
-                    </span>
-                    {!f.unlocked && (
-                      <>
-                        <div className="absolute top-2 right-2 text-lg">🔒</div>
-                        <div className="text-[10px] text-white/70 mt-1 text-center leading-tight">{f.label}</div>
-                      </>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
+{/* Cadres - Version corrigée sans superposition */}
+<div>
+  <h2 className="text-xl mb-4">Cadres</h2>
+  <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
+    {allFrames.map(f => (
+      <button
+        key={f.id}
+        onClick={() => f.unlocked && setSelectedFrame(f.id)}
+        className={`flex-shrink-0 relative w-28 h-20 rounded-2xl overflow-hidden border flex flex-col items-center justify-center ${selectedFrame === f.id ? 'border-pink-400 ring-2 ring-pink-400/50' : 'border-zinc-700'} ${!f.unlocked ? 'grayscale opacity-40 cursor-not-allowed' : ''}`}
+      >
+        <div className={`shimmer-frame w-24 h-14 rounded-xl ${f.id}`} />
+        
+        {/* Nom du cadre */}
+        <span className="absolute text-xs font-medium bottom-1 text-white drop-shadow-md">
+          {f.name}
+        </span>
 
+        {/* Texte de déblocage seulement si verrouillé */}
+        {!f.unlocked && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 text-[10px] text-white/90 leading-tight text-center px-2 pt-6">
+            🔒<br />
+            {f.label}
+          </div>
+        )}
+      </button>
+    ))}
+  </div>
+</div>
             {/* Boutique cosmétiques */}
             <div className="pt-8 border-t border-zinc-800">
               <h2 className="text-xl mb-6">Boutique cosmétiques</h2>
