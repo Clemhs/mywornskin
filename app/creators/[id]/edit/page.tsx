@@ -1,5 +1,5 @@
 'use client';
-// V15 - Version mobile-first très améliorée et propre
+// V16 - Version finale avec badges PNG + un seul bouton langue
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -91,19 +91,25 @@ export default function CreatorEdit() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-12">
       <div className="max-w-6xl mx-auto px-4 pt-4">
-        {/* Header compact et propre */}
+        {/* Header très compact */}
         <div className="flex items-center justify-between mb-6">
           <Link href={`/creators/${id}`} className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm">
             ← Retour
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight">Mon profil</h1>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-pink-600 hover:bg-pink-500 px-6 py-2.5 rounded-3xl text-sm font-medium disabled:opacity-50"
-          >
-            {saving ? '...' : 'Enregistrer'}
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Un seul bouton langue */}
+            <button className="flex items-center gap-1 text-sm bg-zinc-900 px-3 py-1.5 rounded-2xl">
+              🇫🇷
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-pink-600 hover:bg-pink-500 px-6 py-2.5 rounded-3xl text-sm font-medium disabled:opacity-50"
+            >
+              {saving ? '...' : 'Enregistrer'}
+            </button>
+          </div>
         </div>
 
         {rejectionMessage && (
@@ -123,9 +129,11 @@ export default function CreatorEdit() {
                 <div className="relative">
                   <img src={pendingAvatar || avatar} alt="Avatar" className="w-24 h-24 rounded-2xl border-4 border-zinc-950 object-cover" />
                   {selectedBadge && (
-                    <div className="absolute -top-2 -right-2 bg-gradient-to-br from-yellow-400 to-amber-500 text-black text-xs font-bold w-8 h-8 rounded-full flex items-center justify-center shadow-2xl">
-                      {selectedBadge}
-                    </div>
+                    <img 
+                      src={`/badges/${selectedBadge}.png`} 
+                      alt="badge" 
+                      className="absolute -top-2 -right-2 w-9 h-9 drop-shadow-2xl" 
+                    />
                   )}
                 </div>
               </div>
@@ -155,17 +163,17 @@ export default function CreatorEdit() {
             </div>
           </div>
 
-          {/* Badges */}
+          {/* Badges en PNG */}
           <div>
             <h2 className="text-lg mb-4">Badges</h2>
-            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
               {[10,50,100,500].map(b => (
                 <button
                   key={b}
                   onClick={() => setSelectedBadge(b)}
-                  className={`flex-shrink-0 px-6 py-3 rounded-2xl border whitespace-nowrap ${selectedBadge === b ? 'border-pink-500 bg-pink-500/10 text-pink-400' : 'border-zinc-700 hover:border-zinc-500'}`}
+                  className={`flex-shrink-0 relative w-20 aspect-square rounded-2xl overflow-hidden border ${selectedBadge === b ? 'border-pink-500 ring-2 ring-pink-500' : 'border-zinc-700'}`}
                 >
-                  {b} pièces
+                  <img src={`/badges/${b}.png`} className="w-full h-full object-contain p-2" />
                 </button>
               ))}
             </div>
@@ -174,12 +182,12 @@ export default function CreatorEdit() {
           {/* Cadres */}
           <div>
             <h2 className="text-lg mb-4">Cadres</h2>
-            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
               {['rose','silver','gold'].map(f => (
                 <button
                   key={f}
                   onClick={() => setSelectedFrame(f)}
-                  className={`flex-shrink-0 px-6 py-3 rounded-2xl whitespace-nowrap border ${selectedFrame === f ? 'border-pink-500 bg-pink-500/10 text-pink-400' : 'border-zinc-700 hover:border-zinc-500'}`}
+                  className={`flex-shrink-0 px-6 py-3 rounded-2xl border ${selectedFrame === f ? 'border-pink-500 bg-pink-500/10' : 'border-zinc-700 hover:border-zinc-500'}`}
                 >
                   {f === 'rose' ? '1 an' : f === 'silver' ? '2 ans' : '5 ans'}
                 </button>
