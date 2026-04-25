@@ -13,15 +13,14 @@ const languages = [
 export default function Header() {
   const { lang, changeLanguage, t } = useLanguage();
   const [showLangMenu, setShowLangMenu] = useState(false);
-
   const currentLang = languages.find(l => l.code === lang) || languages[0];
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-zinc-950/90 backdrop-blur-lg border-b border-zinc-800">
-      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
-          <span className="text-2xl font-light tracking-tighter">MyWornSkin</span>
+          <span className="text-3xl font-light tracking-tighter">MyWornSkin</span>
         </Link>
 
         {/* Navigation Desktop */}
@@ -32,13 +31,13 @@ export default function Header() {
           <Link href="/why-join" className="hover:text-pink-400 transition">Pourquoi nous rejoindre ?</Link>
         </nav>
 
-        {/* Droite */}
-        <div className="flex items-center gap-3">
-          {/* Langue compacte */}
+        {/* Droite : Langue + Messages */}
+        <div className="flex items-center gap-6">
+          {/* Menu langue compact */}
           <div className="relative">
             <button
               onClick={() => setShowLangMenu(!showLangMenu)}
-              className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 px-4 py-2 rounded-3xl text-sm transition-colors"
+              className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 px-5 py-2 rounded-3xl text-sm transition-colors"
             >
               <span className="text-base">{currentLang.flag}</span>
               <span className="hidden sm:inline font-medium">{currentLang.label}</span>
@@ -67,7 +66,7 @@ export default function Header() {
           {/* Messages */}
           <Link
             href="/messages"
-            className="w-9 h-9 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 rounded-2xl transition text-xl"
+            className="w-10 h-10 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 rounded-2xl transition text-2xl"
           >
             💬
           </Link>
