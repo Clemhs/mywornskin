@@ -1,5 +1,5 @@
 'use client';
-// V21 - Infobulles + règles précises de déblocage
+// V21 - Texte de déblocage visible sous le cadenas (mobile friendly)
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -56,7 +56,6 @@ export default function CreatorEdit() {
     loadCreator();
   }, [id]);
 
-  // Règles exactes
   const allBadges = [
     { id: 10,  unlocked: salesCount >= 10,  label: "10 ventes" },
     { id: 50,  unlocked: salesCount >= 50,  label: "50 ventes" },
@@ -112,7 +111,7 @@ export default function CreatorEdit() {
 
           {/* Paramètres */}
           <div className="lg:col-span-7 space-y-12">
-            {/* Uploads (identique) */}
+            {/* Uploads */}
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
               <div className="grid grid-cols-2 gap-6">
@@ -135,7 +134,7 @@ export default function CreatorEdit() {
               </div>
             </div>
 
-            {/* Badges avec infobulle */}
+            {/* Badges */}
             <div>
               <h2 className="text-xl mb-4">Badges</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
@@ -143,17 +142,21 @@ export default function CreatorEdit() {
                   <button
                     key={b.id}
                     onClick={() => b.unlocked && setSelectedBadge(b.id)}
-                    title={b.unlocked ? "Disponible" : `Débloqué à ${b.id} ventes`}
-                    className={`flex-shrink-0 relative w-20 aspect-square rounded-2xl overflow-hidden border ${selectedBadge === b.id ? 'border-pink-400 ring-2 ring-pink-400/50' : 'border-zinc-700'} ${!b.unlocked ? 'grayscale opacity-40 cursor-not-allowed' : ''}`}
+                    className={`flex-shrink-0 relative w-20 aspect-square rounded-2xl overflow-hidden border flex flex-col items-center justify-center ${selectedBadge === b.id ? 'border-pink-400 ring-2 ring-pink-400/50' : 'border-zinc-700'} ${!b.unlocked ? 'grayscale opacity-40 cursor-not-allowed' : ''}`}
                   >
-                    <img src={`/badges/${b.id}.png`} className="w-full h-full object-contain p-2" />
-                    {!b.unlocked && <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-xs text-white">🔒</div>}
+                    <img src={`/badges/${b.id}.png`} className="w-16 h-16 object-contain" />
+                    {!b.unlocked && (
+                      <>
+                        <div className="absolute top-2 right-2 text-lg">🔒</div>
+                        <div className="text-[10px] text-white/70 mt-1 text-center leading-tight">{b.label}</div>
+                      </>
+                    )}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Cadres avec infobulle */}
+            {/* Cadres */}
             <div>
               <h2 className="text-xl mb-4">Cadres</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
@@ -161,14 +164,18 @@ export default function CreatorEdit() {
                   <button
                     key={f.id}
                     onClick={() => f.unlocked && setSelectedFrame(f.id)}
-                    title={f.unlocked ? "Disponible" : `Débloqué après ${f.name} d'inscription`}
-                    className={`flex-shrink-0 relative w-28 h-20 rounded-2xl overflow-hidden border flex items-center justify-center ${selectedFrame === f.id ? 'border-pink-400 ring-2 ring-pink-400/50' : 'border-zinc-700'} ${!f.unlocked ? 'grayscale opacity-40 cursor-not-allowed' : ''}`}
+                    className={`flex-shrink-0 relative w-28 h-20 rounded-2xl overflow-hidden border flex flex-col items-center justify-center ${selectedFrame === f.id ? 'border-pink-400 ring-2 ring-pink-400/50' : 'border-zinc-700'} ${!f.unlocked ? 'grayscale opacity-40 cursor-not-allowed' : ''}`}
                   >
                     <div className={`shimmer-frame w-24 h-14 rounded-xl ${f.id}`} />
                     <span className="absolute text-xs font-medium bottom-1 text-white drop-shadow-md">
                       {f.name}
                     </span>
-                    {!f.unlocked && <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-xs text-white">🔒</div>}
+                    {!f.unlocked && (
+                      <>
+                        <div className="absolute top-2 right-2 text-lg">🔒</div>
+                        <div className="text-[10px] text-white/70 mt-1 text-center leading-tight">{f.label}</div>
+                      </>
+                    )}
                   </button>
                 ))}
               </div>
