@@ -1,7 +1,7 @@
 'use client';
 // Homepage - Version améliorée et moderne (V1)
 import Link from 'next/link';
-import Header from '../components/Header';   // ← Import relatif sûr
+import Header from '../../components/Header';   // ← Import corrigé
 
 export default function Home() {
   return (
