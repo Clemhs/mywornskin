@@ -35,13 +35,16 @@ export default function Home() {
         {/* Fond dark principal */}
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
         
-        {/* Dégradé violet/rose TRÈS SUBTIL (à peine visible) */}
+        {/* Dégradé violet/rose très subtil et élégant */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#a855f715_0%,#f43f5e10_45%,transparent_75%)]" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
-          <h1 className="text-6xl md:text-7xl font-bold tracking-tighter mb-6 transition-all duration-700">
+          
+          {/* Texte hero - style manuscrit sensuel */}
+          <h1 className="text-6xl md:text-7xl font-serif italic font-light tracking-widest leading-none mb-6 transition-all duration-700">
             {currentHero.title}
           </h1>
+
           <p className="text-xl md:text-2xl text-zinc-400 max-w-2xl mx-auto mb-12 transition-all duration-700">
             {currentHero.subtitle}
           </p>
