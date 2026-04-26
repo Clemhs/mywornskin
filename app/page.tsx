@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import Header from '../components/Header';   // ← Import ajouté
+import Header from './components/Header';   // ← CORRECTION ICI (point important)
 
 const heroTexts = [
   "Vêtements portés avec passion. Histoires intimes à vendre.",
@@ -61,7 +61,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
-      {/* Header ajouté ici */}
       <Header />
 
       <div className="relative h-screen flex items-center justify-center pt-8 md:pt-20">
@@ -93,8 +92,6 @@ export default function Home() {
             Des pièces déjà portées.<br className="hidden md:block" />
             Avec leur odeur, leur chaleur, leur histoire.
           </p>
-          
-          {/* === BOUTONS MIS À JOUR === */}
           <div className="flex flex-col sm:flex-row gap-5 justify-center">
             <Link 
               href="/become-creator" 
