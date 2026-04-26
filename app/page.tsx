@@ -4,6 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, UserPlus, Heart, Star, Play, Package, Eye } from 'lucide-react';
 import Header from './components/Header';
+import { Great_Vibes } from 'next/font/google';
+
+const greatVibes = Great_Vibes({
+  subsets: ['latin'],
+  weight: '400',
+  display: 'swap',
+});
 
 const heroTexts = [
   {
@@ -40,8 +47,10 @@ export default function Home() {
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
           
-          {/* Texte hero - style manuscrit sensuel */}
-          <h1 className="text-6xl md:text-7xl font-serif italic font-light tracking-widest leading-none mb-6 transition-all duration-700">
+          {/* Texte hero - police manuscrite élégante (Great Vibes) */}
+          <h1 
+            className={`${greatVibes.className} text-6xl md:text-7xl font-light tracking-widest leading-none mb-6 transition-all duration-700`}
+          >
             {currentHero.title}
           </h1>
 
