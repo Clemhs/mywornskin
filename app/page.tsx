@@ -32,11 +32,11 @@ export default function Home() {
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center pt-20">
         
-        {/* Fond dark principal (en premier) */}
+        {/* Fond dark principal */}
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
         
-        {/* Dégradé radial VIOLET + ROSE très présent (par-dessus) */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#a855f7ee_0%,#f43f5ecc_45%,transparent_72%)]" />
+        {/* Dégradé violet/rose TRÈS SUBTIL (à peine visible) */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#a855f715_0%,#f43f5e10_45%,transparent_75%)]" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
           <h1 className="text-6xl md:text-7xl font-bold tracking-tighter mb-6 transition-all duration-700">
@@ -137,7 +137,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 3 : COMMENT ÇA MARCHE (version orientée acheteurs) */}
+      {/* SECTION 3 : COMMENT ÇA MARCHE (orienté acheteurs) */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-center mb-12">Comment ça marche ?</h2>
