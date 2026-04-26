@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, UserPlus, Heart, Star, Play, Package, Eye } from 'lucide-react';
 import Header from './components/Header';
+import StoryCard from './components/StoryCard';
 
 const heroTexts = [
   {
@@ -32,21 +33,13 @@ export default function Home() {
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center pt-20">
         
-        {/* Fond dark principal */}
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
-        
-        {/* Dégradé violet/rose très subtil et élégant */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#a855f715_0%,#f43f5e10_45%,transparent_75%)]" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
-          
-          {/* Texte hero - police serif très fine et raffinée */}
-          <h1 
-            className="font-serif italic font-thin tracking-widest text-6xl md:text-7xl leading-none mb-6 transition-all duration-700"
-          >
+          <h1 className="font-serif italic font-thin tracking-widest text-6xl md:text-7xl leading-none mb-6 transition-all duration-700">
             {currentHero.title}
           </h1>
-
           <p className="text-xl md:text-2xl text-zinc-400 max-w-2xl mx-auto mb-12 transition-all duration-700">
             {currentHero.subtitle}
           </p>
@@ -76,45 +69,45 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 1 : DERNIÈRES PIÈCES */}
+      {/* SECTION 1 : DERNIÈRES PIÈCES (avec les vrais StoryCard) */}
       <section className="py-16 border-t border-zinc-800">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-8 text-center md:text-left">Dernières pièces portées</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-zinc-900/70 border border-zinc-800 rounded-3xl overflow-hidden hover:border-rose-400/30 transition-all group">
-              <div className="h-40 bg-zinc-800 flex items-center justify-center text-5xl">👗</div>
-              <div className="p-5">
-                <div className="flex gap-2 mb-3">
-                  <span className="text-[10px] px-3 py-1 bg-rose-500/20 text-rose-400 rounded-full">Histoire</span>
-                  <span className="text-[10px] px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full">Vocal</span>
-                </div>
-                <h3 className="font-semibold text-base">Culotte dentelle noire</h3>
-                <p className="text-zinc-400 text-xs mt-1">Portée 3 jours • 45 €</p>
-              </div>
-            </div>
+            
+            <StoryCard
+              id="1"
+              title="Culotte en dentelle noire"
+              price={45}
+              wornDays={3}
+              image="https://picsum.photos/id/1015/600/800"
+              hasStory={true}
+              hasVoice={true}
+              excerpt="Portée pendant trois jours entiers... l'odeur est encore très présente, un mélange de ma peau et de mon parfum préféré."
+            />
 
-            <div className="bg-zinc-900/70 border border-zinc-800 rounded-3xl overflow-hidden hover:border-rose-400/30 transition-all group">
-              <div className="h-40 bg-zinc-800 flex items-center justify-center text-5xl">👠</div>
-              <div className="p-5">
-                <div className="flex gap-2 mb-3">
-                  <span className="text-[10px] px-3 py-1 bg-rose-500/20 text-rose-400 rounded-full">Histoire</span>
-                </div>
-                <h3 className="font-semibold text-base">Bas résille</h3>
-                <p className="text-zinc-400 text-xs mt-1">Portés toute la nuit • 32 €</p>
-              </div>
-            </div>
+            <StoryCard
+              id="2"
+              title="Bas résille déchirés"
+              price={32}
+              wornDays={1}
+              image="https://picsum.photos/id/201/600/800"
+              hasStory={true}
+              hasVoice={false}
+              excerpt="Je les ai portés toute la nuit lors d'une soirée très spéciale... ils gardent encore la chaleur de ma peau."
+            />
 
-            <div className="bg-zinc-900/70 border border-zinc-800 rounded-3xl overflow-hidden hover:border-rose-400/30 transition-all group">
-              <div className="h-40 bg-zinc-800 flex items-center justify-center text-5xl">🧥</div>
-              <div className="p-5">
-                <div className="flex gap-2 mb-3">
-                  <span className="text-[10px] px-3 py-1 bg-rose-500/20 text-rose-400 rounded-full">Histoire</span>
-                  <span className="text-[10px] px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full">Vocal</span>
-                </div>
-                <h3 className="font-semibold text-base">Chemise blanche</h3>
-                <p className="text-zinc-400 text-xs mt-1">Portée au bureau • 68 €</p>
-              </div>
-            </div>
+            <StoryCard
+              id="3"
+              title="Chemise blanche froissée"
+              price={68}
+              wornDays={2}
+              image="https://picsum.photos/id/251/600/800"
+              hasStory={true}
+              hasVoice={true}
+              excerpt="Portée au bureau pendant deux jours... avec quelques boutons défaits. L'histoire est assez intime."
+            />
+
           </div>
         </div>
       </section>
