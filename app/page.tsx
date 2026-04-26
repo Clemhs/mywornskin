@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, UserPlus } from 'lucide-react';
-import Header from '../components/Header';   // ← Import CORRIGÉ (relatif)
+import Header from './components/Header';   // ← Import correct
 
 const heroTexts = [
   {
@@ -51,7 +51,7 @@ export default function Home() {
             {currentHero.subtitle}
           </p>
 
-          {/* Boutons différenciés avec icônes */}
+          {/* Boutons différenciés */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-10">
             <button
               onClick={() => router.push('/creators')}
