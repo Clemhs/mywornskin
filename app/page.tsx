@@ -41,8 +41,8 @@ export default function Home() {
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center pt-20">
         
-        {/* Dégradé radial très subtil rose/violet (du centre vers les bords) */}
-        <div className="absolute inset-0 bg-[radial-gradient(at_center,#f43f5e0a_0%,#c026d30a_40%,transparent_70%)]" />
+        {/* Dégradé radial ultra subtil rose/violet */}
+        <div className="absolute inset-0 bg-[radial-gradient(at_center,#f43f5e08_0%,#c026d308_45%,transparent_75%)]" />
         
         {/* Fond dark principal */}
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
@@ -58,24 +58,24 @@ export default function Home() {
             {currentHero.subtitle}
           </p>
 
-          {/* Boutons plus fins et premium */}
-          <div className="flex flex-col sm:flex-row gap-5 justify-center items-center mt-10">
+          {/* Boutons plus fins et raffinés */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-10">
             
-            {/* Bouton PRINCIPAL - plus élégant */}
+            {/* Bouton PRINCIPAL */}
             <button
               onClick={() => router.push('/creators')}
-              className="group relative flex items-center justify-center gap-3 px-11 py-5 bg-rose-500 hover:bg-rose-600 text-white font-semibold text-lg rounded-3xl transition-all duration-300 shadow-xl shadow-rose-500/20 hover:shadow-rose-500/40 active:scale-[0.97]"
+              className="group relative flex items-center justify-center gap-3 px-9 py-4 bg-rose-500 hover:bg-rose-600 text-white font-medium text-lg rounded-2xl transition-all duration-300 shadow-md shadow-rose-500/10 hover:shadow-rose-500/20 active:scale-[0.98]"
             >
-              <Sparkles className="w-6 h-6 group-active:rotate-12 transition-transform" />
+              <Sparkles className="w-5 h-5 group-active:rotate-12 transition-transform" />
               Découvrir les créatrices
             </button>
 
-            {/* Bouton SECONDAIRE - plus délicat */}
+            {/* Bouton SECONDAIRE */}
             <button
               onClick={() => router.push('/become-creator')}
-              className="group relative flex items-center justify-center gap-3 px-9 py-5 border border-rose-400/70 hover:border-rose-400 bg-transparent hover:bg-rose-500/10 text-rose-300 hover:text-rose-200 font-semibold text-lg rounded-3xl transition-all duration-300"
+              className="group relative flex items-center justify-center gap-3 px-8 py-4 border border-rose-300/60 hover:border-rose-400 bg-transparent hover:bg-white/5 text-rose-300 hover:text-rose-200 font-medium text-lg rounded-2xl transition-all duration-300"
             >
-              <UserPlus className="w-6 h-6" />
+              <UserPlus className="w-5 h-5" />
               Devenir créatrice
             </button>
           </div>
