@@ -1,7 +1,7 @@
 'use client';
-
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import Header from '../components/Header';   // ← Import ajouté
 
 const heroTexts = [
   "Vêtements portés avec passion. Histoires intimes à vendre.",
@@ -61,17 +61,19 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Header ajouté ici */}
+      <Header />
+
       <div className="relative h-screen flex items-center justify-center pt-8 md:pt-20">
         <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_65%)] opacity-30"></div>
-       
+      
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
-          
+         
           <div className="mb-8 md:mb-6">
             <div className="text-5xl md:text-6xl font-light tracking-[-0.04em] text-white">
               MyWornSkin
             </div>
           </div>
-
           <div className="mb-8 inline-flex items-center gap-3 bg-zinc-900/70 backdrop-blur-md px-8 py-3 rounded-full border border-rose-500/20">
             <span
               className="text-rose-400 text-xl"
@@ -84,22 +86,24 @@ export default function Home() {
             </span>
             <span className="uppercase tracking-[3px] text-sm font-medium">VÊTEMENTS PORTÉS • HISTOIRES INTIMES</span>
           </div>
-
           <h1 className="hero-text text-5xl md:text-6xl lg:text-7xl mb-10 min-h-[2.4em] leading-none tracking-tighter">
             {currentText}
           </h1>
-
           <p className="text-xl md:text-2xl text-zinc-400 max-w-2xl mx-auto mb-14">
             Des pièces déjà portées.<br className="hidden md:block" />
             Avec leur odeur, leur chaleur, leur histoire.
           </p>
-
+          
+          {/* === BOUTONS MIS À JOUR === */}
           <div className="flex flex-col sm:flex-row gap-5 justify-center">
-            <Link href="/creators" className="btn-primary px-14 py-7 text-xl font-medium">
-              Découvrir les créatrices
+            <Link 
+              href="/become-creator" 
+              className="btn-primary px-14 py-7 text-xl font-medium"
+            >
+              Devenir créatrice
             </Link>
-            <Link href="/sell" className="btn-secondary px-14 py-7 text-xl font-medium">
-              Mettre ma pièce en vente
+            <Link href="/creators" className="btn-secondary px-14 py-7 text-xl font-medium">
+              Découvrir les créatrices
             </Link>
           </div>
         </div>
