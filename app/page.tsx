@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, UserPlus, Heart, Star, Play, Package, Eye } from 'lucide-react';
+import { Sparkles, UserPlus } from 'lucide-react';
 import Header from './components/Header';
 import StoryCard from '../components/StoryCard';
 
@@ -82,7 +82,7 @@ export default function Home() {
               image="https://picsum.photos/id/1015/600/800"
               hasStory={true}
               hasVoice={true}
-              excerpt="Portée pendant trois jours entiers... l'odeur est encore très présente."
+              excerpt="Portée pendant trois jours entiers... l'odeur est encore très présente, un mélange de ma peau et de mon parfum préféré."
               creatorName="Léa Moreau"
               creatorSlug="lea-moreau"
             />
@@ -95,7 +95,7 @@ export default function Home() {
               image="https://picsum.photos/id/201/600/800"
               hasStory={true}
               hasVoice={false}
-              excerpt="Je les ai portés toute la nuit lors d'une soirée très spéciale..."
+              excerpt="Je les ai portés toute la nuit lors d'une soirée très spéciale... ils gardent encore la chaleur de ma peau."
               creatorName="Clara Voss"
               creatorSlug="clara-voss"
             />
@@ -108,7 +108,7 @@ export default function Home() {
               image="https://picsum.photos/id/251/600/800"
               hasStory={true}
               hasVoice={true}
-              excerpt="Portée au bureau pendant deux jours... avec quelques boutons défaits."
+              excerpt="Portée au bureau pendant deux jours... avec quelques boutons défaits. L'histoire est assez intime."
               creatorName="Emma Laurent"
               creatorSlug="emma-laurent"
             />
