@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, UserPlus, Heart, Star, Play, Package, Eye } from 'lucide-react';
 import Header from './components/Header';
-import { Great_Vibes } from 'next/font/google';
+import localFont from 'next/font/local';
 
-const greatVibes = Great_Vibes({
-  subsets: ['latin'],
-  weight: '400',
+// Police LouisACP
+const louisACP = localFont({
+  src: '../fonts/LouisACP-Regular.ttf',
   display: 'swap',
+  variable: '--font-louisacp',
 });
 
 const heroTexts = [
@@ -47,9 +48,9 @@ export default function Home() {
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
           
-          {/* Texte hero - police manuscrite élégante (Great Vibes) */}
+          {/* Texte hero avec LouisACP */}
           <h1 
-            className={`${greatVibes.className} text-6xl md:text-7xl font-light tracking-widest leading-none mb-6 transition-all duration-700`}
+            className={`${louisACP.className} text-6xl md:text-7xl font-light tracking-widest leading-none mb-6 transition-all duration-700`}
           >
             {currentHero.title}
           </h1>
@@ -83,7 +84,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 1 : DERNIÈRES PIÈCES (petite & chic) */}
+      {/* SECTION 1 : DERNIÈRES PIÈCES */}
       <section className="py-16 border-t border-zinc-800">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-8 text-center md:text-left">Dernières pièces portées</h2>
@@ -149,7 +150,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 3 : COMMENT ÇA MARCHE (orienté acheteurs) */}
+      {/* SECTION 3 : COMMENT ÇA MARCHE */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-center mb-12">Comment ça marche ?</h2>
