@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, UserPlus, Heart, Star, Play } from 'lucide-react';
+import { Sparkles, UserPlus, Heart, Star, Play, Package, Eye } from 'lucide-react';
 import Header from './components/Header';
 
 const heroTexts = [
@@ -32,11 +32,11 @@ export default function Home() {
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center pt-20">
         
-        {/* Dégradé radial VIOLET + ROSE TRÈS PRÉSENT et visible */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#a855f7dd_0%,#f43f5ebb_40%,transparent_70%)]" />
-        
-        {/* Fond dark principal */}
+        {/* Fond dark principal (en premier) */}
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
+        
+        {/* Dégradé radial VIOLET + ROSE très présent (par-dessus) */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#a855f7ee_0%,#f43f5ecc_45%,transparent_72%)]" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
           <h1 className="text-6xl md:text-7xl font-bold tracking-tighter mb-6 transition-all duration-700">
@@ -71,13 +71,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 1 : DERNIÈRES PIÈCES (beaucoup plus petite et chic) */}
+      {/* SECTION 1 : DERNIÈRES PIÈCES (petite & chic) */}
       <section className="py-16 border-t border-zinc-800">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-8 text-center md:text-left">Dernières pièces portées</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Card 1 - Petite & élégante */}
             <div className="bg-zinc-900/70 border border-zinc-800 rounded-3xl overflow-hidden hover:border-rose-400/30 transition-all group">
               <div className="h-40 bg-zinc-800 flex items-center justify-center text-5xl">👗</div>
               <div className="p-5">
@@ -90,7 +88,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Card 2 */}
             <div className="bg-zinc-900/70 border border-zinc-800 rounded-3xl overflow-hidden hover:border-rose-400/30 transition-all group">
               <div className="h-40 bg-zinc-800 flex items-center justify-center text-5xl">👠</div>
               <div className="p-5">
@@ -102,7 +99,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Card 3 */}
             <div className="bg-zinc-900/70 border border-zinc-800 rounded-3xl overflow-hidden hover:border-rose-400/30 transition-all group">
               <div className="h-40 bg-zinc-800 flex items-center justify-center text-5xl">🧥</div>
               <div className="p-5">
@@ -141,31 +137,31 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 3 : COMMENT ÇA MARCHE */}
+      {/* SECTION 3 : COMMENT ÇA MARCHE (version orientée acheteurs) */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-center mb-12">Comment ça marche ?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             <div className="text-center">
               <div className="w-16 h-16 mx-auto bg-rose-500/10 rounded-2xl flex items-center justify-center mb-6">
-                <Heart className="w-8 h-8 text-rose-400" />
+                <Eye className="w-8 h-8 text-rose-400" />
               </div>
-              <h3 className="font-semibold text-xl mb-2">1. Tu portes</h3>
-              <p className="text-zinc-400">Tu vis l’expérience. Tu filmes ou écris ton histoire intime.</p>
+              <h3 className="font-semibold text-xl mb-2">1. Tu découvres</h3>
+              <p className="text-zinc-400">Des pièces uniques portées avec passion, accompagnées de leur histoire intime et de leur odeur authentique.</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 mx-auto bg-purple-500/10 rounded-2xl flex items-center justify-center mb-6">
-                <Play className="w-8 h-8 text-purple-400" />
+                <Heart className="w-8 h-8 text-purple-400" />
               </div>
-              <h3 className="font-semibold text-xl mb-2">2. Tu partages</h3>
-              <p className="text-zinc-400">Tu ajoutes ton enregistrement vocal et ton histoire.</p>
+              <h3 className="font-semibold text-xl mb-2">2. Tu choisis</h3>
+              <p className="text-zinc-400">La pièce qui te parle. Tu lis l’histoire, tu écoutes la voix, tu imagines la chaleur.</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 mx-auto bg-rose-500/10 rounded-2xl flex items-center justify-center mb-6">
-                <span className="text-4xl">📦</span>
+                <Package className="w-8 h-8 text-rose-400" />
               </div>
-              <h3 className="font-semibold text-xl mb-2">3. Tu vends</h3>
-              <p className="text-zinc-400">Ta pièce part avec son odeur, sa chaleur et son histoire.</p>
+              <h3 className="font-semibold text-xl mb-2">3. Tu reçois</h3>
+              <p className="text-zinc-400">Le vêtement arrive chez toi avec son odeur, sa chaleur et son histoire personnelle.</p>
             </div>
           </div>
         </div>
