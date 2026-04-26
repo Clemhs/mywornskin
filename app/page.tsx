@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, UserPlus } from 'lucide-react';
-import Header from './components/Header';   // ← Import correct
+import Header from './components/Header';
 
 const heroTexts = [
   {
@@ -40,41 +40,53 @@ export default function Home() {
 
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center pt-20">
+        
+        {/* Dégradé radial très subtil rose/violet (du centre vers les bords) */}
+        <div className="absolute inset-0 bg-[radial-gradient(at_center,#f43f5e0a_0%,#c026d30a_40%,transparent_70%)]" />
+        
+        {/* Fond dark principal */}
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
+          {/* Hero Title */}
           <h1 className="text-6xl md:text-7xl font-bold tracking-tighter mb-6 transition-all duration-700">
             {currentHero.title}
           </h1>
 
+          {/* Hero Subtitle */}
           <p className="text-xl md:text-2xl text-zinc-400 max-w-2xl mx-auto mb-12 transition-all duration-700">
             {currentHero.subtitle}
           </p>
 
-          {/* Boutons différenciés */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-10">
+          {/* Boutons plus fins et premium */}
+          <div className="flex flex-col sm:flex-row gap-5 justify-center items-center mt-10">
+            
+            {/* Bouton PRINCIPAL - plus élégant */}
             <button
               onClick={() => router.push('/creators')}
-              className="group relative flex items-center justify-center gap-3 px-10 py-4.5 bg-rose-500 hover:bg-rose-600 text-white font-semibold text-lg rounded-2xl transition-all duration-300 shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 active:scale-95"
+              className="group relative flex items-center justify-center gap-3 px-11 py-5 bg-rose-500 hover:bg-rose-600 text-white font-semibold text-lg rounded-3xl transition-all duration-300 shadow-xl shadow-rose-500/20 hover:shadow-rose-500/40 active:scale-[0.97]"
             >
               <Sparkles className="w-6 h-6 group-active:rotate-12 transition-transform" />
               Découvrir les créatrices
             </button>
 
+            {/* Bouton SECONDAIRE - plus délicat */}
             <button
               onClick={() => router.push('/become-creator')}
-              className="group relative flex items-center justify-center gap-3 px-8 py-4 border-2 border-rose-400 hover:border-rose-500 bg-zinc-900 hover:bg-zinc-800 text-rose-400 hover:text-rose-300 font-semibold text-lg rounded-2xl transition-all duration-300"
+              className="group relative flex items-center justify-center gap-3 px-9 py-5 border border-rose-400/70 hover:border-rose-400 bg-transparent hover:bg-rose-500/10 text-rose-300 hover:text-rose-200 font-semibold text-lg rounded-3xl transition-all duration-300"
             >
               <UserPlus className="w-6 h-6" />
               Devenir créatrice
             </button>
           </div>
 
+          {/* Scroll indicator */}
           <div className="mt-16 flex flex-col items-center gap-2 text-zinc-500">
             <span className="text-sm tracking-widest">SCROLL POUR DÉCOUVRIR</span>
             <div className="w-px h-12 bg-gradient-to-b from-transparent via-zinc-500 to-transparent" />
           </div>
 
+          {/* Trust badges */}
           <div className="mt-20 flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm text-zinc-400">
             <div className="flex items-center gap-2">
               <span className="text-rose-400">✓</span>
