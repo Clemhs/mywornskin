@@ -1,7 +1,7 @@
 'use client';
-
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import Header from '../components/Header';
 
 const heroTexts = [
   "Vêtements portés avec passion. Histoires intimes à vendre.",
@@ -61,9 +61,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
-      <div className="relative h-screen flex items-center justify-center pt-8 md:pt-20">
+      <Header />
+
+      <div className="relative h-screen flex items-center justify-center pt-4 md:pt-0">
         <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_65%)] opacity-30"></div>
-       
+      
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           
           <div className="mb-8 md:mb-6">
@@ -94,12 +96,19 @@ export default function Home() {
             Avec leur odeur, leur chaleur, leur histoire.
           </p>
 
+          {/* === NOUVEAUX BOUTONS === */}
           <div className="flex flex-col sm:flex-row gap-5 justify-center">
-            <Link href="/creators" className="btn-primary px-14 py-7 text-xl font-medium">
-              Découvrir les créatrices
+            <Link 
+              href="/become-creator" 
+              className="btn-primary px-14 py-7 text-xl font-medium bg-rose-500 hover:bg-rose-600 transition-colors"
+            >
+              Devenir créatrice
             </Link>
-            <Link href="/sell" className="btn-secondary px-14 py-7 text-xl font-medium">
-              Mettre ma pièce en vente
+            <Link 
+              href="/creators" 
+              className="btn-secondary px-14 py-7 text-xl font-medium border border-zinc-700 hover:bg-zinc-900 transition-colors"
+            >
+              Découvrir les créatrices
             </Link>
           </div>
         </div>
