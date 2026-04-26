@@ -1,11 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,   // ← Désactivé pour éviter l'infinite loading
   eslint: {
-    ignoreDuringBuilds: true,   // ← Ceci désactive le linting pendant le build
+    ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true,    // ← Et ça ignore les erreurs TypeScript si besoin
+    ignoreBuildErrors: true,
   },
 };
 
