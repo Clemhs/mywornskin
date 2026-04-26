@@ -22,15 +22,9 @@ const heroTexts = [
 
 export default function Home() {
   const router = useRouter();
-  const [currentTextIndex, setCurrentTextIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTextIndex((prev) => (prev + 1) % heroTexts.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
+  
+  // Texte aléatoire uniquement au chargement de la page (pas de rotation continue)
+  const [currentTextIndex] = useState(() => Math.floor(Math.random() * heroTexts.length));
   const currentHero = heroTexts[currentTextIndex];
 
   return (
@@ -41,8 +35,8 @@ export default function Home() {
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center pt-20">
         
-        {/* Dégradé radial ultra subtil rose/violet */}
-        <div className="absolute inset-0 bg-[radial-gradient(at_center,#f43f5e08_0%,#c026d308_45%,transparent_75%)]" />
+        {/* Dégradé radial VIOLET + ROSE beaucoup plus présent */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#a855f740_0%,#f43f5e35_45%,transparent_75%)]" />
         
         {/* Fond dark principal */}
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
@@ -58,10 +52,8 @@ export default function Home() {
             {currentHero.subtitle}
           </p>
 
-          {/* Boutons plus fins et raffinés */}
+          {/* Boutons fins et raffinés */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-10">
-            
-            {/* Bouton PRINCIPAL */}
             <button
               onClick={() => router.push('/creators')}
               className="group relative flex items-center justify-center gap-3 px-9 py-4 bg-rose-500 hover:bg-rose-600 text-white font-medium text-lg rounded-2xl transition-all duration-300 shadow-md shadow-rose-500/10 hover:shadow-rose-500/20 active:scale-[0.98]"
@@ -70,7 +62,6 @@ export default function Home() {
               Découvrir les créatrices
             </button>
 
-            {/* Bouton SECONDAIRE */}
             <button
               onClick={() => router.push('/become-creator')}
               className="group relative flex items-center justify-center gap-3 px-8 py-4 border border-rose-300/60 hover:border-rose-400 bg-transparent hover:bg-white/5 text-rose-300 hover:text-rose-200 font-medium text-lg rounded-2xl transition-all duration-300"
