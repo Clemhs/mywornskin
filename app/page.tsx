@@ -4,14 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, UserPlus, Heart, Star, Play, Package, Eye } from 'lucide-react';
 import Header from './components/Header';
-import localFont from 'next/font/local';
-
-// Police LouisACP
-const louisACP = localFont({
-  src: './fonts/LouisACP-Regular.ttf',
-  display: 'swap',
-  variable: '--font-louisacp',
-});
 
 const heroTexts = [
   {
@@ -48,9 +40,9 @@ export default function Home() {
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
           
-          {/* Texte hero avec LouisACP - maintenant en minuscules/majuscules normales */}
+          {/* Texte hero - police serif très fine et raffinée */}
           <h1 
-            className={`${louisACP.className} text-6xl md:text-7xl font-light tracking-widest leading-none mb-6 transition-all duration-700`}
+            className="font-serif italic font-thin tracking-widest text-6xl md:text-7xl leading-none mb-6 transition-all duration-700"
           >
             {currentHero.title}
           </h1>
