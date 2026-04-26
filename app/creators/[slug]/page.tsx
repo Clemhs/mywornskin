@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Star, Plus } from 'lucide-react';
-import StoryCard from '../../components/StoryCard';
+import StoryCard from '../../../components/StoryCard';
 import Header from '../../components/Header';
 
 export default function CreatorProfile() {
@@ -32,7 +32,7 @@ export default function CreatorProfile() {
       image: "https://picsum.photos/id/1015/600/800",
       hasStory: true,
       hasVoice: true,
-      excerpt: "Portée pendant trois jours entiers...",
+      excerpt: "Portée pendant trois jours entiers... l'odeur est encore très présente.",
       creatorName: creator.name,
       creatorSlug: creator.slug,
     },
@@ -44,7 +44,7 @@ export default function CreatorProfile() {
       image: "https://picsum.photos/id/251/600/800",
       hasStory: true,
       hasVoice: true,
-      excerpt: "Portée au bureau pendant deux jours...",
+      excerpt: "Portée au bureau pendant deux jours... avec quelques boutons défaits.",
       creatorName: creator.name,
       creatorSlug: creator.slug,
     },
