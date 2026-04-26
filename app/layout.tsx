@@ -13,11 +13,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className="bg-zinc-950 text-white">
-        {/* Header commenté pour diagnostiquer l'infinite loading */}
-        {/* <Header /> */}
-
-        <main>{children}</main>
+      <body className="bg-zinc-950 text-white antialiased">
+        <main className="min-h-screen">
+          {children}
+        </main>
       </body>
     </html>
   );
