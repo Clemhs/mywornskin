@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, UserPlus, Heart, Star, Play, Package, Eye } from 'lucide-react';
 import Header from './components/Header';
-import StoryCard from './components/StoryCard';
+import StoryCard from '../components/StoryCard';   // ← Chemin corrigé
 
 const heroTexts = [
   {
@@ -69,7 +69,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 1 : DERNIÈRES PIÈCES (avec les vrais StoryCard) */}
+      {/* SECTION 1 : DERNIÈRES PIÈCES (avec StoryCard) */}
       <section className="py-16 border-t border-zinc-800">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-8 text-center md:text-left">Dernières pièces portées</h2>
