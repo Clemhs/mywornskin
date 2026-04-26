@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, UserPlus } from 'lucide-react';
+import { Sparkles, UserPlus, Star } from 'lucide-react';
 import Header from './components/Header';
 import StoryCard from '../components/StoryCard';
 
