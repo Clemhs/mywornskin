@@ -6,9 +6,9 @@ import { Sparkles, UserPlus, Heart, Star, Play, Package, Eye } from 'lucide-reac
 import Header from './components/Header';
 import localFont from 'next/font/local';
 
-// Police LouisACP
+// Police LouisACP - chemin corrigé
 const louisACP = localFont({
-  src: '../fonts/LouisACP-Regular.ttf',
+  src: './fonts/LouisACP-Regular.ttf',
   display: 'swap',
   variable: '--font-louisacp',
 });
