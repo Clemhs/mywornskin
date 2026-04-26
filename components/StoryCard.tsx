@@ -66,7 +66,7 @@ export default function StoryCard({
 
         {/* Player audio */}
         {hasVoice && (
-          <div className="absolute bottom-4 left-4 bg-black/70 backdrop-blur-md px-4 py-2 rounded-2xl flex items-center gap-3 text-white text-sm">
+          <div className="absolute bottom-4 left-4 bg-black/70 backdrop-blur-md px-4 py-2 rounded-2xl flex items-center gap-3 text-white text-sm cursor-pointer">
             <button
               onClick={togglePlay}
               className="flex items-center justify-center w-8 h-8 hover:scale-110 transition-transform"
@@ -110,7 +110,7 @@ export default function StoryCard({
           {excerpt}
         </p>
 
-        {/* Créatrice (seul élément cliquable) */}
+        {/* Créatrice (seul lien cliquable) */}
         <Link 
           href={`/creators/${creatorSlug}`}
           className="text-rose-400 hover:text-rose-300 text-sm font-medium transition-colors inline-block"
@@ -119,7 +119,7 @@ export default function StoryCard({
         </Link>
       </div>
 
-      {/* Audio element caché */}
+      {/* Audio element */}
       {hasVoice && <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} />}
     </div>
   );
