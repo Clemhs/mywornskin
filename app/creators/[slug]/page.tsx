@@ -6,6 +6,9 @@ import { Star, Plus } from 'lucide-react';
 import StoryCard from '../../../components/StoryCard';
 import Header from '../../components/Header';
 
+// Force le rendu dynamique pour éviter les boucles de chargement
+export const dynamic = 'force-dynamic';
+
 export default function CreatorProfile() {
   const params = useParams();
   const slug = params.slug as string;
@@ -55,7 +58,6 @@ export default function CreatorProfile() {
 
       <div className="max-w-6xl mx-auto px-6 py-12">
         
-        {/* En-tête créatrice */}
         <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
           <div className="w-40 h-40 bg-zinc-800 rounded-3xl flex items-center justify-center text-8xl flex-shrink-0">
             {creator.avatar}
@@ -97,7 +99,6 @@ export default function CreatorProfile() {
           </Link>
         </div>
 
-        {/* Sa boutique */}
         <div className="mt-16">
           <h2 className="text-3xl font-bold mb-8">Sa boutique</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
