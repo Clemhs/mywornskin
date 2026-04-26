@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, UserPlus, Heart, Star, Play, Package, Eye } from 'lucide-react';
 import Header from './components/Header';
-import StoryCard from '../components/StoryCard';   // ← Chemin corrigé
+import StoryCard from '../components/StoryCard';
 
 const heroTexts = [
   {
@@ -32,7 +32,6 @@ export default function Home() {
 
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center pt-20">
-        
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#a855f715_0%,#f43f5e10_45%,transparent_75%)]" />
 
@@ -69,7 +68,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 1 : DERNIÈRES PIÈCES (avec StoryCard) */}
+      {/* SECTION 1 : DERNIÈRES PIÈCES */}
       <section className="py-16 border-t border-zinc-800">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-8 text-center md:text-left">Dernières pièces portées</h2>
@@ -83,7 +82,9 @@ export default function Home() {
               image="https://picsum.photos/id/1015/600/800"
               hasStory={true}
               hasVoice={true}
-              excerpt="Portée pendant trois jours entiers... l'odeur est encore très présente, un mélange de ma peau et de mon parfum préféré."
+              excerpt="Portée pendant trois jours entiers... l'odeur est encore très présente."
+              creatorName="Léa Moreau"
+              creatorSlug="lea-moreau"
             />
 
             <StoryCard
@@ -94,7 +95,9 @@ export default function Home() {
               image="https://picsum.photos/id/201/600/800"
               hasStory={true}
               hasVoice={false}
-              excerpt="Je les ai portés toute la nuit lors d'une soirée très spéciale... ils gardent encore la chaleur de ma peau."
+              excerpt="Je les ai portés toute la nuit lors d'une soirée très spéciale..."
+              creatorName="Clara Voss"
+              creatorSlug="clara-voss"
             />
 
             <StoryCard
@@ -105,7 +108,9 @@ export default function Home() {
               image="https://picsum.photos/id/251/600/800"
               hasStory={true}
               hasVoice={true}
-              excerpt="Portée au bureau pendant deux jours... avec quelques boutons défaits. L'histoire est assez intime."
+              excerpt="Portée au bureau pendant deux jours... avec quelques boutons défaits."
+              creatorName="Emma Laurent"
+              creatorSlug="emma-laurent"
             />
 
           </div>
