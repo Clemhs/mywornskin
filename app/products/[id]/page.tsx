@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Play, Pause, Mic, BookOpen, Heart, Star } from 'lucide-react';
 import { useState, useRef } from 'react';
-import Review from '../../components/Review';
+import Review from '../../../components/Review';   // ← Chemin corrigé
 
 export default function ProductPage() {
   const params = useParams();
@@ -27,7 +27,7 @@ export default function ProductPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Avis simulés (à remplacer plus tard par une vraie DB)
+  // Avis simulés
   const [reviews, setReviews] = useState([
     {
       id: "r1",
@@ -49,8 +49,11 @@ export default function ProductPage() {
 
   const togglePlay = () => {
     if (audioRef.current) {
-      if (isPlaying) audioRef.current.pause();
-      else audioRef.current.play();
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
       setIsPlaying(!isPlaying);
     }
   };
@@ -133,7 +136,10 @@ export default function ProductPage() {
                   Écouter sa voix
                 </h3>
                 <div className="flex items-center gap-6">
-                  <button onClick={togglePlay} className="w-14 h-14 bg-purple-500 hover:bg-purple-600 rounded-2xl flex items-center justify-center transition-all active:scale-95">
+                  <button 
+                    onClick={togglePlay} 
+                    className="w-14 h-14 bg-purple-500 hover:bg-purple-600 rounded-2xl flex items-center justify-center transition-all active:scale-95"
+                  >
                     {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7" />}
                   </button>
                   <div className="flex-1 h-2 bg-zinc-700 rounded-full relative">
@@ -161,7 +167,7 @@ export default function ProductPage() {
                 ))}
               </div>
 
-              {/* Formulaire pour laisser un avis */}
+              {/* Formulaire avis */}
               <form onSubmit={submitReview} className="mt-12 bg-zinc-900 border border-zinc-700 rounded-3xl p-8">
                 <h3 className="text-lg font-medium mb-6">Laisser un avis</h3>
                 
