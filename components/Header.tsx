@@ -1,39 +1,76 @@
 'use client';
+import Link from 'next/link';
+import { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
-import { MessageCircle } from 'lucide-react';
+const languages = [
+  { code: 'fr', label: 'FR', flag: '🇫🇷' },
+  { code: 'en', label: 'EN', flag: '🇬🇧' },
+  { code: 'es', label: 'ES', flag: '🇪🇸' },
+  { code: 'de', label: 'DE', flag: '🇩🇪' },
+];
 
 export default function Header() {
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-zinc-950 border-b border-zinc-800">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        
-        {/* Logo */}
-        <div className="flex items-center gap-2">
-          <span className="text-3xl">🌹</span>
-          <h1 className="text-2xl font-bold tracking-tighter text-white">MyWornSkin</h1>
-        </div>
+  const { lang, changeLanguage, t } = useLanguage();
+  const [showLangMenu, setShowLangMenu] = useState(false);
 
-        {/* Menu + actions */}
-        <div className="flex items-center gap-8">
-          
-          {/* Sélecteur de langue */}
-          <div className="flex items-center gap-1 text-sm font-medium bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-700">
-            🇫🇷 <span className="text-zinc-300">FR</span>
+  const currentLang = languages.find(l => l.code === lang) || languages[0];
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-zinc-950/90 backdrop-blur-lg border-b border-zinc-800">
+      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-3">
+          <span className="text-2xl font-light tracking-tighter">MyWornSkin</span>
+        </Link>
+
+        {/* Navigation Desktop */}
+        <nav className="hidden md:flex items-center gap-8 text-sm">
+          <Link href="/creators" className="hover:text-pink-400 transition">{t('creators')}</Link>
+          <Link href="/sell" className="hover:text-pink-400 transition">{t('sell')}</Link>
+          <Link href="/messages" className="hover:text-pink-400 transition">{t('messages')}</Link>
+          <Link href="/why-join" className="hover:text-pink-400 transition">Pourquoi nous rejoindre ?</Link>
+        </nav>
+
+        {/* Droite : Langues + Messages */}
+        <div className="flex items-center gap-3">
+          {/* Sélecteur langue compact (un seul drapeau + menu) */}
+          <div className="relative">
+            <button
+              onClick={() => setShowLangMenu(!showLangMenu)}
+              className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 px-4 py-2 rounded-3xl text-sm transition"
+            >
+              <span className="text-base">{currentLang.flag}</span>
+              <span className="hidden sm:inline font-medium">{currentLang.label}</span>
+              <span className="text-xs">▼</span>
+            </button>
+
+            {showLangMenu && (
+              <div className="absolute right-0 mt-2 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-50 w-44">
+                {languages.map((l) => (
+                  <button
+                    key={l.code}
+                    onClick={() => {
+                      changeLanguage(l.code as any);
+                      setShowLangMenu(false);
+                    }}
+                    className={`w-full px-5 py-3 text-left flex items-center gap-3 hover:bg-zinc-800 ${lang === l.code ? 'bg-zinc-800' : ''}`}
+                  >
+                    <span className="text-lg">{l.flag}</span>
+                    <span className="font-medium">{l.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Icône Messages */}
-          <button className="relative p-2 hover:bg-zinc-900 rounded-xl transition-colors">
-            <MessageCircle className="w-6 h-6 text-zinc-300" />
-            <span className="absolute -top-1 -right-1 bg-rose-500 text-[10px] w-4 h-4 flex items-center justify-center rounded-full">3</span>
-          </button>
-
-          {/* Bouton Devenir créatrice dans le header */}
-          <button
-            onClick={() => window.location.href = '/become-creator'}
-            className="px-6 py-2 bg-rose-500 hover:bg-rose-600 text-white text-sm font-semibold rounded-2xl transition-all"
+          {/* Messages */}
+          <Link
+            href="/messages"
+            className="w-9 h-9 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 rounded-2xl transition text-xl"
           >
-            Devenir créatrice
-          </button>
+            💬
+          </Link>
         </div>
       </div>
     </header>
