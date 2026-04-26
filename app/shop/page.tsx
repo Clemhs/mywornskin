@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import StoryCard from '../components/StoryCard';
-import { Filter, Sparkles, Mic } from 'lucide-react';
+import StoryCard from '../../components/StoryCard';
+import { Filter, Sparkles, Mic, BookOpen } from 'lucide-react';
 
 export default function Shop() {
   const [activeFilter, setActiveFilter] = useState<'all' | 'story' | 'voice' | 'both'>('all');
