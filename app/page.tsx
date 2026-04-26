@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, UserPlus } from 'lucide-react';
-import Header from '@/components/Header'; // Assure-toi que le chemin est correct
+import Header from '../components/Header';   // ← Import CORRIGÉ (relatif)
 
 const heroTexts = [
   {
@@ -40,23 +40,19 @@ export default function Home() {
 
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center pt-20">
-        {/* Background subtle gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
-          {/* Hero Title */}
           <h1 className="text-6xl md:text-7xl font-bold tracking-tighter mb-6 transition-all duration-700">
             {currentHero.title}
           </h1>
 
-          {/* Hero Subtitle */}
           <p className="text-xl md:text-2xl text-zinc-400 max-w-2xl mx-auto mb-12 transition-all duration-700">
             {currentHero.subtitle}
           </p>
 
-          {/* BUTTONS - Mise à jour ici */}
+          {/* Boutons différenciés avec icônes */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-10">
-            {/* Bouton PRINCIPAL */}
             <button
               onClick={() => router.push('/creators')}
               className="group relative flex items-center justify-center gap-3 px-10 py-4.5 bg-rose-500 hover:bg-rose-600 text-white font-semibold text-lg rounded-2xl transition-all duration-300 shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 active:scale-95"
@@ -65,7 +61,6 @@ export default function Home() {
               Découvrir les créatrices
             </button>
 
-            {/* Bouton SECONDAIRE */}
             <button
               onClick={() => router.push('/become-creator')}
               className="group relative flex items-center justify-center gap-3 px-8 py-4 border-2 border-rose-400 hover:border-rose-500 bg-zinc-900 hover:bg-zinc-800 text-rose-400 hover:text-rose-300 font-semibold text-lg rounded-2xl transition-all duration-300"
@@ -75,13 +70,11 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Scroll indicator */}
           <div className="mt-16 flex flex-col items-center gap-2 text-zinc-500">
             <span className="text-sm tracking-widest">SCROLL POUR DÉCOUVRIR</span>
             <div className="w-px h-12 bg-gradient-to-b from-transparent via-zinc-500 to-transparent" />
           </div>
 
-          {/* Trust badges */}
           <div className="mt-20 flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm text-zinc-400">
             <div className="flex items-center gap-2">
               <span className="text-rose-400">✓</span>
@@ -102,9 +95,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Autres sections à venir (pour l'instant vides) */}
-      {/* Tu peux ajouter ici les sections futures (témoignages, etc.) */}
     </main>
   );
 }
