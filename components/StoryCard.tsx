@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Play, Mic, BookOpen } from 'lucide-react';
 
 interface StoryCardProps {
@@ -7,10 +8,12 @@ interface StoryCardProps {
   title: string;
   price: number;
   wornDays: number;
-  image: string; // placeholder pour l'instant
+  image: string;
   hasStory: boolean;
   hasVoice: boolean;
-  excerpt: string; // début de l'histoire
+  excerpt: string;
+  creatorName: string;
+  creatorSlug: string;
 }
 
 export default function StoryCard({
@@ -22,6 +25,8 @@ export default function StoryCard({
   hasStory,
   hasVoice,
   excerpt,
+  creatorName,
+  creatorSlug,
 }: StoryCardProps) {
   return (
     <div className="group bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden hover:border-rose-400/30 transition-all duration-300">
@@ -32,10 +37,8 @@ export default function StoryCard({
           alt={title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        {/* Overlay sensuel */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         
-        {/* Badge prix */}
         <div className="absolute top-4 right-4 bg-black/70 text-white text-sm font-semibold px-3 py-1 rounded-2xl">
           {price} €
         </div>
@@ -66,25 +69,34 @@ export default function StoryCard({
           Portée {wornDays} jours
         </p>
 
-        {/* Extrait de l'histoire */}
+        {/* Extrait */}
         <p className="text-zinc-400 text-sm line-clamp-3 mb-6">
           {excerpt}
         </p>
 
-        {/* Bouton écouter / lire */}
-        <button className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-rose-400/30 text-white py-3 rounded-2xl transition-all text-sm font-medium">
-          {hasVoice ? (
-            <>
-              <Play className="w-4 h-4" />
-              Écouter son histoire
-            </>
-          ) : (
-            <>
-              <BookOpen className="w-4 h-4" />
-              Lire l’histoire complète
-            </>
-          )}
-        </button>
+        {/* Créatrice */}
+        <div className="flex items-center justify-between">
+          <Link 
+            href={`/creators/${creatorSlug}`}
+            className="text-rose-400 hover:text-rose-300 text-sm font-medium transition-colors"
+          >
+            par {creatorName}
+          </Link>
+
+          <button className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors">
+            {hasVoice ? (
+              <>
+                <Play className="w-3 h-3" />
+                Écouter
+              </>
+            ) : (
+              <>
+                <BookOpen className="w-3 h-3" />
+                Lire
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
