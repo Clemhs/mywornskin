@@ -6,7 +6,7 @@ import { Sparkles, UserPlus, Heart, Star, Play, Package, Eye } from 'lucide-reac
 import Header from './components/Header';
 import localFont from 'next/font/local';
 
-// Police LouisACP - chemin corrigé
+// Police LouisACP
 const louisACP = localFont({
   src: './fonts/LouisACP-Regular.ttf',
   display: 'swap',
@@ -15,15 +15,15 @@ const louisACP = localFont({
 
 const heroTexts = [
   {
-    title: "✦ VÊTEMENTS PORTÉS • HISTOIRES INTIMES",
+    title: "Vêtements portés • Histoires intimes",
     subtitle: "Chaque pièce raconte une histoire. Chaque odeur porte un souvenir.",
   },
   {
-    title: "✦ LA CHALEUR ENCORE PRÉSENTE",
+    title: "La chaleur encore présente",
     subtitle: "Portés avec passion. Vendus avec leur âme.",
   },
   {
-    title: "✦ SENSUALITÉ AUTHENTIQUE",
+    title: "Sensualité authentique",
     subtitle: "Odeur, chaleur, histoires intimes à découvrir.",
   },
 ];
@@ -48,7 +48,7 @@ export default function Home() {
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
           
-          {/* Texte hero avec LouisACP */}
+          {/* Texte hero avec LouisACP - maintenant en minuscules/majuscules normales */}
           <h1 
             className={`${louisACP.className} text-6xl md:text-7xl font-light tracking-widest leading-none mb-6 transition-all duration-700`}
           >
