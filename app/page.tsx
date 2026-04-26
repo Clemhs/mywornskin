@@ -32,8 +32,8 @@ export default function Home() {
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center pt-20">
         
-        {/* Dégradé radial VIOLET + ROSE très présent et visible */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#a855f7cc_0%,#f43f5e99_45%,transparent_75%)]" />
+        {/* Dégradé radial VIOLET + ROSE TRÈS PRÉSENT et visible */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#a855f7dd_0%,#f43f5ebb_40%,transparent_70%)]" />
         
         {/* Fond dark principal */}
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
@@ -71,46 +71,47 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 1 : DERNIÈRES PIÈCES */}
-      <section className="py-20 border-t border-zinc-800">
+      {/* SECTION 1 : DERNIÈRES PIÈCES (beaucoup plus petite et chic) */}
+      <section className="py-16 border-t border-zinc-800">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-8">Dernières pièces portées</h2>
+          <h2 className="text-3xl font-bold mb-8 text-center md:text-left">Dernières pièces portées</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Card 1 */}
-            <div className="bg-zinc-900 rounded-3xl overflow-hidden group">
-              <div className="h-64 bg-zinc-800 flex items-center justify-center text-4xl">👗</div>
-              <div className="p-6">
+            
+            {/* Card 1 - Petite & élégante */}
+            <div className="bg-zinc-900/70 border border-zinc-800 rounded-3xl overflow-hidden hover:border-rose-400/30 transition-all group">
+              <div className="h-40 bg-zinc-800 flex items-center justify-center text-5xl">👗</div>
+              <div className="p-5">
                 <div className="flex gap-2 mb-3">
-                  <span className="text-xs px-3 py-1 bg-rose-500/20 text-rose-400 rounded-full">Histoire</span>
-                  <span className="text-xs px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full">Vocal</span>
+                  <span className="text-[10px] px-3 py-1 bg-rose-500/20 text-rose-400 rounded-full">Histoire</span>
+                  <span className="text-[10px] px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full">Vocal</span>
                 </div>
-                <h3 className="font-semibold text-lg">Culotte en dentelle noire</h3>
-                <p className="text-zinc-400 text-sm mt-1">Portée 3 jours • 45 €</p>
+                <h3 className="font-semibold text-base">Culotte dentelle noire</h3>
+                <p className="text-zinc-400 text-xs mt-1">Portée 3 jours • 45 €</p>
               </div>
             </div>
 
             {/* Card 2 */}
-            <div className="bg-zinc-900 rounded-3xl overflow-hidden group">
-              <div className="h-64 bg-zinc-800 flex items-center justify-center text-4xl">👠</div>
-              <div className="p-6">
+            <div className="bg-zinc-900/70 border border-zinc-800 rounded-3xl overflow-hidden hover:border-rose-400/30 transition-all group">
+              <div className="h-40 bg-zinc-800 flex items-center justify-center text-5xl">👠</div>
+              <div className="p-5">
                 <div className="flex gap-2 mb-3">
-                  <span className="text-xs px-3 py-1 bg-rose-500/20 text-rose-400 rounded-full">Histoire</span>
+                  <span className="text-[10px] px-3 py-1 bg-rose-500/20 text-rose-400 rounded-full">Histoire</span>
                 </div>
-                <h3 className="font-semibold text-lg">Bas résille déchirés</h3>
-                <p className="text-zinc-400 text-sm mt-1">Portés toute la nuit • 32 €</p>
+                <h3 className="font-semibold text-base">Bas résille</h3>
+                <p className="text-zinc-400 text-xs mt-1">Portés toute la nuit • 32 €</p>
               </div>
             </div>
 
             {/* Card 3 */}
-            <div className="bg-zinc-900 rounded-3xl overflow-hidden group">
-              <div className="h-64 bg-zinc-800 flex items-center justify-center text-4xl">🧥</div>
-              <div className="p-6">
+            <div className="bg-zinc-900/70 border border-zinc-800 rounded-3xl overflow-hidden hover:border-rose-400/30 transition-all group">
+              <div className="h-40 bg-zinc-800 flex items-center justify-center text-5xl">🧥</div>
+              <div className="p-5">
                 <div className="flex gap-2 mb-3">
-                  <span className="text-xs px-3 py-1 bg-rose-500/20 text-rose-400 rounded-full">Histoire</span>
-                  <span className="text-xs px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full">Vocal</span>
+                  <span className="text-[10px] px-3 py-1 bg-rose-500/20 text-rose-400 rounded-full">Histoire</span>
+                  <span className="text-[10px] px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full">Vocal</span>
                 </div>
-                <h3 className="font-semibold text-lg">Chemise blanche froissée</h3>
-                <p className="text-zinc-400 text-sm mt-1">Portée au bureau • 68 €</p>
+                <h3 className="font-semibold text-base">Chemise blanche</h3>
+                <p className="text-zinc-400 text-xs mt-1">Portée au bureau • 68 €</p>
               </div>
             </div>
           </div>
@@ -120,7 +121,7 @@ export default function Home() {
       {/* SECTION 2 : CRÉATRICES MISES EN AVANT */}
       <section className="py-20 bg-zinc-900">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-8">Créatrices mises en avant</h2>
+          <h2 className="text-3xl font-bold mb-8 text-center md:text-left">Créatrices mises en avant</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
               { name: "Léa", rating: 4.9 },
@@ -169,7 +170,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
     </main>
   );
 }
