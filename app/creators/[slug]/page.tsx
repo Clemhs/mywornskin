@@ -10,7 +10,6 @@ export default function CreatorProfile() {
   const params = useParams();
   const slug = params.slug as string;
 
-  // Données simulées selon le slug
   const creator = {
     name: slug === "lea-moreau" ? "Léa Moreau" : 
           slug === "clara-voss" ? "Clara Voss" : 
@@ -89,7 +88,6 @@ export default function CreatorProfile() {
             </div>
           </div>
 
-          {/* Bouton nouvelle pièce */}
           <Link
             href="/become-creator"
             className="flex items-center gap-3 bg-rose-500 hover:bg-rose-600 px-8 py-4 rounded-3xl text-white font-medium self-start"
