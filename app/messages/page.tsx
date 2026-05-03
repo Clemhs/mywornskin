@@ -32,9 +32,10 @@ export default function MessagesPage() {
 
   const sendMessage = () => {
     if (message.trim()) {
+      const convId = selectedConversation as keyof typeof allMessages;
       setAllMessages(prev => ({
         ...prev,
-        [selectedConversation]: [...(prev[selectedConversation] || []), { id: Date.now(), text: message, isMe: true }]
+        [convId]: [...(prev[convId] || []), { id: Date.now(), text: message, isMe: true }]
       }));
       setMessage('');
       setShowEmoji(false);
@@ -48,10 +49,11 @@ export default function MessagesPage() {
     if (file) {
       const reader = new FileReader();
       reader.onload = (ev) => {
-setAllMessages(prev => ({
-  ...prev,
-  [selectedConversation as keyof typeof prev]: [...(prev[selectedConversation as keyof typeof prev] || []), { id: Date.now(), text: message, isMe: true }]
-}));
+        const convId = selectedConversation as keyof typeof allMessages;
+        setAllMessages(prev => ({
+          ...prev,
+          [convId]: [...(prev[convId] || []), { id: Date.now(), text: "📸 Photo envoyée", isMe: true, image: ev.target?.result as string }]
+        }));
       };
       reader.readAsDataURL(file);
     }
