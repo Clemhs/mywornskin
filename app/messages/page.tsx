@@ -28,7 +28,7 @@ export default function MessagesPage() {
     2: [{ id: 1, text: "Tu es dispo pour une commande ?", isMe: false }]
   });
 
-  const currentMessages = allMessages[selectedConversation] || [];
+  const currentMessages = allMessages[selectedConversation as keyof typeof allMessages] || [];
 
   const sendMessage = () => {
     if (message.trim()) {
