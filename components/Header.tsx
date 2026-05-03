@@ -25,7 +25,12 @@ export default function Header() {
 
   const username = user?.user_metadata?.username || '';
   const isCreator = username.toLowerCase().includes('creator') || false;
-  const profileSlug = username ? username.replace(/\s+/g, '') : 'me'; // Enlève les espaces
+  const profileSlug = username ? username.replace(/\s+/g, '') : 'me';
+
+  // Ferme le menu quand on change de page
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   if (loading) {
     return <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800 h-20" />;
@@ -82,14 +87,30 @@ export default function Header() {
                       <p className="text-xs text-zinc-500">{user.email}</p>
                     </div>
                     
-                    <Link href={`/creators/${profileSlug}`} className="block px-6 py-3 hover:bg-zinc-800">
+                    <Link 
+                      href={`/creators/${profileSlug}`} 
+                      className="block px-6 py-3 hover:bg-zinc-800"
+                      onClick={() => setMenuOpen(false)}
+                    >
                       👤 Mon Profil {isCreator ? 'Créatrice' : ''}
                     </Link>
                     
                     {isCreator ? (
-                      <Link href="/creators/me/edit" className="block px-6 py-3 hover:bg-zinc-800">✏️ Éditer mon profil</Link>
+                      <Link 
+                        href="/creators/me/edit" 
+                        className="block px-6 py-3 hover:bg-zinc-800"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        ✏️ Éditer mon profil
+                      </Link>
                     ) : (
-                      <Link href="/profile/edit" className="block px-6 py-3 hover:bg-zinc-800">✏️ Éditer mon profil</Link>
+                      <Link 
+                        href="/profile/edit" 
+                        className="block px-6 py-3 hover:bg-zinc-800"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        ✏️ Éditer mon profil
+                      </Link>
                     )}
                     
                     <button 
