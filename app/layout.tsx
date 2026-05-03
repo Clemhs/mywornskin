@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import Header from '@/components/layout/Header';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 const inter = Inter({ 
   subsets: ['latin'], 
@@ -10,7 +11,10 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'MyWornSkin',
-  description: 'Vêtements intimes portés',
+  description: 'Vêtements intimes portés avec passion',
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
@@ -20,9 +24,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className="dark">
-      <body className={`${inter.className} bg-black text-white`}>
+      <body className={`${inter.className} bg-black text-white min-h-screen flex flex-col`}>
         <Header />
-        <main>{children}</main>
+        <main className="flex-1">
+          {children}
+        </main>
+        <Footer />
       </body>
     </html>
   );
