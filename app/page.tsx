@@ -1,9 +1,8 @@
 'use client';
 
-import Header from '../components/Header';
-import StoryCard from '../components/StoryCard';
 import Link from 'next/link';
 import { Sparkles, Camera, Users, Award } from 'lucide-react';
+import StoryCard from '@/components/StoryCard'; // on créera ce composant après si besoin
 
 const heroTexts = [
   "Vêtements portés avec passion",
@@ -21,13 +20,10 @@ const featuredProducts = [
 ];
 
 export default function Home() {
-  // Texte aléatoire à chaque refresh
   const randomText = heroTexts[Math.floor(Math.random() * heroTexts.length)];
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
-      <Header />
-
       {/* Hero Section */}
       <div className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(at_center,#4c1d95_0%,transparent_70%)] opacity-30" />
@@ -85,7 +81,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Comment ça marche - Version équilibrée sans 75% */}
+      {/* Comment ça marche */}
       <div className="bg-zinc-900 py-20">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-4xl font-bold text-center mb-16">Comment ça marche ?</h2>
