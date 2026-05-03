@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { Award } from 'lucide-react';
 
 export default function CreatorProfilePage() {
   const params = useParams();
