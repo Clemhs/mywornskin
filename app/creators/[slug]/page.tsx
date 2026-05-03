@@ -4,7 +4,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Award } from 'lucide-react';
-import Header from '@/components/Header';
 import StoryCard from '@/components/StoryCard';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -85,7 +84,6 @@ export default function CreatorProfile() {
 
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
-      <Header />
 
       {/* Bannière */}
       <div className="h-80 relative">
