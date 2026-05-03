@@ -6,6 +6,7 @@ interface StoryCardProps {
   id: string;
   title: string;
   creator: string;
+  creatorSlug?: string;
   price: number;
   image: string;
   wornDays: number;
@@ -13,7 +14,16 @@ interface StoryCardProps {
   hasVoice?: boolean;
 }
 
-export default function StoryCard({ id, title, creator, price, image, wornDays, hasStory, hasVoice }: StoryCardProps) {
+export default function StoryCard({ 
+  id, 
+  title, 
+  creator, 
+  price, 
+  image, 
+  wornDays, 
+  hasStory, 
+  hasVoice 
+}: StoryCardProps) {
   return (
     <Link href={`/product/${id}`} className="group bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 hover:border-rose-400 transition-all">
       <div className="relative">
