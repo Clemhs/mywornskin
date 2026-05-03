@@ -13,7 +13,7 @@ export default function Header() {
 
   const { user, isLoggedIn, logout, loading } = useAuth();
 
-  // Simulation panier (à remplacer plus tard par Supabase)
+  // Mise à jour du panier (simulation pour l'instant)
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     setCartCount(cart.length);
@@ -24,14 +24,11 @@ export default function Header() {
     setMenuOpen(false);
   };
 
-  // Pour l'instant on considère que si l'utilisateur a un username qui commence par "creator" il est créatrice
-  // On améliorera ça plus tard avec un vrai rôle
-  const isCreator = user?.user_metadata?.username?.startsWith('creator') || false;
+  // Détection temporaire si c'est une créatrice
+  const isCreator = user?.user_metadata?.username?.toLowerCase().includes('creator') || false;
 
   if (loading) {
-    return (
-      <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800 h-20" />
-    );
+    return <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800 h-20" />;
   }
 
   return (
@@ -87,7 +84,9 @@ export default function Header() {
                     
                     <Link href="/profile" className="block px-6 py-3 hover:bg-zinc-800">👤 Mon Profil</Link>
                     
-                    {isCreator && (
+                    {isCreator ? (
+                      <Link href="/creators/me/edit" className="block px-6 py-3 hover:bg-zinc-800">✏️ Éditer mon profil</Link>
+                    ) : (
                       <Link href="/profile/edit" className="block px-6 py-3 hover:bg-zinc-800">✏️ Éditer mon profil</Link>
                     )}
                     
