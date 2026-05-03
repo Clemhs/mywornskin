@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { LanguageProvider } from '@/app/contexts/LanguageContext';
 
 const inter = Inter({ 
   subsets: ['latin'], 
@@ -12,9 +13,6 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'MyWornSkin',
   description: 'Vêtements intimes portés avec passion',
-  icons: {
-    icon: '/favicon.ico',
-  },
 };
 
 export default function RootLayout({
@@ -25,11 +23,13 @@ export default function RootLayout({
   return (
     <html lang="fr" className="dark">
       <body className={`${inter.className} bg-black text-white min-h-screen flex flex-col`}>
-        <Header />
-        <main className="flex-1">
-          {children}
-        </main>
-        <Footer />
+        <LanguageProvider>
+          <Header />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </LanguageProvider>
       </body>
     </html>
   );
