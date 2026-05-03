@@ -6,6 +6,13 @@ import { ArrowLeft, Send, Image as ImageIcon, Smile } from 'lucide-react';
 
 const commonEmojis = ['😍', '❤️', '🔥', '👀', '😘', '💦', '✨', '🙈', '🥵', '😏', '🌹', '💋'];
 
+type Message = {
+  id: number;
+  text: string;
+  isMe: boolean;
+  image?: string;
+};
+
 export default function MessagesPage() {
   const [selectedConversation, setSelectedConversation] = useState(0);
   const [message, setMessage] = useState('');
@@ -19,7 +26,7 @@ export default function MessagesPage() {
     { id: 2, name: "Sienna Rose", avatar: "https://picsum.photos/id/66/128/128", lastMsg: "Envoie-moi ta demande 😉" },
   ];
 
-  const [allMessages, setAllMessages] = useState({
+  const [allMessages, setAllMessages] = useState<Record<number, Message[]>>({
     0: [
       { id: 1, text: "Salut, j'adore ton dernier set 😍", isMe: false },
       { id: 2, text: "Merci ! Tu veux que je te montre plus ?", isMe: true },
@@ -28,11 +35,11 @@ export default function MessagesPage() {
     2: [{ id: 1, text: "Tu es dispo pour une commande ?", isMe: false }]
   });
 
-  const currentMessages = allMessages[selectedConversation as keyof typeof allMessages] || [];
+  const currentMessages = allMessages[selectedConversation] || [];
 
   const sendMessage = () => {
     if (message.trim()) {
-      const convId = selectedConversation as keyof typeof allMessages;
+      const convId = selectedConversation;
       setAllMessages(prev => ({
         ...prev,
         [convId]: [...(prev[convId] || []), { id: Date.now(), text: message, isMe: true }]
@@ -49,7 +56,7 @@ export default function MessagesPage() {
     if (file) {
       const reader = new FileReader();
       reader.onload = (ev) => {
-        const convId = selectedConversation as keyof typeof allMessages;
+        const convId = selectedConversation;
         setAllMessages(prev => ({
           ...prev,
           [convId]: [...(prev[convId] || []), { id: Date.now(), text: "📸 Photo envoyée", isMe: true, image: ev.target?.result as string }]
