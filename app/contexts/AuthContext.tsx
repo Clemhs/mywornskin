@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { createBrowserClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';   // ← Import corrigé
 
 interface AuthContextType {
   user: User | null;
@@ -22,10 +22,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const supabase = createBrowserClient();
+  const supabase = createClient();   // ← Appel corrigé
 
   useEffect(() => {
-    // Récupération de la session initiale
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
@@ -36,7 +35,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     getInitialSession();
 
-    // Écoute des changements d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
@@ -62,9 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { username }
-      }
+      options: { data: { username } }
     });
     return !error;
   };
