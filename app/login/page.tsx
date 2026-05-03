@@ -1,17 +1,85 @@
-// app/login/page.tsx
+'use client';
+
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
 export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    // Simulation pour l'instant (on branchera Supabase plus tard)
+    setTimeout(() => {
+      // Succès simulé
+      router.push('/');
+    }, 800);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black">
-      <div className="bg-zinc-900 p-10 rounded-3xl w-full max-w-md">
-        <h1 className="text-3xl font-semibold text-center mb-8">Connexion</h1>
-        <form className="space-y-6">
-          <input type="email" placeholder="Email" className="w-full bg-zinc-800 p-4 rounded-2xl" />
-          <input type="password" placeholder="Mot de passe" className="w-full bg-zinc-800 p-4 rounded-2xl" />
-          <button type="submit" className="w-full bg-rose-500 py-4 rounded-2xl font-medium">
-            Se connecter
+    <main className="min-h-screen bg-zinc-950 text-white pt-20">
+      <div className="max-w-md mx-auto px-6 pb-20">
+        <Link href="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white mb-12">
+          <ArrowLeft className="w-5 h-5" />
+          Retour à l’accueil
+        </Link>
+
+        <h1 className="text-4xl font-bold text-center mb-10">Connexion</h1>
+
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div>
+            <label className="block text-sm text-zinc-400 mb-2">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 focus:outline-none focus:border-rose-400"
+              placeholder="ton@email.com"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-zinc-400 mb-2">Mot de passe</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 focus:outline-none focus:border-rose-400"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
+          {error && <p className="text-red-400 text-center text-sm">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-zinc-700 rounded-2xl font-semibold text-lg transition-all"
+          >
+            {loading ? "Connexion en cours..." : "Se connecter"}
           </button>
         </form>
+
+        <div className="text-center mt-8">
+          <p className="text-zinc-400">
+            Pas encore de compte ?{' '}
+            <Link href="/register" className="text-rose-400 hover:underline font-medium">
+              S'inscrire
+            </Link>
+          </p>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
