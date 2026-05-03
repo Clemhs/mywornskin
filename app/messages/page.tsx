@@ -48,10 +48,10 @@ export default function MessagesPage() {
     if (file) {
       const reader = new FileReader();
       reader.onload = (ev) => {
-        setAllMessages(prev => ({
-          ...prev,
-          [selectedConversation]: [...(prev[selectedConversation] || []), { id: Date.now(), text: "📸 Photo envoyée", isMe: true, image: ev.target?.result as string }]
-        }));
+setAllMessages(prev => ({
+  ...prev,
+  [selectedConversation as keyof typeof prev]: [...(prev[selectedConversation as keyof typeof prev] || []), { id: Date.now(), text: message, isMe: true }]
+}));
       };
       reader.readAsDataURL(file);
     }
