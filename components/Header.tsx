@@ -13,7 +13,7 @@ export default function Header() {
 
   const { user, isLoggedIn, logout, loading } = useAuth();
 
-  // Mise à jour du panier (simulation pour l'instant)
+  // Mise à jour panier
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     setCartCount(cart.length);
@@ -24,7 +24,7 @@ export default function Header() {
     setMenuOpen(false);
   };
 
-  // Détection temporaire si c'est une créatrice
+  // Détection temporaire créatrice
   const isCreator = user?.user_metadata?.username?.toLowerCase().includes('creator') || false;
 
   if (loading) {
@@ -82,8 +82,14 @@ export default function Header() {
                       <p className="text-xs text-zinc-500">{user.email}</p>
                     </div>
                     
-                    <Link href="/profile" className="block px-6 py-3 hover:bg-zinc-800">👤 Mon Profil</Link>
+                    {/* Lien Profil selon le rôle */}
+                    {isCreator ? (
+                      <Link href="/creators/me" className="block px-6 py-3 hover:bg-zinc-800">👤 Mon Profil Créatrice</Link>
+                    ) : (
+                      <Link href="/profile" className="block px-6 py-3 hover:bg-zinc-800">👤 Mon Profil</Link>
+                    )}
                     
+                    {/* Lien Édition selon le rôle */}
                     {isCreator ? (
                       <Link href="/creators/me/edit" className="block px-6 py-3 hover:bg-zinc-800">✏️ Éditer mon profil</Link>
                     ) : (
