@@ -13,7 +13,6 @@ export default function Header() {
 
   const { user, isLoggedIn, logout, loading } = useAuth();
 
-  // Mise à jour panier
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     setCartCount(cart.length);
@@ -24,8 +23,9 @@ export default function Header() {
     setMenuOpen(false);
   };
 
-  // Détection temporaire créatrice
-  const isCreator = user?.user_metadata?.username?.toLowerCase().includes('creator') || false;
+  const username = user?.user_metadata?.username || '';
+  const isCreator = username.toLowerCase().includes('creator') || false;
+  const profileSlug = username ? username.replace(/\s+/g, '') : 'me'; // Enlève les espaces
 
   if (loading) {
     return <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800 h-20" />;
@@ -78,18 +78,14 @@ export default function Header() {
                 {menuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-[100]">
                     <div className="px-6 py-3 border-b border-zinc-700">
-                      <p className="font-medium">{user.user_metadata?.username || 'Utilisateur'}</p>
+                      <p className="font-medium">{username || 'Utilisateur'}</p>
                       <p className="text-xs text-zinc-500">{user.email}</p>
                     </div>
                     
-                    {/* Lien Profil selon le rôle */}
-                    {isCreator ? (
-                      <Link href="/creators/me" className="block px-6 py-3 hover:bg-zinc-800">👤 Mon Profil Créatrice</Link>
-                    ) : (
-                      <Link href="/profile" className="block px-6 py-3 hover:bg-zinc-800">👤 Mon Profil</Link>
-                    )}
+                    <Link href={`/creators/${profileSlug}`} className="block px-6 py-3 hover:bg-zinc-800">
+                      👤 Mon Profil {isCreator ? 'Créatrice' : ''}
+                    </Link>
                     
-                    {/* Lien Édition selon le rôle */}
                     {isCreator ? (
                       <Link href="/creators/me/edit" className="block px-6 py-3 hover:bg-zinc-800">✏️ Éditer mon profil</Link>
                     ) : (
