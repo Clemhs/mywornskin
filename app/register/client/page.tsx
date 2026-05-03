@@ -1,21 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import Header from '@/components/Header';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function ClientRegisterPage() {
-  const router = useRouter();
   const [formData, setFormData] = useState({
+    full_name: '',
     username: '',
     email: '',
     password: '',
-    full_name: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  const { register } = useAuth();
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,29 +29,36 @@ export default function ClientRegisterPage() {
     setError('');
     setSuccessMessage('');
 
-    // Simulation pour l'instant (on branchera Supabase plus tard)
-    setTimeout(() => {
-      setSuccessMessage("✅ Compte client créé avec succès ! Redirection vers la connexion...");
+    const success = await register(formData.email, formData.password, formData.username);
+
+    if (success) {
+      setSuccessMessage("✅ Compte créé avec succès ! Vérifie ta boîte mail pour confirmer ton adresse.");
+      
+      // Redirection après 2.5s
       setTimeout(() => {
         router.push('/login');
-      }, 2000);
-    }, 800);
+      }, 2500);
+    } else {
+      setError("Une erreur est survenue lors de la création du compte. L'email est peut-être déjà utilisé.");
+    }
+
+    setLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20">
-      <Header />
-
       <div className="max-w-md mx-auto px-6 pb-20">
-        <Link href="/register" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white mb-8">
+        <Link 
+          href="/register" 
+          className="inline-flex items-center gap-2 text-zinc-400 hover:text-white mb-8 transition-colors"
+        >
           ← Retour au choix de compte
         </Link>
 
         <h1 className="text-4xl font-bold text-center mb-10">Créer un compte Client</h1>
 
-        {/* Toast vert */}
         {successMessage && (
-          <div className="mb-8 p-4 bg-green-600 text-white rounded-2xl text-center font-medium">
+          <div className="mb-8 p-4 bg-green-600/10 border border-green-500 text-green-400 rounded-2xl text-center">
             {successMessage}
           </div>
         )}
@@ -109,6 +118,7 @@ export default function ClientRegisterPage() {
               onChange={handleChange}
               className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 focus:outline-none focus:border-rose-400"
               placeholder="••••••••"
+              minLength={6}
               required
             />
           </div>
