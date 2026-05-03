@@ -6,8 +6,6 @@ import Link from 'next/link';
 import { Award } from 'lucide-react';
 import Header from '@/components/Header';
 import StoryCard from '@/components/StoryCard';
-// import Review from '@/components/Review'; // Commenté car le composant n'existe pas encore
-
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
 
@@ -20,11 +18,10 @@ export default function CreatorProfile() {
 
   const [creator, setCreator] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
-  const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const supabase = createClient();   // ← Correction ici
+  const supabase = createClient();
 
   // Gestion du slug "me"
   useEffect(() => {
@@ -53,6 +50,7 @@ export default function CreatorProfile() {
         .single();
 
       if (creatorError || !creatorData) {
+        console.error("Erreur Supabase:", creatorError);
         setError('Créatrice non trouvée');
         setLoading(false);
         return;
@@ -60,7 +58,7 @@ export default function CreatorProfile() {
 
       setCreator(creatorData);
 
-      // Produits
+      // Récupérer les produits
       const { data: productsData } = await supabase
         .from('products')
         .select('*')
@@ -68,15 +66,6 @@ export default function CreatorProfile() {
         .order('created_at', { ascending: false });
 
       setProducts(productsData || []);
-
-      // Avis
-      const { data: reviewsData } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('creator_id', creatorData.id)
-        .order('created_at', { ascending: false });
-
-      setReviews(reviewsData || []);
     } catch (err) {
       console.error(err);
       setError('Erreur lors du chargement du profil');
@@ -93,8 +82,6 @@ export default function CreatorProfile() {
 
   if (loading) return <div className="min-h-screen bg-zinc-950 pt-32 text-center">Chargement du profil...</div>;
   if (error || !creator) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-xl text-red-400">{error || 'Créatrice non trouvée'}</div>;
-
-  const isMyProfile = user && creator.username === (user.user_metadata?.username || '');
 
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
@@ -122,7 +109,7 @@ export default function CreatorProfile() {
 
           <div className="pt-6 flex-1">
             <h1 className="text-4xl font-bold">{creator.username}</h1>
-            <p className="text-zinc-400 mt-2">{creator.bio || "Passionnée de lingerie fine..."}</p>
+            <p className="text-zinc-400 mt-2">{creator.bio || "Passionnée de lingerie fine et d'histoires intimes."}</p>
 
             <div className="mt-6 flex flex-wrap gap-3">
               {(creator.badges || ["Voie Sensuelle", "Chasseuse d'Odeurs"]).map((badge: string, i: number) => (
