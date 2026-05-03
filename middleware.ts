@@ -13,7 +13,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: { name: string; value: string; options: any }[]) {
           cookiesToSet.forEach(({ name, value, options }) => {
             res.cookies.set(name, value, options);
           });
@@ -29,18 +29,18 @@ export async function middleware(request: NextRequest) {
   // Routes publiques
   const publicRoutes = ['/login', '/register', '/become-creator', '/'];
 
-  // Routes protégées (à compléter plus tard)
+  // Routes protégées
   const protectedRoutes = ['/profile', '/profile/edit', '/cart', '/orders'];
 
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
-  // Redirection si déjà connecté et sur login/register
+  // Si connecté et sur une page login/register → redirection
   if (session && (pathname === '/login' || pathname === '/register')) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  // Redirection si route protégée et non connecté
+  // Si route protégée et non connecté → vers login
   if (isProtectedRoute && !session) {
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('redirect', pathname);
