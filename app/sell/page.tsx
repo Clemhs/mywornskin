@@ -1,6 +1,5 @@
 'use client';
 
-import Header from '@/components/Header';
 import Link from 'next/link';
 import { useState } from 'react';
 import { ArrowLeft, Camera, Video, ShieldCheck, CheckCircle } from 'lucide-react';
@@ -42,7 +41,6 @@ export default function SellPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20">
-      <Header />
 
       <main className="max-w-4xl mx-auto px-6 pb-20">
         <div className="flex items-center gap-3 mb-8">
