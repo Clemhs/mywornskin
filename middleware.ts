@@ -1,36 +1,46 @@
-import { createMiddlewareClient } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req: request, res });
+  
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            res.cookies.set(name, value, options);
+          });
+        },
+      },
+    }
+  );
 
   const { data: { session } } = await supabase.auth.getSession();
 
   const pathname = request.nextUrl.pathname;
 
-  // Routes publiques (accessibles même sans être connecté)
+  // Routes publiques
   const publicRoutes = ['/login', '/register', '/become-creator', '/'];
 
-  // Routes uniquement pour les utilisateurs connectés
-  const protectedRoutes = [
-    '/profile',
-    '/profile/edit',
-    '/cart',
-    '/orders',
-    '/become-creator/success'
-  ];
+  // Routes protégées (à compléter plus tard)
+  const protectedRoutes = ['/profile', '/profile/edit', '/cart', '/orders'];
 
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
-  // Si l'utilisateur est connecté et essaie d'aller sur login ou register → redirection
+  // Redirection si déjà connecté et sur login/register
   if (session && (pathname === '/login' || pathname === '/register')) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  // Si la route est protégée et pas de session → redirection vers login
+  // Redirection si route protégée et non connecté
   if (isProtectedRoute && !session) {
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('redirect', pathname);
@@ -42,6 +52,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
   ],
 };
