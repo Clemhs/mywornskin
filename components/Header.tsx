@@ -4,25 +4,35 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { User, LogOut, Plus, MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function Header() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // À remplacer par ton AuthContext plus tard
-  const [isCreator, setIsCreator] = useState(false);
   const [cartCount, setCartCount] = useState(0);
 
-  // Simulation pour l'instant
+  const { user, isLoggedIn, logout, loading } = useAuth();
+
+  // Simulation panier (à remplacer plus tard par Supabase)
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     setCartCount(cart.length);
   }, []);
 
-  const handleLogout = () => {
-    // À implémenter avec Supabase plus tard
-    setIsLoggedIn(false);
+  const handleLogout = async () => {
+    await logout();
     setMenuOpen(false);
   };
+
+  // Pour l'instant on considère que si l'utilisateur a un username qui commence par "creator" il est créatrice
+  // On améliorera ça plus tard avec un vrai rôle
+  const isCreator = user?.user_metadata?.username?.startsWith('creator') || false;
+
+  if (loading) {
+    return (
+      <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800 h-20" />
+    );
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800">
@@ -39,7 +49,7 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          {isLoggedIn ? (
+          {isLoggedIn && user ? (
             <>
               {isCreator && (
                 <Link href="/sell" className="hidden md:flex items-center gap-2 bg-rose-600 hover:bg-rose-500 px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all">
@@ -63,18 +73,30 @@ export default function Header() {
               <div className="relative">
                 <button 
                   onClick={() => setMenuOpen(!menuOpen)}
-                  className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
+                  className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all flex items-center justify-center bg-zinc-900"
                 >
-                  <User className="w-5 h-5 m-auto text-zinc-400" />
+                  <User className="w-5 h-5 text-zinc-400" />
                 </button>
 
                 {menuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-1 shadow-2xl z-[100]">
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-[100]">
+                    <div className="px-6 py-3 border-b border-zinc-700">
+                      <p className="font-medium">{user.user_metadata?.username || 'Utilisateur'}</p>
+                      <p className="text-xs text-zinc-500">{user.email}</p>
+                    </div>
+                    
                     <Link href="/profile" className="block px-6 py-3 hover:bg-zinc-800">👤 Mon Profil</Link>
+                    
                     {isCreator && (
-                      <Link href="/creators/me/edit" className="block px-6 py-3 hover:bg-zinc-800">✏️ Éditer mon profil</Link>
+                      <Link href="/profile/edit" className="block px-6 py-3 hover:bg-zinc-800">✏️ Éditer mon profil</Link>
                     )}
-                    <button onClick={handleLogout} className="w-full text-left px-6 py-3 text-red-400 hover:bg-zinc-800">Se déconnecter</button>
+                    
+                    <button 
+                      onClick={handleLogout} 
+                      className="w-full text-left px-6 py-3 text-red-400 hover:bg-zinc-800 flex items-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4" /> Se déconnecter
+                    </button>
                   </div>
                 )}
               </div>
