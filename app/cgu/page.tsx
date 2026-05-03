@@ -1,10 +1,29 @@
 // app/cgu/page.tsx
 export default function CGUPage() {
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
-      <h1 className="text-4xl font-semibold mb-10">Conditions Générales d'Utilisation</h1>
-      <div className="bg-zinc-900 rounded-3xl p-10 prose prose-zinc">
-        <p>CGU du site...</p>
+    <div className="min-h-screen bg-zinc-950 py-16 text-zinc-300 pt-20">
+      <div className="max-w-4xl mx-auto px-6 prose prose-invert">
+        <h1 className="text-4xl font-bold mb-12 text-white">Conditions Générales d’Utilisation</h1>
+
+        <h2 className="text-2xl font-semibold mt-10 mb-4">1. Présentation</h2>
+        <p>MyWornSkin est une plateforme de mise en relation entre créateurs et acheteurs de vêtements déjà portés.</p>
+
+        <h2 className="text-2xl font-semibold mt-10 mb-4">2. Vérification des créateurs</h2>
+        <p>Tous les créateurs sont vérifiés manuellement par l’administrateur avant que leur profil soit visible publiquement. Cette vérification inclut une photo selfie et une pièce d’identité.</p>
+
+        <h2 className="text-2xl font-semibold mt-10 mb-4">3. Commission</h2>
+        <p>La plateforme prélève une commission de <strong>10%</strong> sur chaque vente (conditions de lancement : 8% pour les premières créatrices).</p>
+
+        <h2 className="text-2xl font-semibold mt-10 mb-4">4. Envoi des colis</h2>
+        <p>Le créateur s’engage à expédier le colis dans un délai maximum de <strong>72 heures</strong> après réception du paiement. Un numéro de suivi doit être communiqué à l’acheteur. Un emballage discret est fortement recommandé.</p>
+
+        <h2 className="text-2xl font-semibold mt-10 mb-4">5. Responsabilité</h2>
+        <p>MyWornSkin est une plateforme de mise en relation. La responsabilité des annonces, des envois et des pièces revient aux créateurs.</p>
+
+        <div className="mt-20 text-center text-zinc-500 text-sm">
+          Dernière mise à jour : Avril 2026<br />
+          MyWornSkin © Tous droits réservés
+        </div>
       </div>
     </div>
   );
