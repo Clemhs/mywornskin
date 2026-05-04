@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User, LogOut, MessageCircle, ShoppingCart } from 'lucide-react';
+import { MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
@@ -30,12 +30,12 @@ export default function Header() {
 
       if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
 
-      // Vérifier si c'est une créatrice
+      // Vérification créateur (plus robuste)
       const { data: creator } = await supabase
         .from('creators')
         .select('id')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();   // ← plus tolérant
 
       setIsCreator(!!creator);
     };
@@ -107,7 +107,6 @@ export default function Header() {
                 {menuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-50">
                     
-                    {/* Lien vers le bon profil */}
                     <Link 
                       href={isCreator ? "/creators/me" : "/profile"} 
                       className="block px-6 py-3 hover:bg-zinc-800"
@@ -116,7 +115,6 @@ export default function Header() {
                       👤 Mon Profil
                     </Link>
 
-                    {/* Bouton Édition visible seulement pour les créateurs */}
                     {isCreator && (
                       <Link 
                         href="/creators/me/edit" 
@@ -138,10 +136,7 @@ export default function Header() {
               </div>
             </>
           ) : (
-            <Link 
-              href="/login"
-              className="px-6 py-2.5 border border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-black rounded-2xl text-sm font-semibold transition-all"
-            >
+            <Link href="/login" className="px-6 py-2.5 border border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-black rounded-2xl text-sm font-semibold transition-all">
               Se connecter
             </Link>
           )}
