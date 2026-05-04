@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Save, Camera, ShoppingBag, Check, X } from 'lucide-react';
+import { Save, Camera, ShoppingBag, Check, X, Clock } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -19,6 +19,9 @@ export default function CreatorEditPage() {
   const [bannerUrl, setBannerUrl] = useState("");
   const [avatarPendingUrl, setAvatarPendingUrl] = useState("");
   const [bannerPendingUrl, setBannerPendingUrl] = useState("");
+
+  const [avatarStatus, setAvatarStatus] = useState<'approved' | 'pending' | 'rejected'>('approved');
+  const [bannerStatus, setBannerStatus] = useState<'approved' | 'pending' | 'rejected'>('approved');
 
   const [pendingReviews, setPendingReviews] = useState<any[]>([]);
 
@@ -50,6 +53,8 @@ export default function CreatorEditPage() {
         setBannerUrl(profile.banner_url || "");
         setAvatarPendingUrl(profile.avatar_pending_url || "");
         setBannerPendingUrl(profile.banner_pending_url || "");
+        setAvatarStatus(profile.avatar_status || 'approved');
+        setBannerStatus(profile.banner_status || 'approved');
       }
 
       // Avis en attente
@@ -105,6 +110,7 @@ export default function CreatorEditPage() {
     const newUrl = await uploadImage(file, 'avatar');
     if (newUrl) {
       setAvatarPendingUrl(newUrl);
+      setAvatarStatus('pending');
       setToast("📸 Photo de profil envoyée en attente de validation");
       setTimeout(() => setToast(null), 2500);
     }
@@ -117,6 +123,7 @@ export default function CreatorEditPage() {
     const newUrl = await uploadImage(file, 'banner');
     if (newUrl) {
       setBannerPendingUrl(newUrl);
+      setBannerStatus('pending');
       setToast("📸 Photo de couverture envoyée en attente de validation");
       setTimeout(() => setToast(null), 2500);
     }
@@ -241,22 +248,34 @@ export default function CreatorEditPage() {
 
           {/* Colonne droite : Configuration */}
           <div className="lg:col-span-7 space-y-12">
-            {/* Upload Images */}
+            {/* Upload Images avec statut */}
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
               <div className="grid grid-cols-2 gap-6">
-                <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500 transition-all">
+                {/* Bannière */}
+                <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500 transition-all relative">
                   <input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
                   <Camera className="mx-auto mb-3 text-pink-400" size={32} />
                   <span className="text-pink-400 font-medium">Changer la couverture</span>
-                  <p className="text-xs text-zinc-500 mt-2">En attente de validation par l'équipe</p>
+                  <p className="text-xs text-zinc-500 mt-2">Recommandé : 1200×400 px</p>
+                  {bannerStatus === 'pending' && (
+                    <p className="absolute top-4 right-4 text-amber-400 flex items-center gap-1 text-sm">
+                      <Clock size={16} /> En attente
+                    </p>
+                  )}
                 </label>
 
-                <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500 transition-all">
+                {/* Avatar */}
+                <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500 transition-all relative">
                   <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
                   <Camera className="mx-auto mb-3 text-pink-400" size={32} />
                   <span className="text-pink-400 font-medium">Changer la photo de profil</span>
-                  <p className="text-xs text-zinc-500 mt-2">En attente de validation par l'équipe</p>
+                  <p className="text-xs text-zinc-500 mt-2">Recommandé : 512×512 px</p>
+                  {avatarStatus === 'pending' && (
+                    <p className="absolute top-4 right-4 text-amber-400 flex items-center gap-1 text-sm">
+                      <Clock size={16} /> En attente
+                    </p>
+                  )}
                 </label>
               </div>
             </div>
@@ -268,11 +287,7 @@ export default function CreatorEditPage() {
                 {availableSalesBadges.map(level => {
                   const isSelected = salesBadge === level;
                   return (
-                    <button 
-                      key={level} 
-                      onClick={() => toggleSalesBadge(level)} 
-                      className={`flex-shrink-0 w-28 h-28 rounded-3xl flex flex-col items-center justify-center border-2 transition-all relative ${isSelected ? 'border-pink-400 bg-pink-900/30' : 'border-zinc-700 hover:border-pink-400'}`}
-                    >
+                    <button key={level} onClick={() => toggleSalesBadge(level)} className={`flex-shrink-0 w-28 h-28 rounded-3xl flex flex-col items-center justify-center border-2 transition-all relative ${isSelected ? 'border-pink-400 bg-pink-900/30' : 'border-zinc-700 hover:border-pink-400'}`}>
                       <img src={`/badges/${level}.png`} className="w-14 h-14 mb-1" />
                       <span className="text-sm">{level} ventes</span>
                     </button>
@@ -288,11 +303,7 @@ export default function CreatorEditPage() {
                 {availableFrames.map(f => {
                   const isSelected = frame === f.id;
                   return (
-                    <button 
-                      key={f.id} 
-                      onClick={() => selectFrame(f.id)} 
-                      className={`flex-shrink-0 relative w-28 h-28 rounded-3xl overflow-hidden border-2 transition-all ${isSelected ? 'border-pink-400 scale-95' : 'border-zinc-700 hover:border-pink-400'}`}
-                    >
+                    <button key={f.id} onClick={() => selectFrame(f.id)} className={`flex-shrink-0 relative w-28 h-28 rounded-3xl overflow-hidden border-2 transition-all ${isSelected ? 'border-pink-400 scale-95' : 'border-zinc-700 hover:border-pink-400'}`}>
                       <div className={`shimmer-frame absolute inset-0 rounded-3xl ${f.id}`} />
                       <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-black/80 text-xs px-3 py-1 rounded-full">
                         {f.name}
