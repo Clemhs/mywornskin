@@ -71,20 +71,17 @@ export default function MessagesPage() {
       .upload(filePath, file, { upsert: true });
 
     if (uploadError) {
-      alert("Erreur lors de l'upload : " + uploadError.message);
+      alert("Erreur d'upload : " + uploadError.message);
       setUploading(false);
       return;
     }
 
-    const { data: urlData } = supabase.storage
-      .from('messages')
-      .getPublicUrl(filePath);
+    const { data: urlData } = supabase.storage.from('messages').getPublicUrl(filePath);
 
-    // Envoie le lien de l'image comme message
     await supabase.from('messages').insert({
       sender_id: user.id,
       receiver_id: ADMIN_ID,
-      message: `[Image] ${urlData.publicUrl}`
+      message: `[IMAGE]${urlData.publicUrl}`
     });
 
     setUploading(false);
@@ -130,8 +127,12 @@ export default function MessagesPage() {
                 messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[75%] px-6 py-4 rounded-3xl ${msg.sender_id === user?.id ? 'bg-rose-600 text-white' : 'bg-zinc-800'}`}>
-                      {msg.message.startsWith('[Image]') ? (
-                        <img src={msg.message.replace('[Image] ', '')} alt="uploaded" className="max-w-full rounded-2xl mt-2" />
+                      {msg.message.startsWith('[IMAGE]') ? (
+                        <img 
+                          src={msg.message.replace('[IMAGE]', '')} 
+                          alt="uploaded" 
+                          className="max-w-full rounded-2xl mt-2" 
+                        />
                       ) : (
                         msg.message
                       )}
@@ -144,7 +145,7 @@ export default function MessagesPage() {
             <div className="p-5 border-t border-zinc-800 bg-zinc-900">
               <div className="flex gap-3 items-center">
                 <label className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer">
-                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
                   <ImageIcon className="w-6 h-6" />
                 </label>
 
