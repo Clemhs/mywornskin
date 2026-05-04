@@ -15,6 +15,33 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState("https://picsum.photos/id/64/128/128");
+
+  // Récupération prioritaire de la photo depuis la table profiles
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchAvatar = async () => {
+      // 1. On cherche d'abord dans la table profiles (la plus à jour)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.avatar_url) {
+        setAvatarUrl(profile.avatar_url);
+        return;
+      }
+
+      // 2. Sinon on prend celle de l'auth
+      if (user.user_metadata?.avatar_url) {
+        setAvatarUrl(user.user_metadata.avatar_url);
+      }
+    };
+
+    fetchAvatar();
+  }, [user]);
 
   // Panier
   useEffect(() => {
@@ -22,31 +49,11 @@ export default function Header() {
     setCartCount(cart.length);
   }, []);
 
-  // Messages non lus (version simple sans realtime pour éviter l'erreur)
-  useEffect(() => {
-    if (!user) {
-      setUnreadCount(0);
-      return;
-    }
-
-    const fetchUnread = async () => {
-      const { count } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('receiver_id', user.id)
-        .eq('is_read', false);
-      setUnreadCount(count || 0);
-    };
-
-    fetchUnread();
-  }, [user]);
-
   const handleLogout = async () => {
     await logout();
     setMenuOpen(false);
   };
 
-  // Fermer le menu en changeant de page
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
@@ -68,11 +75,6 @@ export default function Header() {
             <>
               <Link href="/messages" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
                 <MessageCircle className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </div>
-                )}
               </Link>
 
               <Link href="/cart" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
@@ -90,7 +92,7 @@ export default function Header() {
                   className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
                 >
                   <img 
-                    src={user.user_metadata?.avatar_url || "https://picsum.photos/id/64/128/128"} 
+                    src={avatarUrl} 
                     alt="Profil" 
                     className="w-full h-full object-cover"
                   />
