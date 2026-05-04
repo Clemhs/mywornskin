@@ -9,49 +9,52 @@ import { createClient } from '@/lib/supabase/client';
 
 export default function Header() {
   const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
-  const [avatarUrl, setAvatarUrl] = useState<string>("https://picsum.photos/id/64/300/300");
-
-  const { user, isLoggedIn, logout, loading } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
   const supabase = createClient();
 
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isCreator, setIsCreator] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+
+  // Récupération du nombre de messages non lus
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchUnread = async () => {
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('receiver_id', user.id)
+        .eq('is_read', false);
+
+      setUnreadCount(count || 0);
+    };
+
+    fetchUnread();
+
+    // Realtime
+    const channel = supabase
+      .channel('unread-messages')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, 
+        fetchUnread
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [user]);
+
+  // Simulation panier
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     setCartCount(cart.length);
   }, []);
 
-  // Chargement de l'avatar depuis la table profiles
-  useEffect(() => {
-    const loadAvatar = async () => {
-      if (!user) return;
-
-      const { data } = await supabase
-        .from('profiles')
-        .select('avatar_url')
-        .eq('id', user.id)
-        .single();
-
-      if (data?.avatar_url) {
-        setAvatarUrl(data.avatar_url);
-      }
-    };
-
-    loadAvatar();
-  }, [user]);
-
   const handleLogout = async () => {
     await logout();
     setMenuOpen(false);
   };
-
-  const username = user?.user_metadata?.username || '';
-  const isCreator = username.toLowerCase().includes('creator') || false;
-  const profileSlug = username ? username.replace(/\s+/g, '') : 'me';
-
-  if (loading) {
-    return <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800 h-20" />;
-  }
 
   return (
     <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800">
@@ -64,73 +67,57 @@ export default function Header() {
         <nav className="hidden md:flex items-center gap-10 text-sm font-medium">
           <Link href="/shop" className="hover:text-rose-400 transition-colors">Boutique</Link>
           <Link href="/creators" className="hover:text-rose-400 transition-colors">Créatrices</Link>
-          <Link href="/messages" className="hover:text-rose-400 transition-colors">Messages</Link>
         </nav>
 
         <div className="flex items-center gap-4">
           {isLoggedIn && user ? (
             <>
-              {isCreator && (
-                <Link href="/sell" className="hidden md:flex items-center gap-2 bg-rose-600 hover:bg-rose-500 px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all">
-                  <Plus className="w-4 h-4" /> Nouvelle pièce
-                </Link>
-              )}
+              {/* Messages avec notification rouge */}
+              <Link href="/messages" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
+                <MessageCircle className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <div className="absolute top-1 right-1 w-5 h-5 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </div>
+                )}
+              </Link>
 
+              {/* Panier */}
               <Link href="/cart" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
                 <ShoppingCart className="w-5 h-5" />
                 {cartCount > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-rose-500 text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                  <div className="absolute top-1 right-1 w-5 h-5 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                     {cartCount}
                   </div>
                 )}
               </Link>
 
-              <Link href="/messages" className="p-3 hover:bg-zinc-900 rounded-2xl transition-all">
-                <MessageCircle className="w-5 h-5" />
-              </Link>
-
+              {/* Menu utilisateur */}
               <div className="relative">
                 <button 
                   onClick={() => setMenuOpen(!menuOpen)}
                   className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
                 >
                   <img 
-                    src={avatarUrl} 
+                    src={user.user_metadata?.avatar_url || "https://picsum.photos/id/64/128/128"} 
                     alt="Profil" 
-                    className="w-full h-full object-cover" 
+                    className="w-full h-full object-cover"
                   />
                 </button>
 
                 {menuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-[100]">
-                    <div className="px-6 py-3 border-b border-zinc-700">
-                      <p className="font-medium">{username || 'Utilisateur'}</p>
-                      <p className="text-xs text-zinc-500">{user.email}</p>
-                    </div>
+                    <Link href="/creators/me" className="block px-6 py-3 hover:bg-zinc-800">👤 Mon Profil Créatrice</Link>
+                    <Link href="/creators/me/edit" className="block px-6 py-3 hover:bg-zinc-800">✏️ Éditer mon profil</Link>
+                    <Link href="/messages" className="block px-6 py-3 hover:bg-zinc-800">💬 Messages</Link>
                     
-                    <Link 
-                      href={`/creators/${profileSlug}`} 
-                      className="block px-6 py-3 hover:bg-zinc-800"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      👤 Mon Profil {isCreator ? 'Créatrice' : ''}
-                    </Link>
-                    
-                    {isCreator ? (
-                      <Link href="/creators/me/edit" className="block px-6 py-3 hover:bg-zinc-800" onClick={() => setMenuOpen(false)}>
-                        ✏️ Éditer mon profil
-                      </Link>
-                    ) : (
-                      <Link href="/profile/edit" className="block px-6 py-3 hover:bg-zinc-800" onClick={() => setMenuOpen(false)}>
-                        ✏️ Éditer mon profil
-                      </Link>
-                    )}
+                    <div className="border-t border-zinc-800 my-1"></div>
                     
                     <button 
                       onClick={handleLogout} 
-                      className="w-full text-left px-6 py-3 text-red-400 hover:bg-zinc-800 flex items-center gap-2"
+                      className="w-full text-left px-6 py-3 text-red-400 hover:bg-zinc-800"
                     >
-                      <LogOut className="w-4 h-4" /> Se déconnecter
+                      Se déconnecter
                     </button>
                   </div>
                 )}
