@@ -49,18 +49,18 @@ export default function MessagesPage() {
     });
 
     setNewMessage('');
-    loadMessages(); // Rafraîchit la liste
+    setShowEmoji(false);
+    loadMessages(); // Rafraîchit immédiatement
   };
 
   const addEmoji = (emoji: string) => {
     setNewMessage(prev => prev + emoji);
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const sendImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      alert(`📸 Photo sélectionnée : ${file.name}\n(Upload bientôt disponible)`);
-      // On pourra uploader plus tard avec Supabase Storage
+      alert(`📸 Photo sélectionnée : ${file.name}\n\n(Upload réel bientôt disponible)`);
     }
   };
 
@@ -111,18 +111,20 @@ export default function MessagesPage() {
 
             <div className="p-5 border-t border-zinc-800 bg-zinc-900">
               <div className="flex gap-3 items-center">
-                {/* Bouton Photo */}
+                {/* Photo */}
                 <label className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer">
-                  <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                  <input type="file" accept="image/*" className="hidden" onChange={sendImage} />
                   <ImageIcon className="w-6 h-6" />
                 </label>
 
-                {/* Bouton Emoji */}
-                <button onClick={() => setShowEmoji(!showEmoji)} className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer">
+                {/* Emoji */}
+                <button 
+                  onClick={() => setShowEmoji(!showEmoji)} 
+                  className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer"
+                >
                   <Smile className="w-6 h-6" />
                 </button>
 
-                {/* Input */}
                 <input
                   type="text"
                   value={newMessage}
@@ -141,11 +143,15 @@ export default function MessagesPage() {
                 </button>
               </div>
 
-              {/* Popup Emojis */}
+              {/* Emojis Panel */}
               {showEmoji && (
                 <div className="mt-3 bg-zinc-800 border border-zinc-700 rounded-3xl p-4 grid grid-cols-6 gap-3">
                   {commonEmojis.map((emoji, i) => (
-                    <button key={i} onClick={() => addEmoji(emoji)} className="text-3xl hover:scale-125 transition-transform">
+                    <button 
+                      key={i} 
+                      onClick={() => addEmoji(emoji)} 
+                      className="text-3xl hover:scale-125 transition-transform p-2"
+                    >
                       {emoji}
                     </button>
                   ))}
