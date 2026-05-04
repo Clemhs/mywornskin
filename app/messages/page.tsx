@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Send } from 'lucide-react';
+import { Send, Smile, Image as ImageIcon } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
+
+const commonEmojis = ['😍', '❤️', '🔥', '👀', '😘', '💦', '✨', '🙈', '🥵', '😏', '🌹', '💋'];
 
 export default function MessagesPage() {
   const { user } = useAuth();
@@ -12,6 +14,7 @@ export default function MessagesPage() {
 
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [showEmoji, setShowEmoji] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const ADMIN_ID = 'bc985ee6-d9dc-43e0-8069-b34deeea9e24';
@@ -39,17 +42,25 @@ export default function MessagesPage() {
   const sendMessage = async () => {
     if (!newMessage.trim() || !user) return;
 
-    const { error } = await supabase.from('messages').insert({
+    await supabase.from('messages').insert({
       sender_id: user.id,
       receiver_id: ADMIN_ID,
       message: newMessage.trim()
     });
 
-    if (!error) {
-      setNewMessage('');
-      loadMessages();
-    } else {
-      alert("Erreur lors de l'envoi");
+    setNewMessage('');
+    loadMessages();
+  };
+
+  const addEmoji = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      alert(`📸 Photo sélectionnée : ${file.name}\n\nUpload réel bientôt disponible`);
+      e.target.value = '';
     }
   };
 
@@ -58,13 +69,13 @@ export default function MessagesPage() {
       <div className="flex items-center justify-center p-4">
         <div className="hidden md:flex w-full max-w-5xl h-[78vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 shadow-2xl">
 
-          {/* Sidebar Conversations */}
+          {/* Sidebar */}
           <div className="w-96 border-r border-zinc-800 flex flex-col">
             <div className="p-6 border-b border-zinc-800">
               <h2 className="text-3xl font-light tracking-wider">Messages</h2>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-              <div className="p-4 bg-zinc-800 rounded-2xl flex gap-4 cursor-pointer">
+              <div className="p-4 bg-zinc-800 rounded-2xl flex gap-4">
                 <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-3xl">👨‍💼</div>
                 <div>
                   <p className="font-semibold">Support Admin</p>
@@ -74,7 +85,7 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          {/* Zone de chat */}
+          {/* Chat */}
           <div className="flex-1 flex flex-col">
             <div className="p-6 border-b border-zinc-800 flex items-center gap-4 bg-zinc-950">
               <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-3xl">👨‍💼</div>
@@ -85,10 +96,8 @@ export default function MessagesPage() {
             </div>
 
             <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
-              {loading ? (
-                <p className="text-center text-zinc-500 mt-20">Chargement...</p>
-              ) : messages.length === 0 ? (
-                <p className="text-center text-zinc-500 mt-20">Aucun message pour le moment.<br />Écris quelque chose !</p>
+              {messages.length === 0 ? (
+                <p className="text-center text-zinc-500 mt-20">Aucun message pour le moment.<br />Écris-nous !</p>
               ) : (
                 messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
@@ -101,7 +110,16 @@ export default function MessagesPage() {
             </div>
 
             <div className="p-5 border-t border-zinc-800 bg-zinc-900">
-              <div className="flex gap-3">
+              <div className="flex gap-3 items-center">
+                <label className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer">
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                  <ImageIcon className="w-6 h-6" />
+                </label>
+
+                <button onClick={() => setShowEmoji(!showEmoji)} className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer">
+                  <Smile className="w-6 h-6" />
+                </button>
+
                 <input
                   type="text"
                   value={newMessage}
@@ -110,6 +128,7 @@ export default function MessagesPage() {
                   placeholder="Écris ton message..."
                   className="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 focus:outline-none focus:border-rose-500"
                 />
+
                 <button 
                   onClick={sendMessage}
                   disabled={!newMessage.trim()}
@@ -118,6 +137,16 @@ export default function MessagesPage() {
                   <Send className="w-5 h-5" />
                 </button>
               </div>
+
+              {showEmoji && (
+                <div className="mt-3 bg-zinc-800 border border-zinc-700 rounded-3xl p-4 grid grid-cols-6 gap-3">
+                  {commonEmojis.map((emoji, i) => (
+                    <button key={i} onClick={() => addEmoji(emoji)} className="text-3xl hover:scale-125 transition-transform p-2">
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
