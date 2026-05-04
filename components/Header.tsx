@@ -18,30 +18,45 @@ export default function Header() {
 
   // Messages non lus
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setUnreadCount(0);
+      return;
+    }
+
+    let mounted = true;
 
     const fetchUnread = async () => {
+      if (!mounted) return;
       const { count } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .eq('receiver_id', user.id)
         .eq('is_read', false);
-      setUnreadCount(count || 0);
+      
+      if (mounted) setUnreadCount(count || 0);
     };
 
     fetchUnread();
 
+    // Realtime
     const channel = supabase
       .channel('unread-messages')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'messages',
-        filter: `receiver_id=eq.${user.id}`
-      }, fetchUnread)
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'messages', 
+          filter: `receiver_id=eq.${user.id}` 
+        }, 
+        fetchUnread
+      )
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      mounted = false;
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   // Panier
@@ -58,13 +73,14 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        
         <Link href="/" className="text-3xl font-bold tracking-tighter">
           MyWornSkin
         </Link>
 
         <nav className="hidden md:flex items-center gap-10 text-sm font-medium">
-          <Link href="/shop" className="hover:text-rose-400">Boutique</Link>
-          <Link href="/creators" className="hover:text-rose-400">Créatrices</Link>
+          <Link href="/shop" className="hover:text-rose-400 transition-colors">Boutique</Link>
+          <Link href="/creators" className="hover:text-rose-400 transition-colors">Créatrices</Link>
         </nav>
 
         <div className="flex items-center gap-4">
@@ -111,7 +127,10 @@ export default function Header() {
               </div>
             </>
           ) : (
-            <Link href="/login" className="px-6 py-2.5 border border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-black rounded-2xl text-sm font-semibold transition-all">
+            <Link 
+              href="/login"
+              className="px-6 py-2.5 border border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-black rounded-2xl text-sm font-semibold transition-all"
+            >
               Se connecter
             </Link>
           )}
