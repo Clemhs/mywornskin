@@ -30,13 +30,18 @@ export default function MessagesPage() {
     setLoading(false);
   };
 
-  // Chargement initial seulement (realtime désactivé pour éviter l'erreur)
   useEffect(() => {
     if (!user) return;
     loadMessages();
+
+    const channel = supabase
+      .channel('messages-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, loadMessages)
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
   }, [user]);
 
-  // Auto scroll
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
@@ -44,18 +49,22 @@ export default function MessagesPage() {
   const sendMessage = async () => {
     if (!newMessage.trim() || !user) return;
 
-    await supabase.from('messages').insert({
+    const { error } = await supabase.from('messages').insert({
       sender_id: user.id,
       receiver_id: ADMIN_ID,
       message: newMessage.trim()
     });
 
-    setNewMessage('');
-    setShowEmoji(false);
-    loadMessages(); // Rafraîchir après envoi
+    if (!error) {
+      setNewMessage('');
+      setShowEmoji(false);
+      loadMessages(); // Rafraîchit la liste
+    }
   };
 
-  const addEmoji = (emoji: string) => setNewMessage(prev => prev + emoji);
+  const addEmoji = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+  };
 
   const sendImage = () => {
     alert("📸 Envoi de photo bientôt disponible");
@@ -93,9 +102,7 @@ export default function MessagesPage() {
             </div>
 
             <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
-              {loading ? (
-                <p className="text-center text-zinc-500 mt-20">Chargement...</p>
-              ) : messages.length === 0 ? (
+              {messages.length === 0 ? (
                 <p className="text-center text-zinc-500 mt-20">Aucun message pour le moment.<br />Écris-nous !</p>
               ) : (
                 messages.map((msg) => (
