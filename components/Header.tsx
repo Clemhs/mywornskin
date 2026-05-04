@@ -15,37 +15,36 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
-  const [avatarUrl, setAvatarUrl] = useState("https://picsum.photos/id/64/128/128");
 
-  // Récupération de la photo de profil depuis la table profiles
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchAvatar = async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('avatar_url')
-        .eq('id', user.id)
-        .single();
-
-      if (data?.avatar_url) {
-        setAvatarUrl(data.avatar_url);
-      } else if (user.user_metadata?.avatar_url) {
-        setAvatarUrl(user.user_metadata.avatar_url);
-      }
-    };
-
-    fetchAvatar();
-  }, [user]);
-
-  // Messages non lus (désactivé temporairement pour éviter erreur)
+  // Notification messages non lus
   useEffect(() => {
     if (!user) {
       setUnreadCount(0);
       return;
     }
-    // On peut réactiver plus tard
-    setUnreadCount(0);
+
+    const fetchUnread = async () => {
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('receiver_id', user.id)
+        .eq('is_read', false);
+      setUnreadCount(count || 0);
+    };
+
+    fetchUnread();
+
+    const channel = supabase
+      .channel('unread-messages')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'messages',
+        filter: `receiver_id=eq.${user.id}`
+      }, fetchUnread)
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
   }, [user]);
 
   // Panier
@@ -71,8 +70,8 @@ export default function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-10 text-sm font-medium">
-          <Link href="/shop" className="hover:text-rose-400 transition-colors">Boutique</Link>
-          <Link href="/creators" className="hover:text-rose-400 transition-colors">Créatrices</Link>
+          <Link href="/shop" className="hover:text-rose-400">Boutique</Link>
+          <Link href="/creators" className="hover:text-rose-400">Créatrices</Link>
         </nav>
 
         <div className="flex items-center gap-4">
@@ -80,6 +79,11 @@ export default function Header() {
             <>
               <Link href="/messages" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
                 <MessageCircle className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </div>
+                )}
               </Link>
 
               <Link href="/cart" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
@@ -97,7 +101,7 @@ export default function Header() {
                   className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
                 >
                   <img 
-                    src={avatarUrl} 
+                    src={user.user_metadata?.avatar_url || "https://picsum.photos/id/64/128/128"} 
                     alt="Profil" 
                     className="w-full h-full object-cover"
                   />
