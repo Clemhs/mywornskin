@@ -30,14 +30,15 @@ export default function Header() {
 
       if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
 
-      // Détection créateur plus robuste
-      const { data: creatorCheck } = await supabase
+      // Détection créateur (plusieurs façons de vérifier)
+      const { data: creator } = await supabase
         .from('creators')
         .select('id')
         .eq('id', user.id)
         .maybeSingle();
 
-      setIsCreator(!!creatorCheck);
+      // Si pas trouvé dans creators, on peut aussi vérifier un champ role dans profiles si tu en as un
+      setIsCreator(!!creator);
     };
 
     fetchUserData();
@@ -91,17 +92,12 @@ export default function Header() {
                 <ShoppingCart className="w-6 h-6" />
               </Link>
 
-              {/* Menu Profil */}
               <div className="relative">
                 <button 
                   onClick={() => setMenuOpen(!menuOpen)}
                   className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
                 >
-                  <img 
-                    src={avatarUrl} 
-                    alt="Profil" 
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={avatarUrl} alt="Profil" className="w-full h-full object-cover" />
                 </button>
 
                 {menuOpen && (
