@@ -10,8 +10,8 @@ export default function CreatorEditPage() {
   const { user } = useAuth();
   const supabase = createClient();
 
-  const [totalSales, setTotalSales] = useState(0);
-  const [membershipMonths, setMembershipMonths] = useState(0);
+  const [totalSales, setTotalSales] = useState(999);
+  const [membershipMonths, setMembershipMonths] = useState(120);
   const [salesBadge, setSalesBadge] = useState<number | null>(null);
   const [frame, setFrame] = useState<string | null>(null);
 
@@ -42,8 +42,8 @@ export default function CreatorEditPage() {
         .single();
 
       if (data) {
-        setTotalSales(data.total_sales || 0);
-        setMembershipMonths(data.membership_months || 0);
+        setTotalSales(data.total_sales || 999);
+        setMembershipMonths(data.membership_months || 120);
         setSalesBadge(data.sales_badge);
         setFrame(data.frame);
         setAvatarUrl(data.avatar_url || "");
@@ -58,29 +58,21 @@ export default function CreatorEditPage() {
   const isFrameUnlocked = (minMonths: number) => membershipMonths >= minMonths;
 
   const toggleSalesBadge = (level: number) => {
-    if (!isBadgeUnlocked(level)) return;
     setSalesBadge(current => current === level ? null : level);
   };
 
   const selectFrame = (f: string) => {
-    const frameData = availableFrames.find(fr => fr.id === f);
-    if (frameData && isFrameUnlocked(frameData.minMonths)) {
-      setFrame(current => current === f ? null : f);
-    }
+    setFrame(current => current === f ? null : f);
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setPendingAvatar(URL.createObjectURL(file));
-    }
+    if (file) setPendingAvatar(URL.createObjectURL(file));
   };
 
   const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setPendingBanner(URL.createObjectURL(file));
-    }
+    if (file) setPendingBanner(URL.createObjectURL(file));
   };
 
   const handleSave = async () => {
@@ -116,11 +108,7 @@ export default function CreatorEditPage() {
             ← Retour au profil
           </Link>
           <h1 className="text-3xl font-semibold">Mon profil</h1>
-          <button 
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-pink-600 hover:bg-pink-500 px-8 py-3 rounded-3xl font-medium disabled:opacity-70 flex items-center gap-2"
-          >
+          <button onClick={handleSave} disabled={saving} className="bg-pink-600 hover:bg-pink-500 px-8 py-3 rounded-3xl font-medium disabled:opacity-70 flex items-center gap-2">
             <Save className="w-5 h-5" />
             {saving ? "Enregistrement..." : "Enregistrer"}
           </button>
@@ -135,14 +123,9 @@ export default function CreatorEditPage() {
             <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
               <img src={pendingBanner || bannerUrl || "https://picsum.photos/id/1015/1200/400"} alt="Bannière" className="w-full h-full object-cover" />
               {frame && <div className={`absolute inset-0 rounded-3xl border-4 shimmer-frame ${frame}`} />}
-              
               <div className="absolute bottom-8 left-8">
                 <div className="relative">
-                  <img 
-                    src={pendingAvatar || avatarUrl || "https://picsum.photos/id/64/300/300"} 
-                    alt="Avatar" 
-                    className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" 
-                  />
+                  <img src={pendingAvatar || avatarUrl || "https://picsum.photos/id/64/300/300"} alt="Avatar" className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" />
                   {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-12 h-12 drop-shadow-2xl z-10" />}
                 </div>
               </div>
@@ -209,18 +192,23 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Boutique cosmétiques */}
+            {/* Boutique cosmétiques factice */}
             <div>
               <h2 className="text-xl mb-4 flex items-center gap-2">
                 <ShoppingBag className="text-pink-400" /> Boutique cosmétiques
               </h2>
-              <div className="bg-zinc-900 rounded-3xl p-8 text-center">
+              <div className="bg-zinc-900 rounded-3xl p-8">
                 <p className="text-zinc-400 mb-6">Débloquez de nouveaux badges et cadres exclusifs</p>
-                <div className="grid grid-cols-2 gap-4 text-left">
-                  <div className="bg-zinc-800 rounded-2xl p-4">🎖️ Badge Légende (500 ventes) — 9,99€</div>
-                  <div className="bg-zinc-800 rounded-2xl p-4">✨ Cadre Diamant — 14,99€</div>
+                <div className="space-y-4">
+                  <button onClick={() => setSalesBadge(500)} className="w-full bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl flex justify-between items-center">
+                    <span>🎖️ Badge Légende (500 ventes)</span>
+                    <span className="text-pink-400">9,99€</span>
+                  </button>
+                  <button onClick={() => setFrame('gold')} className="w-full bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl flex justify-between items-center">
+                    <span>✨ Cadre Diamant</span>
+                    <span className="text-pink-400">14,99€</span>
+                  </button>
                 </div>
-                <p className="text-xs text-zinc-500 mt-6">Prochainement disponible avec paiement Stripe</p>
               </div>
             </div>
           </div>
