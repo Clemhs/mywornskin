@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { User, LogOut, Plus, MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
-import Image from 'next/image';
 
 export default function Header() {
   const pathname = usePathname();
@@ -30,7 +29,9 @@ export default function Header() {
 
   // Photo de profil dynamique
   const avatarUrl = user?.user_metadata?.avatar_url || 
-                   (user ? `https://picsum.photos/id/64/300/300` : null);
+                   user?.user_metadata?.picture || 
+                   avatarUrl || // fallback si tu as déjà une variable
+                   "https://picsum.photos/id/64/300/300";
 
   if (loading) {
     return <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800 h-20" />;
@@ -77,17 +78,11 @@ export default function Header() {
                   onClick={() => setMenuOpen(!menuOpen)}
                   className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
                 >
-                  {avatarUrl ? (
-                    <Image 
-                      src={avatarUrl} 
-                      alt="Profil" 
-                      width={36} 
-                      height={36} 
-                      className="object-cover" 
-                    />
-                  ) : (
-                    <User className="w-5 h-5 m-auto text-zinc-400" />
-                  )}
+                  <img 
+                    src={avatarUrl} 
+                    alt="Profil" 
+                    className="w-full h-full object-cover" 
+                  />
                 </button>
 
                 {menuOpen && (
@@ -106,19 +101,11 @@ export default function Header() {
                     </Link>
                     
                     {isCreator ? (
-                      <Link 
-                        href="/creators/me/edit" 
-                        className="block px-6 py-3 hover:bg-zinc-800"
-                        onClick={() => setMenuOpen(false)}
-                      >
+                      <Link href="/creators/me/edit" className="block px-6 py-3 hover:bg-zinc-800" onClick={() => setMenuOpen(false)}>
                         ✏️ Éditer mon profil
                       </Link>
                     ) : (
-                      <Link 
-                        href="/profile/edit" 
-                        className="block px-6 py-3 hover:bg-zinc-800"
-                        onClick={() => setMenuOpen(false)}
-                      >
+                      <Link href="/profile/edit" className="block px-6 py-3 hover:bg-zinc-800" onClick={() => setMenuOpen(false)}>
                         ✏️ Éditer mon profil
                       </Link>
                     )}
