@@ -21,14 +21,16 @@ export default function MessagesPage() {
   const [showEmoji, setShowEmoji] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // Charger les conversations avec infos profil
   const loadConversations = async () => {
     if (!user) return;
 
     const { data } = await supabase
       .from('messages')
       .select(`
-        sender_id, receiver_id, content, created_at,
+        sender_id, 
+        receiver_id, 
+        content, 
+        created_at,
         sender:profiles!messages_sender_id_fkey(username, avatar_url, full_name),
         receiver:profiles!messages_receiver_id_fkey(username, avatar_url, full_name)
       `)
@@ -38,15 +40,18 @@ export default function MessagesPage() {
     const convMap = new Map();
 
     data?.forEach(msg => {
-      const other = msg.sender_id === user.id ? msg.receiver : msg.sender;
+      const other = msg.sender_id === user.id 
+        ? (msg.receiver?.[0] || {}) 
+        : (msg.sender?.[0] || {});
+
       const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
 
       if (!convMap.has(otherId)) {
         convMap.set(otherId, {
           id: otherId,
-          username: other?.username || other?.full_name || 'Utilisateur',
-          avatar_url: other?.avatar_url,
-          lastMessage: msg.content,
+          username: other.username || other.full_name || `Utilisateur ${otherId.slice(0,8)}`,
+          avatar_url: other.avatar_url,
+          lastMessage: msg.content?.length > 50 ? msg.content.substring(0, 47) + '...' : msg.content,
           lastTime: msg.created_at
         });
       }
@@ -100,8 +105,12 @@ export default function MessagesPage() {
     setUploading(true);
     const fileName = `${Date.now()}-${user.id}.${file.name.split('.').pop()}`;
 
-    const { data, error } = await supabase.storage.from('messages').upload(fileName, file);
-    if (error) { alert("Erreur upload"); setUploading(false); return; }
+    const { error: uploadError } = await supabase.storage.from('messages').upload(fileName, file);
+    if (uploadError) {
+      alert("Erreur lors de l'upload");
+      setUploading(false);
+      return;
+    }
 
     const { data: urlData } = supabase.storage.from('messages').getPublicUrl(fileName);
 
@@ -122,14 +131,14 @@ export default function MessagesPage() {
     <div className="min-h-screen bg-zinc-950 pt-16">
       <div className="max-w-6xl mx-auto h-[80vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 flex mt-4 shadow-2xl">
         
-        {/* Sidebar Conversations */}
+        {/* Sidebar */}
         <div className="w-96 border-r border-zinc-800 flex flex-col">
           <div className="p-6 border-b border-zinc-800">
             <h2 className="text-3xl font-light">Messages</h2>
           </div>
           <div className="flex-1 overflow-y-auto p-3">
             {conversations.length === 0 ? (
-              <p className="text-center text-zinc-500 mt-10">Aucune conversation</p>
+              <p className="text-center text-zinc-500 mt-10">Aucune conversation pour le moment</p>
             ) : (
               conversations.map((conv) => (
                 <div
@@ -138,11 +147,11 @@ export default function MessagesPage() {
                   className={`flex gap-4 p-4 rounded-2xl mb-2 cursor-pointer hover:bg-zinc-800 transition-all ${selectedConv?.id === conv.id ? 'bg-zinc-800' : ''}`}
                 >
                   <img 
-                    src={conv.avatar_url || '/default-avatar.png'} 
+                    src={conv.avatar_url || 'https://picsum.photos/id/64/64'} 
                     alt={conv.username}
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-12 h-12 rounded-full object-cover border border-zinc-700"
                   />
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 pt-1">
                     <p className="font-semibold truncate">{conv.username}</p>
                     <p className="text-sm text-zinc-400 truncate">{conv.lastMessage}</p>
                   </div>
@@ -152,14 +161,16 @@ export default function MessagesPage() {
           </div>
         </div>
 
-        {/* Chat Area */}
+        {/* Chat */}
         <div className="flex-1 flex flex-col">
           {selectedConv ? (
             <>
-              {/* Header du chat */}
-              <Link href={`/creators/${selectedConv.id}`} className="p-6 border-b border-zinc-800 bg-zinc-950 flex items-center gap-4 hover:bg-zinc-900 transition cursor-pointer">
+              <Link 
+                href={`/creators/${selectedConv.id}`}
+                className="p-6 border-b border-zinc-800 bg-zinc-950 flex items-center gap-4 hover:bg-zinc-900 cursor-pointer"
+              >
                 <img 
-                  src={selectedConv.avatar_url || '/default-avatar.png'} 
+                  src={selectedConv.avatar_url || 'https://picsum.photos/id/64/64'} 
                   alt={selectedConv.username}
                   className="w-12 h-12 rounded-full object-cover"
                 />
@@ -178,9 +189,9 @@ export default function MessagesPage() {
                     <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[80%] px-6 py-4 rounded-3xl ${msg.sender_id === user?.id ? 'bg-rose-600 text-white' : 'bg-zinc-800'}`}>
                         {isImage ? (
-                          <img src={imageUrl} className="max-w-full rounded-2xl" alt="image" />
+                          <img src={imageUrl} className="max-w-full rounded-2xl" alt="sent" />
                         ) : (
-                          <p>{msg.content}</p>
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
                         )}
                       </div>
                     </div>
@@ -188,7 +199,6 @@ export default function MessagesPage() {
                 })}
               </div>
 
-              {/* Zone de saisie */}
               <div className="p-5 border-t border-zinc-800 bg-zinc-900">
                 <div className="flex gap-3 items-center">
                   <label className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer">
