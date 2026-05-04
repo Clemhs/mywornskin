@@ -15,13 +15,32 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState("/default-avatar.png");
+
+  // Charger l'avatar depuis la table profiles
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchProfile = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .single();
+
+      if (data?.avatar_url) {
+        setAvatarUrl(data.avatar_url);
+      } else if (user.user_metadata?.avatar_url) {
+        setAvatarUrl(user.user_metadata.avatar_url);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
 
   // Messages non lus
   useEffect(() => {
-    if (!user) {
-      setUnreadCount(0);
-      return;
-    }
+    if (!user) return;
 
     const fetchUnread = async () => {
       const { count } = await supabase
@@ -35,22 +54,11 @@ export default function Header() {
     fetchUnread();
 
     const channel = supabase
-      .channel('unread-messages')
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'messages', 
-          filter: `receiver_id=eq.${user.id}` 
-        }, 
-        fetchUnread
-      )
+      .channel('unread')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, fetchUnread)
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => supabase.removeChannel(channel);
   }, [user]);
 
   // Panier
@@ -64,7 +72,6 @@ export default function Header() {
     setMenuOpen(false);
   };
 
-  // Fermer menu quand on change de page
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
@@ -77,8 +84,8 @@ export default function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-10 text-sm font-medium">
-          <Link href="/shop" className="hover:text-rose-400 transition-colors">Boutique</Link>
-          <Link href="/creators" className="hover:text-rose-400 transition-colors">Créatrices</Link>
+          <Link href="/shop" className="hover:text-rose-400">Boutique</Link>
+          <Link href="/creators" className="hover:text-rose-400">Créatrices</Link>
         </nav>
 
         <div className="flex items-center gap-4">
@@ -108,7 +115,7 @@ export default function Header() {
                   className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
                 >
                   <img 
-                    src={user.user_metadata?.avatar_url || "https://picsum.photos/id/64/128/128"} 
+                    src={avatarUrl} 
                     alt="Profil" 
                     className="w-full h-full object-cover"
                   />
