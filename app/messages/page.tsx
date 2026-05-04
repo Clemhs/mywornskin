@@ -147,21 +147,24 @@ export default function MessagesPage() {
         <div className="flex-1 flex flex-col">
           {selectedConv ? (
             <>
-              {/* Header cliquable */}
-              <Link 
-                href={selectedConv.id === ADMIN_ID ? '#' : `/creators/${selectedConv.id}`}
-                className="p-6 border-b border-zinc-800 bg-zinc-950 flex items-center gap-4 hover:bg-zinc-900 cursor-pointer group"
-              >
+              {/* Header amélioré */}
+              <div className="p-6 border-b border-zinc-800 bg-zinc-950 flex items-center gap-4">
                 <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-3xl">
                   {selectedConv.id === ADMIN_ID ? '👨‍💼' : '👤'}
                 </div>
-                <div>
-                  <p className="font-semibold text-lg group-hover:text-rose-400 transition-colors">
-                    {selectedConv.username}
-                  </p>
+                <div className="flex-1">
+                  <p className="font-semibold text-lg">{selectedConv.username}</p>
                   <p className="text-sm text-green-400">En ligne</p>
                 </div>
-              </Link>
+                {selectedConv.id !== ADMIN_ID && (
+                  <Link 
+                    href={`/creators/${selectedConv.id}`}
+                    className="text-rose-400 hover:text-rose-500 text-sm font-medium"
+                  >
+                    Voir profil →
+                  </Link>
+                )}
+              </div>
 
               <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
                 {messages.map((msg) => {
