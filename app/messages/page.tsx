@@ -34,8 +34,18 @@ export default function MessagesPage() {
     if (!user) return;
     loadMessages();
 
-    const channel = supabase.channel('messages').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, loadMessages).subscribe();
-    return () => supabase.removeChannel(channel);
+    const channel = supabase
+      .channel('messages-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'messages' },
+        loadMessages
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   useEffect(() => {
@@ -44,16 +54,25 @@ export default function MessagesPage() {
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !user) return;
-    await supabase.from('messages').insert({ sender_id: user.id, receiver_id: ADMIN_ID, message: newMessage.trim() });
+
+    await supabase.from('messages').insert({
+      sender_id: user.id,
+      receiver_id: ADMIN_ID,
+      message: newMessage.trim()
+    });
+
     setNewMessage('');
     setShowEmoji(false);
   };
 
+  const addEmoji = (emoji: string) => setNewMessage(prev => prev + emoji);
+
   return (
     <div className="min-h-screen bg-zinc-950 pt-20 pb-12">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-zinc-900 rounded-3xl overflow-hidden h-[75vh] flex flex-col border border-zinc-700">
-          {/* Header chat */}
+        <div className="bg-zinc-900 rounded-3xl overflow-hidden h-[75vh] flex flex-col border border-zinc-700 shadow-2xl">
+          
+          {/* Header du chat */}
           <div className="p-5 border-b border-zinc-800 flex items-center gap-4 bg-zinc-950">
             <div className="w-11 h-11 bg-zinc-700 rounded-full flex items-center justify-center text-2xl">👨‍💼</div>
             <div>
@@ -62,14 +81,16 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          {/* Messages */}
+          {/* Zone des messages */}
           <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-5 bg-zinc-950">
-            {messages.length === 0 ? (
-              <p className="text-center text-zinc-500 mt-20">Aucun message pour le moment.<br />Écris-nous !</p>
+            {loading ? (
+              <p className="text-center text-zinc-500 mt-20">Chargement...</p>
+            ) : messages.length === 0 ? (
+              <p className="text-center text-zinc-500 mt-20">Aucun message pour le moment.<br />Écris-nous pour toute question !</p>
             ) : (
-              messages.map(msg => (
+              messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[75%] px-6 py-4 rounded-3xl ${msg.sender_id === user?.id ? 'bg-rose-600' : 'bg-zinc-800'}`}>
+                  <div className={`max-w-[75%] px-6 py-4 rounded-3xl ${msg.sender_id === user?.id ? 'bg-rose-600 text-white' : 'bg-zinc-800'}`}>
                     {msg.message}
                   </div>
                 </div>
@@ -77,21 +98,27 @@ export default function MessagesPage() {
             )}
           </div>
 
-          {/* Input */}
+          {/* Zone de saisie */}
           <div className="p-5 border-t border-zinc-800 bg-zinc-900">
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
               <button onClick={() => setShowEmoji(!showEmoji)} className="p-3 hover:bg-zinc-800 rounded-2xl">
                 <Smile className="w-6 h-6" />
               </button>
+
               <input
                 type="text"
                 value={newMessage}
-                onChange={e => setNewMessage(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && sendMessage()}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Écris ton message..."
-                className="flex-1 bg-zinc-800 rounded-3xl px-6 py-4 focus:outline-none focus:border-rose-500"
+                className="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 focus:outline-none focus:border-rose-500"
               />
-              <button onClick={sendMessage} className="bg-rose-600 hover:bg-rose-500 px-8 rounded-3xl">
+
+              <button 
+                onClick={sendMessage}
+                disabled={!newMessage.trim()}
+                className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl flex items-center justify-center"
+              >
                 <Send className="w-5 h-5" />
               </button>
             </div>
