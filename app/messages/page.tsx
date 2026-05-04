@@ -18,8 +18,8 @@ export default function MessagesPage() {
   const [showEmoji, setShowEmoji] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Pour l'instant on simule une conversation avec l'Admin (tu pourras étendre plus tard)
-  const ADMIN_ID = 'TON_ADMIN_USER_ID_ICI'; // ← Remplace par ton vrai ID admin plus tard
+  // ID de l'Admin (ton compte actuel)
+  const ADMIN_ID = 'bc985ee6-d9dc-43e0-8069-b34deeea9e24';
 
   const loadMessages = async () => {
     if (!user) return;
@@ -43,16 +43,18 @@ export default function MessagesPage() {
 
     const channel = supabase
       .channel('messages-realtime')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'messages' }, 
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'messages' },
         loadMessages
       )
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
-  // Scroll automatique
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
@@ -78,7 +80,7 @@ export default function MessagesPage() {
     <div className="min-h-screen bg-zinc-950 pt-20">
       <div className="flex items-center justify-center p-4 min-h-[calc(100vh-5rem)]">
         
-        {/* Version Desktop - Beau cadre centré */}
+        {/* Version Desktop - Cadre centré (comme ton ancien design) */}
         <div className="hidden md:flex w-full max-w-5xl h-[88vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 shadow-2xl">
 
           {/* Sidebar Conversations */}
@@ -87,9 +89,8 @@ export default function MessagesPage() {
               <h2 className="text-3xl font-light tracking-wider">Messages</h2>
             </div>
             <div className="flex-1 overflow-y-auto p-3">
-              {/* Pour l'instant une seule conversation avec l'Admin */}
               <div className="p-4 bg-zinc-800 rounded-2xl flex gap-4 cursor-pointer">
-                <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-2xl">
                   👨‍💼
                 </div>
                 <div>
@@ -114,9 +115,9 @@ export default function MessagesPage() {
 
             <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
               {loading ? (
-                <p className="text-center text-zinc-500">Chargement...</p>
+                <p className="text-center text-zinc-500">Chargement des messages...</p>
               ) : messages.length === 0 ? (
-                <p className="text-center text-zinc-500 py-12">Aucun message pour le moment.<br />Écris-nous !</p>
+                <p className="text-center text-zinc-500 py-12">Aucun message pour le moment.<br />Écris-nous pour toute question !</p>
               ) : (
                 messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
@@ -128,7 +129,7 @@ export default function MessagesPage() {
               )}
             </div>
 
-            {/* Zone de saisie */}
+            {/* Input */}
             <div className="p-5 border-t border-zinc-800 bg-zinc-900 relative">
               {showEmoji && (
                 <div className="absolute bottom-20 left-6 bg-zinc-800 border border-zinc-700 rounded-3xl p-5 grid grid-cols-6 gap-4 shadow-2xl z-50">
@@ -170,12 +171,9 @@ export default function MessagesPage() {
           </div>
         </div>
 
-        {/* Version Mobile simplifiée */}
-        <div className="md:hidden w-full h-[calc(100vh-5rem)] flex flex-col bg-zinc-900">
-          {/* ... (je peux l'améliorer plus tard si tu veux) */}
-          <div className="flex-1 p-4 overflow-y-auto">
-            <p className="text-center text-zinc-500 mt-20">Version mobile en cours d'amélioration</p>
-          </div>
+        {/* Mobile */}
+        <div className="md:hidden text-center text-zinc-500 py-20">
+          Version mobile en cours d’optimisation...
         </div>
       </div>
     </div>
