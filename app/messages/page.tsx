@@ -32,6 +32,7 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (!user) return;
+
     loadMessages();
 
     const channel = supabase
@@ -39,7 +40,9 @@ export default function MessagesPage() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, loadMessages)
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   useEffect(() => {
@@ -62,22 +65,21 @@ export default function MessagesPage() {
   const addEmoji = (emoji: string) => setNewMessage(prev => prev + emoji);
 
   const sendImage = () => {
-    alert("📸 Envoi de photo bientôt disponible (upload vers Supabase Storage)");
+    alert("📸 Envoi de photo bientôt disponible");
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 pt-20">
       <div className="flex items-center justify-center p-4 min-h-[calc(100vh-5rem)]">
-        
         <div className="hidden md:flex w-full max-w-5xl h-[68vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 shadow-2xl">
 
-          {/* Sidebar Conversations */}
-          <div className="w-96 border-r border-zinc-800 flex flex-col bg-zinc-900">
+          {/* Sidebar */}
+          <div className="w-96 border-r border-zinc-800 flex flex-col">
             <div className="p-6 border-b border-zinc-800">
               <h2 className="text-3xl font-light tracking-wider">Messages</h2>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-              <div className="p-4 bg-zinc-800 rounded-2xl flex gap-4 cursor-pointer">
+              <div className="p-4 bg-zinc-800 rounded-2xl flex gap-4">
                 <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-3xl">👨‍💼</div>
                 <div>
                   <p className="font-semibold">Support Admin</p>
@@ -87,21 +89,21 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          {/* Zone principale du chat */}
+          {/* Chat */}
           <div className="flex-1 flex flex-col">
             <div className="p-6 border-b border-zinc-800 flex items-center gap-4 bg-zinc-950">
               <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-3xl">👨‍💼</div>
               <div>
                 <p className="font-semibold">Support Admin</p>
-                <p className="text-xs text-green-400">En ligne maintenant</p>
+                <p className="text-xs text-green-400">En ligne</p>
               </div>
             </div>
 
             <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
               {loading ? (
-                <p className="text-center text-zinc-500 mt-20">Chargement des messages...</p>
+                <p className="text-center text-zinc-500 mt-20">Chargement...</p>
               ) : messages.length === 0 ? (
-                <p className="text-center text-zinc-500 mt-20">Aucun message pour le moment.<br />Écris-nous pour toute question !</p>
+                <p className="text-center text-zinc-500 mt-20">Aucun message pour le moment.<br />Écris-nous !</p>
               ) : (
                 messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
@@ -113,7 +115,6 @@ export default function MessagesPage() {
               )}
             </div>
 
-            {/* Input avec bouton photo */}
             <div className="p-5 border-t border-zinc-800 bg-zinc-900">
               <div className="flex gap-3 items-center">
                 <label className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer" onClick={sendImage}>
@@ -135,7 +136,7 @@ export default function MessagesPage() {
                 <button 
                   onClick={sendMessage}
                   disabled={!newMessage.trim()}
-                  className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl flex items-center justify-center"
+                  className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl"
                 >
                   <Send className="w-5 h-5" />
                 </button>
