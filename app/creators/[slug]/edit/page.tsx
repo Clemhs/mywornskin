@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Save, Camera, ShoppingBag, Check, X, Clock } from 'lucide-react';
+import { Save, Camera, ShoppingBag, Check, X, Clock, AlertCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -57,7 +57,6 @@ export default function CreatorEditPage() {
         setBannerStatus(profile.banner_status || 'approved');
       }
 
-      // Avis en attente
       const { data: reviews } = await supabase
         .from('reviews')
         .select('*')
@@ -188,13 +187,13 @@ export default function CreatorEditPage() {
         </div>
 
         {toast && (
-          <div className={`mb-8 p-4 rounded-3xl text-center font-medium ${toast.includes('✅') ? 'bg-green-600' : 'bg-red-600'}`}>
+          <div className={`mb-8 p-4 rounded-3xl text-center font-medium ${toast.includes('✅') ? 'bg-green-600' : 'bg-amber-600'}`}>
             {toast}
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Colonne gauche : Aperçu + Commentaires */}
+          {/* Colonne gauche */}
           <div className="lg:col-span-5 space-y-8">
             <div>
               <h2 className="text-xl mb-4">Aperçu en direct</h2>
@@ -202,11 +201,7 @@ export default function CreatorEditPage() {
                 <img src={bannerUrl || "https://picsum.photos/id/1015/1200/400"} alt="Bannière" className="w-full h-full object-cover" />
                 <div className="absolute bottom-8 left-8">
                   <div className="relative">
-                    <img 
-                      src={avatarUrl || "https://picsum.photos/id/64/300/300"} 
-                      alt="Avatar" 
-                      className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" 
-                    />
+                    <img src={avatarUrl || "https://picsum.photos/id/64/300/300"} alt="Avatar" className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" />
                     {frame && <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />}
                     {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-12 h-12 drop-shadow-2xl z-10" />}
                   </div>
@@ -226,16 +221,10 @@ export default function CreatorEditPage() {
                       <p className="italic text-sm">"{review.comment}"</p>
                       <p className="text-xs text-zinc-500 mt-2">— {review.reviewer_name || 'Client anonyme'}</p>
                       <div className="flex gap-3 mt-4">
-                        <button 
-                          onClick={() => handleModerateReview(review.id, 'approved')}
-                          className="flex-1 bg-green-600 hover:bg-green-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2"
-                        >
+                        <button onClick={() => handleModerateReview(review.id, 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
                           <Check size={16} /> Valider
                         </button>
-                        <button 
-                          onClick={() => handleModerateReview(review.id, 'rejected')}
-                          className="flex-1 bg-red-600 hover:bg-red-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2"
-                        >
+                        <button onClick={() => handleModerateReview(review.id, 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
                           <X size={16} /> Rejeter
                         </button>
                       </div>
@@ -246,36 +235,28 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* Colonne droite : Configuration */}
+          {/* Colonne droite */}
           <div className="lg:col-span-7 space-y-12">
-            {/* Upload Images avec statut */}
+            {/* Upload Images */}
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
               <div className="grid grid-cols-2 gap-6">
-                {/* Bannière */}
                 <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500 transition-all relative">
                   <input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
                   <Camera className="mx-auto mb-3 text-pink-400" size={32} />
                   <span className="text-pink-400 font-medium">Changer la couverture</span>
                   <p className="text-xs text-zinc-500 mt-2">Recommandé : 1200×400 px</p>
-                  {bannerStatus === 'pending' && (
-                    <p className="absolute top-4 right-4 text-amber-400 flex items-center gap-1 text-sm">
-                      <Clock size={16} /> En attente
-                    </p>
-                  )}
+                  {bannerStatus === 'pending' && <div className="absolute top-4 right-4 text-amber-400 flex items-center gap-1"><Clock size={16} /> En attente</div>}
+                  {bannerStatus === 'rejected' && <div className="absolute top-4 right-4 text-red-400 flex items-center gap-1"><AlertCircle size={16} /> Refusée</div>}
                 </label>
 
-                {/* Avatar */}
                 <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500 transition-all relative">
                   <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
                   <Camera className="mx-auto mb-3 text-pink-400" size={32} />
                   <span className="text-pink-400 font-medium">Changer la photo de profil</span>
                   <p className="text-xs text-zinc-500 mt-2">Recommandé : 512×512 px</p>
-                  {avatarStatus === 'pending' && (
-                    <p className="absolute top-4 right-4 text-amber-400 flex items-center gap-1 text-sm">
-                      <Clock size={16} /> En attente
-                    </p>
-                  )}
+                  {avatarStatus === 'pending' && <div className="absolute top-4 right-4 text-amber-400 flex items-center gap-1"><Clock size={16} /> En attente</div>}
+                  {avatarStatus === 'rejected' && <div className="absolute top-4 right-4 text-red-400 flex items-center gap-1"><AlertCircle size={16} /> Refusée</div>}
                 </label>
               </div>
             </div>
