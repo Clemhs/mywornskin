@@ -21,16 +21,14 @@ export default function MessagesPage() {
   const [showEmoji, setShowEmoji] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  // Charger les conversations
   const loadConversations = async () => {
     if (!user) return;
 
     const { data } = await supabase
       .from('messages')
       .select(`
-        sender_id, 
-        receiver_id, 
-        content, 
-        created_at,
+        sender_id, receiver_id, content, created_at,
         sender:profiles!messages_sender_id_fkey(username, avatar_url, full_name),
         receiver:profiles!messages_receiver_id_fkey(username, avatar_url, full_name)
       `)
@@ -39,19 +37,19 @@ export default function MessagesPage() {
 
     const convMap = new Map();
 
-    data?.forEach(msg => {
-      const other = msg.sender_id === user.id 
-        ? (msg.receiver?.[0] || {}) 
-        : (msg.sender?.[0] || {});
-
-      const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
+    data?.forEach((msg: any) => {
+      const isMeSender = msg.sender_id === user.id;
+      const otherId = isMeSender ? msg.receiver_id : msg.sender_id;
+      
+      const otherProfile = isMeSender ? msg.receiver?.[0] : msg.sender?.[0];
 
       if (!convMap.has(otherId)) {
         convMap.set(otherId, {
           id: otherId,
-          username: other.username || other.full_name || `Utilisateur ${otherId.slice(0,8)}`,
-          avatar_url: other.avatar_url,
-          lastMessage: msg.content?.length > 50 ? msg.content.substring(0, 47) + '...' : msg.content,
+          username: otherProfile?.username || otherProfile?.full_name || 
+                    (otherId === ADMIN_ID ? "Support Admin" : `Utilisateur ${otherId.slice(0,8)}...`),
+          avatar_url: otherProfile?.avatar_url,
+          lastMessage: msg.content?.length > 45 ? msg.content.substring(0, 42) + '...' : msg.content,
           lastTime: msg.created_at
         });
       }
@@ -105,9 +103,9 @@ export default function MessagesPage() {
     setUploading(true);
     const fileName = `${Date.now()}-${user.id}.${file.name.split('.').pop()}`;
 
-    const { error: uploadError } = await supabase.storage.from('messages').upload(fileName, file);
-    if (uploadError) {
-      alert("Erreur lors de l'upload");
+    const { error } = await supabase.storage.from('messages').upload(fileName, file);
+    if (error) {
+      alert("Erreur upload");
       setUploading(false);
       return;
     }
@@ -161,7 +159,7 @@ export default function MessagesPage() {
           </div>
         </div>
 
-        {/* Chat */}
+        {/* Chat Area */}
         <div className="flex-1 flex flex-col">
           {selectedConv ? (
             <>
@@ -181,22 +179,26 @@ export default function MessagesPage() {
               </Link>
 
               <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
-                {messages.map((msg) => {
-                  const isImage = msg.content?.startsWith('[IMAGE]');
-                  const imageUrl = isImage ? msg.content.replace('[IMAGE]', '') : null;
+                {messages.length === 0 ? (
+                  <p className="text-center text-zinc-500 mt-20">Aucun message avec cette personne</p>
+                ) : (
+                  messages.map((msg) => {
+                    const isImage = msg.content?.startsWith('[IMAGE]');
+                    const imageUrl = isImage ? msg.content.replace('[IMAGE]', '') : null;
 
-                  return (
-                    <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[80%] px-6 py-4 rounded-3xl ${msg.sender_id === user?.id ? 'bg-rose-600 text-white' : 'bg-zinc-800'}`}>
-                        {isImage ? (
-                          <img src={imageUrl} className="max-w-full rounded-2xl" alt="sent" />
-                        ) : (
-                          <p className="whitespace-pre-wrap">{msg.content}</p>
-                        )}
+                    return (
+                      <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[80%] px-6 py-4 rounded-3xl ${msg.sender_id === user?.id ? 'bg-rose-600 text-white' : 'bg-zinc-800'}`}>
+                          {isImage ? (
+                            <img src={imageUrl} className="max-w-full rounded-2xl" alt="image" />
+                          ) : (
+                            <p>{msg.content}</p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
 
               <div className="p-5 border-t border-zinc-800 bg-zinc-900">
@@ -219,11 +221,7 @@ export default function MessagesPage() {
                     className="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 focus:outline-none focus:border-rose-500"
                   />
 
-                  <button 
-                    onClick={sendMessage} 
-                    disabled={!newMessage.trim() || uploading}
-                    className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl disabled:opacity-50"
-                  >
+                  <button onClick={sendMessage} disabled={!newMessage.trim() || uploading} className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl disabled:opacity-50">
                     <Send className="w-5 h-5" />
                   </button>
                 </div>
