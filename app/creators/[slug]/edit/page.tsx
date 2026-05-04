@@ -12,7 +12,6 @@ export default function CreatorEditPage() {
   const supabase = createClient();
   const router = useRouter();
 
-  // États principaux
   const [salesBadge, setSalesBadge] = useState<number | null>(500);
   const [frame, setFrame] = useState<string | null>('gold');
 
@@ -36,7 +35,6 @@ export default function CreatorEditPage() {
     { id: "gold", name: "5 ans" },
   ];
 
-  // Chargement des données du profil + avis en attente
   useEffect(() => {
     if (!user) return;
 
@@ -58,7 +56,6 @@ export default function CreatorEditPage() {
         setBannerStatus(profile.banner_status || 'approved');
       }
 
-      // Avis en attente de validation par la créatrice
       const { data: reviews } = await supabase
         .from('reviews')
         .select('*')
@@ -195,9 +192,7 @@ export default function CreatorEditPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* ===================== COLONNE GAUCHE ===================== */}
           <div className="lg:col-span-5 space-y-8">
-            {/* Aperçu en direct */}
             <div>
               <h2 className="text-xl mb-4">Aperçu en direct</h2>
               <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
@@ -216,36 +211,38 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-           {/* Commentaires à valider - Version debug */}
-<div>
-  <h2 className="text-xl mb-4">Commentaires à valider (Debug)</h2>
-  <div className="space-y-4">
-    {pendingReviews.length === 0 ? (
-      <p className="text-zinc-500 italic p-4 bg-zinc-900 rounded-2xl">
-        Aucun commentaire en attente.<br />
-        <span className="text-xs">Vérifie que les données existent dans la table reviews.</span>
-      </p>
-    ) : (
-      pendingReviews.map(review => (
-        <div key={review.id} className="bg-zinc-900 rounded-2xl p-5 border border-zinc-700">
-          <p className="italic text-sm">"{review.comment}"</p>
-          <p className="text-xs text-zinc-500 mt-2">— {review.reviewer_name || 'Client anonyme'}</p>
-          <div className="flex gap-3 mt-4">
-            <button onClick={() => handleModerateReview(review.id, 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
-              <Check size={16} /> Valider
-            </button>
-            <button onClick={() => handleModerateReview(review.id, 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
-              <X size={16} /> Rejeter
-            </button>
+            <div>
+              <h2 className="text-xl mb-4">Commentaires à valider ({pendingReviews.length})</h2>
+              <div className="space-y-4">
+                {pendingReviews.length === 0 ? (
+                  <p className="text-zinc-500 italic p-4 bg-zinc-900 rounded-2xl">Aucun commentaire en attente.</p>
+                ) : (
+                  pendingReviews.map(review => (
+                    <div key={review.id} className="bg-zinc-900 rounded-2xl p-5 border border-zinc-700">
+                      <p className="italic text-sm">"{review.comment}"</p>
+                      <p className="text-xs text-zinc-500 mt-2">— {review.reviewer_name || 'Client anonyme'}</p>
+                      <div className="flex gap-3 mt-4">
+                        <button 
+                          onClick={() => handleModerateReview(review.id, 'approved')}
+                          className="flex-1 bg-green-600 hover:bg-green-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2"
+                        >
+                          <Check size={16} /> Valider
+                        </button>
+                        <button 
+                          onClick={() => handleModerateReview(review.id, 'rejected')}
+                          className="flex-1 bg-red-600 hover:bg-red-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2"
+                        >
+                          <X size={16} /> Rejeter
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      ))
-    )}
-  </div>
-</div>
-          {/* ===================== COLONNE DROITE ===================== */}
+
           <div className="lg:col-span-7 space-y-12">
-            {/* Upload Images */}
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
               <div className="grid grid-cols-2 gap-6">
@@ -269,7 +266,6 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Badges de ventes */}
             <div>
               <h2 className="text-xl mb-4">Badges de ventes</h2>
               <div className="flex gap-4 overflow-x-auto pb-4">
@@ -285,7 +281,6 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Cadres d'ancienneté */}
             <div>
               <h2 className="text-xl mb-4">Cadres d'ancienneté</h2>
               <div className="flex gap-6 overflow-x-auto pb-6">
@@ -303,7 +298,6 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Boutique cosmétiques */}
             <div>
               <h2 className="text-xl mb-4 flex items-center gap-2">
                 <ShoppingBag className="text-pink-400" /> Boutique cosmétiques
