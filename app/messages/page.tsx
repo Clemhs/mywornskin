@@ -39,9 +39,7 @@ export default function MessagesPage() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, loadMessages)
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => supabase.removeChannel(channel);
   }, [user]);
 
   useEffect(() => {
@@ -50,24 +48,25 @@ export default function MessagesPage() {
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !user) return;
-
     await supabase.from('messages').insert({
       sender_id: user.id,
       receiver_id: ADMIN_ID,
       message: newMessage.trim()
     });
-
     setNewMessage('');
     setShowEmoji(false);
   };
 
   const addEmoji = (emoji: string) => setNewMessage(prev => prev + emoji);
 
+  const sendImage = () => {
+    alert("📸 Envoi de photo bientôt disponible (upload vers Supabase Storage)");
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 pt-20">
       <div className="flex items-center justify-center p-4 min-h-[calc(100vh-5rem)]">
-
-        <div className="hidden md:flex w-full max-w-5xl h-[82vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 shadow-2xl">
+        <div className="hidden md:flex w-full max-w-5xl h-[72vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 shadow-2xl">
 
           {/* Sidebar */}
           <div className="w-96 border-r border-zinc-800 flex flex-col">
@@ -96,9 +95,7 @@ export default function MessagesPage() {
             </div>
 
             <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
-              {loading ? (
-                <p className="text-center text-zinc-500 mt-20">Chargement...</p>
-              ) : messages.length === 0 ? (
+              {messages.length === 0 ? (
                 <p className="text-center text-zinc-500 mt-20">Aucun message pour le moment.<br />Écris-nous !</p>
               ) : (
                 messages.map((msg) => (
@@ -112,8 +109,11 @@ export default function MessagesPage() {
             </div>
 
             <div className="p-5 border-t border-zinc-800 bg-zinc-900">
-              <div className="flex gap-3">
-                <button onClick={() => setShowEmoji(!showEmoji)} className="p-3 hover:bg-zinc-800 rounded-2xl">
+              <div className="flex gap-3 items-center">
+                <label className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer" onClick={sendImage}>
+                  <ImageIcon className="w-6 h-6" />
+                </label>
+                <button onClick={() => setShowEmoji(!showEmoji)} className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer">
                   <Smile className="w-6 h-6" />
                 </button>
 
@@ -126,11 +126,7 @@ export default function MessagesPage() {
                   className="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 focus:outline-none focus:border-rose-500"
                 />
 
-                <button 
-                  onClick={sendMessage}
-                  disabled={!newMessage.trim()}
-                  className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl"
-                >
+                <button onClick={sendMessage} disabled={!newMessage.trim()} className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl">
                   <Send className="w-5 h-5" />
                 </button>
               </div>
