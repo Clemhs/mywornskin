@@ -21,26 +21,33 @@ export default function MessagesPage() {
   const [showEmoji, setShowEmoji] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // Charger les conversations simplement
+  // Charger conversations avec infos profil
   const loadConversations = async () => {
     if (!user) return;
 
     const { data } = await supabase
       .from('messages')
-      .select('sender_id, receiver_id, content, created_at')
+      .select(`
+        sender_id, receiver_id, content, created_at,
+        sender:profiles!messages_sender_id_fkey(username, avatar_url, full_name),
+        receiver:profiles!messages_receiver_id_fkey(username, avatar_url, full_name)
+      `)
       .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
       .order('created_at', { ascending: false });
 
     const convMap = new Map();
 
-    data?.forEach(msg => {
-      const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
-      
+    data?.forEach((msg: any) => {
+      const isSender = msg.sender_id === user.id;
+      const otherProfile = isSender ? msg.receiver?.[0] : msg.sender?.[0];
+      const otherId = isSender ? msg.receiver_id : msg.sender_id;
+
       if (!convMap.has(otherId)) {
         convMap.set(otherId, {
           id: otherId,
-          username: otherId === ADMIN_ID ? "Support Admin" : `Utilisateur ${otherId.slice(0,8)}...`,
-          avatar_url: null,
+          username: otherProfile?.username || otherProfile?.full_name || 
+                    (otherId === ADMIN_ID ? "Support Admin" : `Utilisateur ${otherId.slice(0,8)}...`),
+          avatar_url: otherProfile?.avatar_url,
           lastMessage: msg.content?.length > 45 ? msg.content.substring(0, 42) + '...' : msg.content,
         });
       }
@@ -61,9 +68,7 @@ export default function MessagesPage() {
   };
 
   useEffect(() => {
-    if (user) {
-      loadConversations();
-    }
+    if (user) loadConversations();
   }, [user]);
 
   useEffect(() => {
@@ -97,11 +102,7 @@ export default function MessagesPage() {
     const fileName = `${Date.now()}-${user.id}.${file.name.split('.').pop()}`;
 
     const { error } = await supabase.storage.from('messages').upload(fileName, file);
-    if (error) {
-      alert("Erreur upload");
-      setUploading(false);
-      return;
-    }
+    if (error) { alert("Erreur upload"); setUploading(false); return; }
 
     const { data: urlData } = supabase.storage.from('messages').getPublicUrl(fileName);
 
@@ -122,7 +123,7 @@ export default function MessagesPage() {
     <div className="min-h-screen bg-zinc-950 pt-16">
       <div className="max-w-6xl mx-auto h-[80vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 flex mt-4 shadow-2xl">
         
-        {/* Sidebar */}
+        {/* Sidebar Conversations */}
         <div className="w-96 border-r border-zinc-800 flex flex-col">
           <div className="p-6 border-b border-zinc-800">
             <h2 className="text-3xl font-light">Messages</h2>
@@ -137,9 +138,11 @@ export default function MessagesPage() {
                   onClick={() => openConversation(conv)}
                   className={`flex gap-4 p-4 rounded-2xl mb-2 cursor-pointer hover:bg-zinc-800 transition-all ${selectedConv?.id === conv.id ? 'bg-zinc-800' : ''}`}
                 >
-                  <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-2xl">
-                    {conv.id === ADMIN_ID ? '👨‍💼' : '👤'}
-                  </div>
+                  <img 
+                    src={conv.avatar_url || 'https://picsum.photos/id/64/64'} 
+                    alt={conv.username}
+                    className="w-12 h-12 rounded-full object-cover border border-zinc-700"
+                  />
                   <div className="flex-1 min-w-0 pt-1">
                     <p className="font-semibold truncate">{conv.username}</p>
                     <p className="text-sm text-zinc-400 truncate">{conv.lastMessage}</p>
@@ -154,34 +157,42 @@ export default function MessagesPage() {
         <div className="flex-1 flex flex-col">
           {selectedConv ? (
             <>
-              <div className="p-6 border-b border-zinc-800 bg-zinc-950 flex items-center gap-4">
-                <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-3xl">
-                  {selectedConv.id === ADMIN_ID ? '👨‍💼' : '👤'}
-                </div>
+              {/* Header avec lien vers profil */}
+              <Link 
+                href={`/creators/${selectedConv.id}`}
+                className="p-6 border-b border-zinc-800 bg-zinc-950 flex items-center gap-4 hover:bg-zinc-900 cursor-pointer group"
+              >
+                <img 
+                  src={selectedConv.avatar_url || 'https://picsum.photos/id/64/64'} 
+                  alt={selectedConv.username}
+                  className="w-12 h-12 rounded-full object-cover border border-zinc-700"
+                />
                 <div>
-                  <p className="font-semibold text-lg">{selectedConv.username}</p>
+                  <p className="font-semibold text-lg group-hover:text-rose-400 transition">{selectedConv.username}</p>
+                  <p className="text-sm text-green-400">En ligne</p>
                 </div>
-              </div>
+              </Link>
 
               <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
-                {messages.length === 0 ? (
-                  <p className="text-center text-zinc-500 mt-20">Aucun message</p>
-                ) : (
-                  messages.map((msg) => {
-                    const isImage = msg.content?.startsWith('[IMAGE]');
-                    const imageUrl = isImage ? msg.content.replace('[IMAGE]', '') : null;
+                {messages.map((msg) => {
+                  const isImage = msg.content?.startsWith('[IMAGE]');
+                  const imageUrl = isImage ? msg.content.replace('[IMAGE]', '') : null;
 
-                    return (
-                      <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[80%] px-6 py-4 rounded-3xl ${msg.sender_id === user?.id ? 'bg-rose-600 text-white' : 'bg-zinc-800'}`}>
-                          {isImage ? <img src={imageUrl} className="max-w-full rounded-2xl" /> : <p>{msg.content}</p>}
-                        </div>
+                  return (
+                    <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] px-6 py-4 rounded-3xl ${msg.sender_id === user?.id ? 'bg-rose-600 text-white' : 'bg-zinc-800'}`}>
+                        {isImage ? (
+                          <img src={imageUrl} className="max-w-full rounded-2xl" alt="image" />
+                        ) : (
+                          <p>{msg.content}</p>
+                        )}
                       </div>
-                    );
-                  })
-                )}
+                    </div>
+                  );
+                })}
               </div>
 
+              {/* Input Area */}
               <div className="p-5 border-t border-zinc-800 bg-zinc-900">
                 <div className="flex gap-3 items-center">
                   <label className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer">
@@ -202,7 +213,11 @@ export default function MessagesPage() {
                     className="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 focus:outline-none focus:border-rose-500"
                   />
 
-                  <button onClick={sendMessage} disabled={!newMessage.trim() || uploading} className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl disabled:opacity-50">
+                  <button 
+                    onClick={sendMessage} 
+                    disabled={!newMessage.trim() || uploading}
+                    className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl disabled:opacity-50"
+                  >
                     <Send className="w-5 h-5" />
                   </button>
                 </div>
