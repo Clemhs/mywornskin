@@ -25,19 +25,20 @@ export default function CreatorEditPage() {
     { id: "gold", name: "5 ans", minMonths: 60 },
   ];
 
-  // Chargement des données depuis Supabase
+  // Chargement des données
   useEffect(() => {
     if (!user) return;
 
     const loadProfile = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
-        .select('total_sales, sales_badge, frame')
+        .select('total_sales, membership_months, sales_badge, frame')
         .eq('id', user.id)
         .single();
 
       if (data) {
         setTotalSales(data.total_sales || 0);
+        setMembershipMonths(data.membership_months || 0);
         setSalesBadge(data.sales_badge);
         setFrame(data.frame);
       }
@@ -57,13 +58,12 @@ export default function CreatorEditPage() {
   const selectFrame = (f: string) => {
     const frameData = availableFrames.find(fr => fr.id === f);
     if (frameData && isFrameUnlocked(frameData.minMonths)) {
-      setFrame(f);
+      setFrame(current => current === f ? null : f); // Permet de désactiver en recliquant
     }
   };
 
   const handleSave = async () => {
     if (!user) return;
-
     setSaving(true);
 
     const { error } = await supabase
@@ -103,48 +103,30 @@ export default function CreatorEditPage() {
           </button>
         </div>
 
-        {toast && (
-          <div className="mb-8 p-4 bg-green-600/90 rounded-3xl text-center font-medium">
-            {toast}
-          </div>
-        )}
+        {toast && <div className="mb-8 p-4 bg-green-600 rounded-3xl text-center">{toast}</div>}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Aperçu en direct */}
           <div className="lg:col-span-5">
             <h2 className="text-xl mb-4">Aperçu en direct</h2>
             <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
-              <img 
-                src="https://picsum.photos/id/1015/1200/400" 
-                alt="Bannière" 
-                className="w-full h-full object-cover" 
-              />
+              <img src="https://picsum.photos/id/1015/1200/400" alt="Bannière" className="w-full h-full object-cover" />
               {frame && <div className={`absolute inset-0 rounded-3xl border-4 shimmer-frame ${frame}`} />}
               
-              <div className="absolute bottom-8 left-8 flex items-end gap-6">
+              <div className="absolute bottom-8 left-8">
                 <div className="relative">
-                  <img 
-                    src="https://picsum.photos/id/64/300/300" 
-                    alt="Avatar" 
-                    className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" 
-                  />
-                  {salesBadge && (
-                    <img 
-                      src={`/badges/${salesBadge}.png`} 
-                      className="absolute -top-3 -right-3 w-12 h-12 drop-shadow-2xl z-10" 
-                    />
-                  )}
+                  <img src="https://picsum.photos/id/64/300/300" alt="Avatar" className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" />
+                  {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-12 h-12 drop-shadow-2xl z-10" />}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Configuration */}
+          {/* Badges de ventes */}
           <div className="lg:col-span-7 space-y-12">
-            {/* Badges de ventes */}
             <div>
               <h2 className="text-xl mb-4">Badges de ventes</h2>
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
+              <div className="flex gap-4 overflow-x-auto pb-4">
                 {availableSalesBadges.map(level => {
                   const unlocked = isBadgeUnlocked(level);
                   const isSelected = salesBadge === level;
@@ -166,17 +148,17 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Cadres d'ancienneté */}
+            {/* Cadres d'ancienneté - Version améliorée */}
             <div>
               <h2 className="text-xl mb-4">Cadres d'ancienneté</h2>
-              <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide snap-x snap-mandatory">
+              <div className="flex gap-6 overflow-x-auto pb-6">
                 {availableFrames.map(f => {
                   const unlocked = isFrameUnlocked(f.minMonths);
                   const isSelected = frame === f.id;
                   return (
                     <button
                       key={f.id}
-                      onClick={() => unlocked && selectFrame(f.id)}
+                      onClick={() => selectFrame(f.id)}
                       disabled={!unlocked}
                       className={`flex-shrink-0 relative w-28 h-28 rounded-3xl overflow-hidden border-2 transition-all ${
                         isSelected ? 'border-pink-400 scale-95' : unlocked ? 'border-zinc-700 hover:border-pink-400' : 'border-zinc-700 opacity-40 cursor-not-allowed'
@@ -192,28 +174,14 @@ export default function CreatorEditPage() {
                 })}
               </div>
             </div>
-
-            {/* Boutique cosmétiques (à venir) */}
-            <div>
-              <h2 className="text-xl mb-4">Boutique cosmétiques</h2>
-              <div className="bg-zinc-900 rounded-3xl p-8 text-center text-zinc-400">
-                Prochainement disponible...
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
+      {/* Styles pour les cadres */}
       <style jsx>{`
-        @keyframes shimmer-frame { 
-          0% { background-position: -200% 0; } 
-          100% { background-position: 300% 0; } 
-        }
-        .shimmer-frame { 
-          animation: shimmer-frame 8s linear infinite; 
-          background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.85) 50%, transparent 60%); 
-          background-size: 200% 100%; 
-        }
+        @keyframes shimmer-frame { 0% { background-position: -200% 0; } 100% { background-position: 300% 0; } }
+        .shimmer-frame { animation: shimmer-frame 8s linear infinite; background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.85) 50%, transparent 60%); background-size: 200% 100%; }
         .shimmer-frame.rose { border-color: #f472b6; box-shadow: inset 0 0 40px #f472b6; }
         .shimmer-frame.silver { border-color: #e2e8f0; box-shadow: inset 0 0 40px #e2e8f0; }
         .shimmer-frame.gold { border-color: #fbbf24; box-shadow: inset 0 0 45px #fbbf24; }
