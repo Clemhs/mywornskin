@@ -30,18 +30,13 @@ export default function MessagesPage() {
     setLoading(false);
   };
 
+  // Chargement initial seulement
   useEffect(() => {
     if (!user) return;
     loadMessages();
-
-    const channel = supabase
-      .channel('messages-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, loadMessages)
-      .subscribe();
-
-    return () => supabase.removeChannel(channel);
   }, [user]);
 
+  // Auto scroll
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
@@ -49,17 +44,15 @@ export default function MessagesPage() {
   const sendMessage = async () => {
     if (!newMessage.trim() || !user) return;
 
-    const { error } = await supabase.from('messages').insert({
+    await supabase.from('messages').insert({
       sender_id: user.id,
       receiver_id: ADMIN_ID,
       message: newMessage.trim()
     });
 
-    if (!error) {
-      setNewMessage('');
-      setShowEmoji(false);
-      loadMessages(); // Rafraîchit la liste
-    }
+    setNewMessage('');
+    setShowEmoji(false);
+    loadMessages(); // Rafraîchit la conversation
   };
 
   const addEmoji = (emoji: string) => {
