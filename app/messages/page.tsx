@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Send, Smile, Image as ImageIcon } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
 
@@ -39,60 +39,85 @@ export default function MessagesPage() {
   const sendMessage = async () => {
     if (!newMessage.trim() || !user) return;
 
-    await supabase.from('messages').insert({
+    const { error } = await supabase.from('messages').insert({
       sender_id: user.id,
       receiver_id: ADMIN_ID,
       message: newMessage.trim()
     });
 
-    setNewMessage('');
-    loadMessages();
+    if (!error) {
+      setNewMessage('');
+      loadMessages();
+    } else {
+      alert("Erreur lors de l'envoi");
+    }
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 pt-16">
-      <div className="max-w-5xl mx-auto px-4">
-        <div className="bg-zinc-900 rounded-3xl overflow-hidden h-[78vh] flex flex-col border border-zinc-700">
+      <div className="flex items-center justify-center p-4">
+        <div className="hidden md:flex w-full max-w-5xl h-[78vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 shadow-2xl">
 
-          <div className="p-6 border-b border-zinc-800 flex items-center gap-4 bg-zinc-950">
-            <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-3xl">👨‍💼</div>
-            <div>
-              <p className="font-semibold">Support Admin</p>
-              <p className="text-xs text-green-400">En ligne</p>
+          {/* Sidebar Conversations */}
+          <div className="w-96 border-r border-zinc-800 flex flex-col">
+            <div className="p-6 border-b border-zinc-800">
+              <h2 className="text-3xl font-light tracking-wider">Messages</h2>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="p-4 bg-zinc-800 rounded-2xl flex gap-4 cursor-pointer">
+                <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-3xl">👨‍💼</div>
+                <div>
+                  <p className="font-semibold">Support Admin</p>
+                  <p className="text-sm text-zinc-400">Équipe MyWornSkin</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
-            {messages.length === 0 ? (
-              <p className="text-center text-zinc-500 mt-20">Aucun message.<br />Écris quelque chose !</p>
-            ) : (
-              messages.map(msg => (
-                <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[75%] px-6 py-4 rounded-3xl ${msg.sender_id === user?.id ? 'bg-rose-600 text-white' : 'bg-zinc-800'}`}>
-                    {msg.message}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          {/* Zone de chat */}
+          <div className="flex-1 flex flex-col">
+            <div className="p-6 border-b border-zinc-800 flex items-center gap-4 bg-zinc-950">
+              <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-3xl">👨‍💼</div>
+              <div>
+                <p className="font-semibold">Support Admin</p>
+                <p className="text-xs text-green-400">En ligne</p>
+              </div>
+            </div>
 
-          <div className="p-5 border-t border-zinc-800 bg-zinc-900">
-            <div className="flex gap-3">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Écris ton message..."
-                className="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 focus:outline-none focus:border-rose-500"
-              />
-              <button 
-                onClick={sendMessage}
-                disabled={!newMessage.trim()}
-                className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl"
-              >
-                <Send className="w-5 h-5" />
-              </button>
+            <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
+              {loading ? (
+                <p className="text-center text-zinc-500 mt-20">Chargement...</p>
+              ) : messages.length === 0 ? (
+                <p className="text-center text-zinc-500 mt-20">Aucun message pour le moment.<br />Écris quelque chose !</p>
+              ) : (
+                messages.map((msg) => (
+                  <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[75%] px-6 py-4 rounded-3xl ${msg.sender_id === user?.id ? 'bg-rose-600 text-white' : 'bg-zinc-800'}`}>
+                      {msg.message}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="p-5 border-t border-zinc-800 bg-zinc-900">
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                  placeholder="Écris ton message..."
+                  className="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 focus:outline-none focus:border-rose-500"
+                />
+                <button 
+                  onClick={sendMessage}
+                  disabled={!newMessage.trim()}
+                  className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
