@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User, LogOut, Plus, MessageCircle, ShoppingCart } from 'lucide-react';
+import { User, LogOut, MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
@@ -48,7 +48,7 @@ export default function Header() {
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .eq('receiver_id', user.id)
-        .is('is_read', false); // ou .eq('is_read', false) selon ta colonne
+        .is('is_read', false);
 
       setUnreadCount(count || 0);
     };
@@ -105,18 +105,31 @@ export default function Header() {
                 </button>
 
                 {menuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-50 overflow-hidden">
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-50">
+                    
+                    {/* Lien vers le bon profil */}
                     <Link 
-                      href={isCreator ? "/creators/me/edit" : "/profile"} 
-                      className="block px-6 py-3 hover:bg-zinc-800 flex items-center gap-3"
+                      href={isCreator ? "/creators/me" : "/profile"} 
+                      className="block px-6 py-3 hover:bg-zinc-800"
                       onClick={() => setMenuOpen(false)}
                     >
-                      👤 {isCreator ? "Éditer mon profil créatrice" : "Mon Profil"}
+                      👤 Mon Profil
                     </Link>
+
+                    {/* Bouton Édition visible seulement pour les créateurs */}
+                    {isCreator && (
+                      <Link 
+                        href="/creators/me/edit" 
+                        className="block px-6 py-3 hover:bg-zinc-800"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        ✏️ Éditer mon profil
+                      </Link>
+                    )}
 
                     <button 
                       onClick={handleLogout} 
-                      className="w-full text-left px-6 py-3 text-red-400 hover:bg-zinc-800 flex items-center gap-3"
+                      className="w-full text-left px-6 py-3 text-red-400 hover:bg-zinc-800"
                     >
                       Se déconnecter
                     </button>
