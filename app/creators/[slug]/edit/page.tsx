@@ -1,23 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Save, Camera, Lock } from 'lucide-react';
+import { Save, Lock } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function CreatorEditPage() {
-  const params = useParams();
-  const slug = params.slug as string;
-
-  const [avatar, setAvatar] = useState("");
-  const [banner, setBanner] = useState("");
-  const [pendingAvatar, setPendingAvatar] = useState("");
-  const [pendingBanner, setPendingBanner] = useState("");
+  const { user } = useAuth();
+  const supabase = createClient();
 
   const [totalSales, setTotalSales] = useState(0);
   const [membershipMonths, setMembershipMonths] = useState(0);
-  const [salesBadge, setSalesBadge] = useState<number | null>(10);
-  const [frame, setFrame] = useState<string | null>("rose");
+  const [salesBadge, setSalesBadge] = useState<number | null>(null);
+  const [frame, setFrame] = useState<string | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -29,11 +25,26 @@ export default function CreatorEditPage() {
     { id: "gold", name: "5 ans", minMonths: 60 },
   ];
 
+  // Chargement des données depuis Supabase
   useEffect(() => {
-    // Simulation (à remplacer par Supabase)
-    setTotalSales(47);
-    setMembershipMonths(14);
-  }, [slug]);
+    if (!user) return;
+
+    const loadProfile = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('total_sales, sales_badge, frame')
+        .eq('id', user.id)
+        .single();
+
+      if (data) {
+        setTotalSales(data.total_sales || 0);
+        setSalesBadge(data.sales_badge);
+        setFrame(data.frame);
+      }
+    };
+
+    loadProfile();
+  }, [user]);
 
   const isBadgeUnlocked = (level: number) => totalSales >= level;
   const isFrameUnlocked = (minMonths: number) => membershipMonths >= minMonths;
@@ -50,58 +61,79 @@ export default function CreatorEditPage() {
     }
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setPendingAvatar(URL.createObjectURL(file));
-    }
-  };
-
-  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setPendingBanner(URL.createObjectURL(file));
-    }
-  };
-
   const handleSave = async () => {
+    if (!user) return;
+
     setSaving(true);
-    setTimeout(() => {
-      setToast("✅ Modifications enregistrées !");
-      setSaving(false);
-    }, 800);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        sales_badge: salesBadge,
+        frame: frame,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id);
+
+    setSaving(false);
+
+    if (error) {
+      setToast("❌ Erreur lors de l'enregistrement");
+    } else {
+      setToast("✅ Modifications enregistrées avec succès !");
+      setTimeout(() => setToast(null), 3000);
+    }
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-12 pt-20">
       <div className="max-w-6xl mx-auto px-6 pt-4">
         <div className="flex justify-between items-center mb-10">
-          <Link href={`/creators/${slug}`} className="text-zinc-400 hover:text-white flex flex-col text-xs leading-none">
+          <Link href={`/creators/me`} className="text-zinc-400 hover:text-white flex items-center gap-2">
             ← Retour au profil
           </Link>
           <h1 className="text-3xl font-semibold">Mon profil</h1>
           <button 
             onClick={handleSave}
             disabled={saving}
-            className="bg-pink-600 hover:bg-pink-500 px-8 py-3 rounded-3xl font-medium disabled:opacity-70"
+            className="bg-pink-600 hover:bg-pink-500 px-8 py-3 rounded-3xl font-medium disabled:opacity-70 flex items-center gap-2"
           >
+            <Save className="w-5 h-5" />
             {saving ? "Enregistrement..." : "Enregistrer"}
           </button>
         </div>
 
-        {toast && <div className="mb-8 p-4 bg-green-600 rounded-3xl text-center">{toast}</div>}
+        {toast && (
+          <div className="mb-8 p-4 bg-green-600/90 rounded-3xl text-center font-medium">
+            {toast}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Aperçu en direct */}
           <div className="lg:col-span-5">
             <h2 className="text-xl mb-4">Aperçu en direct</h2>
             <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
-              <img src={pendingBanner || banner || "https://picsum.photos/id/1005/1200/400"} alt="Bannière" className="w-full h-full object-cover" />
+              <img 
+                src="https://picsum.photos/id/1015/1200/400" 
+                alt="Bannière" 
+                className="w-full h-full object-cover" 
+              />
               {frame && <div className={`absolute inset-0 rounded-3xl border-4 shimmer-frame ${frame}`} />}
+              
               <div className="absolute bottom-8 left-8 flex items-end gap-6">
                 <div className="relative">
-                  <img src={pendingAvatar || avatar || "https://picsum.photos/id/64/300/300"} alt="Avatar" className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" />
-                  {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-12 h-12 drop-shadow-2xl z-10" />}
+                  <img 
+                    src="https://picsum.photos/id/64/300/300" 
+                    alt="Avatar" 
+                    className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" 
+                  />
+                  {salesBadge && (
+                    <img 
+                      src={`/badges/${salesBadge}.png`} 
+                      className="absolute -top-3 -right-3 w-12 h-12 drop-shadow-2xl z-10" 
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -109,21 +141,6 @@ export default function CreatorEditPage() {
 
           {/* Configuration */}
           <div className="lg:col-span-7 space-y-12">
-            {/* Uploads */}
-            <div>
-              <h2 className="text-xl mb-4">Changer les images</h2>
-              <div className="grid grid-cols-2 gap-6">
-                <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500">
-                  <input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
-                  <span className="text-pink-400">Changer la couverture</span>
-                </label>
-                <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500">
-                  <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
-                  <span className="text-pink-400">Changer la photo</span>
-                </label>
-              </div>
-            </div>
-
             {/* Badges de ventes */}
             <div>
               <h2 className="text-xl mb-4">Badges de ventes</h2>
@@ -176,7 +193,7 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Boutique cosmétiques */}
+            {/* Boutique cosmétiques (à venir) */}
             <div>
               <h2 className="text-xl mb-4">Boutique cosmétiques</h2>
               <div className="bg-zinc-900 rounded-3xl p-8 text-center text-zinc-400">
@@ -196,7 +213,6 @@ export default function CreatorEditPage() {
           animation: shimmer-frame 8s linear infinite; 
           background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.85) 50%, transparent 60%); 
           background-size: 200% 100%; 
-          box-shadow: 0 0 20px -3px currentColor, inset 0 0 20px -3px currentColor; 
         }
         .shimmer-frame.rose { border-color: #f472b6; box-shadow: inset 0 0 40px #f472b6; }
         .shimmer-frame.silver { border-color: #e2e8f0; box-shadow: inset 0 0 40px #e2e8f0; }
