@@ -21,36 +21,27 @@ export default function MessagesPage() {
   const [showEmoji, setShowEmoji] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // Charger les conversations
+  // Charger les conversations simplement
   const loadConversations = async () => {
     if (!user) return;
 
     const { data } = await supabase
       .from('messages')
-      .select(`
-        sender_id, receiver_id, content, created_at,
-        sender:profiles!messages_sender_id_fkey(username, avatar_url, full_name),
-        receiver:profiles!messages_receiver_id_fkey(username, avatar_url, full_name)
-      `)
+      .select('sender_id, receiver_id, content, created_at')
       .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
       .order('created_at', { ascending: false });
 
     const convMap = new Map();
 
-    data?.forEach((msg: any) => {
-      const isMeSender = msg.sender_id === user.id;
-      const otherId = isMeSender ? msg.receiver_id : msg.sender_id;
+    data?.forEach(msg => {
+      const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
       
-      const otherProfile = isMeSender ? msg.receiver?.[0] : msg.sender?.[0];
-
       if (!convMap.has(otherId)) {
         convMap.set(otherId, {
           id: otherId,
-          username: otherProfile?.username || otherProfile?.full_name || 
-                    (otherId === ADMIN_ID ? "Support Admin" : `Utilisateur ${otherId.slice(0,8)}...`),
-          avatar_url: otherProfile?.avatar_url,
+          username: otherId === ADMIN_ID ? "Support Admin" : `Utilisateur ${otherId.slice(0,8)}...`,
+          avatar_url: null,
           lastMessage: msg.content?.length > 45 ? msg.content.substring(0, 42) + '...' : msg.content,
-          lastTime: msg.created_at
         });
       }
     });
@@ -70,7 +61,9 @@ export default function MessagesPage() {
   };
 
   useEffect(() => {
-    if (user) loadConversations();
+    if (user) {
+      loadConversations();
+    }
   }, [user]);
 
   useEffect(() => {
@@ -144,11 +137,9 @@ export default function MessagesPage() {
                   onClick={() => openConversation(conv)}
                   className={`flex gap-4 p-4 rounded-2xl mb-2 cursor-pointer hover:bg-zinc-800 transition-all ${selectedConv?.id === conv.id ? 'bg-zinc-800' : ''}`}
                 >
-                  <img 
-                    src={conv.avatar_url || 'https://picsum.photos/id/64/64'} 
-                    alt={conv.username}
-                    className="w-12 h-12 rounded-full object-cover border border-zinc-700"
-                  />
+                  <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-2xl">
+                    {conv.id === ADMIN_ID ? '👨‍💼' : '👤'}
+                  </div>
                   <div className="flex-1 min-w-0 pt-1">
                     <p className="font-semibold truncate">{conv.username}</p>
                     <p className="text-sm text-zinc-400 truncate">{conv.lastMessage}</p>
@@ -163,24 +154,18 @@ export default function MessagesPage() {
         <div className="flex-1 flex flex-col">
           {selectedConv ? (
             <>
-              <Link 
-                href={`/creators/${selectedConv.id}`}
-                className="p-6 border-b border-zinc-800 bg-zinc-950 flex items-center gap-4 hover:bg-zinc-900 cursor-pointer"
-              >
-                <img 
-                  src={selectedConv.avatar_url || 'https://picsum.photos/id/64/64'} 
-                  alt={selectedConv.username}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
+              <div className="p-6 border-b border-zinc-800 bg-zinc-950 flex items-center gap-4">
+                <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-3xl">
+                  {selectedConv.id === ADMIN_ID ? '👨‍💼' : '👤'}
+                </div>
                 <div>
                   <p className="font-semibold text-lg">{selectedConv.username}</p>
-                  <p className="text-sm text-green-400">En ligne</p>
                 </div>
-              </Link>
+              </div>
 
               <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
                 {messages.length === 0 ? (
-                  <p className="text-center text-zinc-500 mt-20">Aucun message avec cette personne</p>
+                  <p className="text-center text-zinc-500 mt-20">Aucun message</p>
                 ) : (
                   messages.map((msg) => {
                     const isImage = msg.content?.startsWith('[IMAGE]');
@@ -189,11 +174,7 @@ export default function MessagesPage() {
                     return (
                       <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[80%] px-6 py-4 rounded-3xl ${msg.sender_id === user?.id ? 'bg-rose-600 text-white' : 'bg-zinc-800'}`}>
-                          {isImage ? (
-                            <img src={imageUrl} className="max-w-full rounded-2xl" alt="image" />
-                          ) : (
-                            <p>{msg.content}</p>
-                          )}
+                          {isImage ? <img src={imageUrl} className="max-w-full rounded-2xl" /> : <p>{msg.content}</p>}
                         </div>
                       </div>
                     );
