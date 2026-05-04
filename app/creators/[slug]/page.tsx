@@ -2,9 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Award, Star } from 'lucide-react';
-import Header from '@/components/Header';           // ← Import ajouté
+import { Star } from 'lucide-react';
 import StoryCard from '@/components/StoryCard';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -56,7 +54,6 @@ export default function CreatorProfile() {
         .select('*')
         .eq('creator_id', creatorData.id)
         .order('created_at', { ascending: false });
-
       setProducts(productsData || []);
 
       // Avis approuvés
@@ -70,6 +67,7 @@ export default function CreatorProfile() {
 
       setApprovedReviews(reviewsData || []);
     } catch (err) {
+      console.error(err);
       setError('Erreur lors du chargement');
     } finally {
       setLoading(false);
@@ -80,12 +78,12 @@ export default function CreatorProfile() {
     if (slug && slug !== 'me') fetchCreatorData();
   }, [slug]);
 
-  if (loading) return <div className="min-h-screen bg-zinc-950 pt-32 text-center">Chargement du profil...</div>;
+  if (loading) return <div className="min-h-screen bg-zinc-950 pt-32 text-center">Chargement...</div>;
   if (error || !creator) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-red-400">{error}</div>;
 
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
-      <Header />
+      {/* Pas de <Header /> ici → il est déjà dans le layout */}
 
       {/* Bannière */}
       <div className="h-80 relative">
@@ -107,10 +105,8 @@ export default function CreatorProfile() {
                 className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
               />
 
-              {creator.frame && (
-                <div className={`absolute inset-0 rounded-3xl border-4 shimmer-frame ${creator.frame}`} />
-              )}
-
+              {creator.frame && <div className={`absolute inset-0 rounded-3xl border-4 shimmer-frame ${creator.frame}`} />}
+              
               {creator.sales_badge && (
                 <img 
                   src={`/badges/${creator.sales_badge}.png`} 
@@ -123,7 +119,9 @@ export default function CreatorProfile() {
 
           <div className="pt-6 flex-1">
             <h1 className="text-4xl font-bold">{creator.username}</h1>
-            <p className="text-zinc-400 mt-2 leading-relaxed">{creator.bio || "Aucune biographie pour le moment."}</p>
+            <p className="text-zinc-400 mt-2 leading-relaxed">
+              {creator.bio || "Passionnée de lingerie portée et d'histoires intimes."}
+            </p>
           </div>
         </div>
 
@@ -131,16 +129,21 @@ export default function CreatorProfile() {
         <div className="mt-16">
           <h2 className="text-3xl font-light mb-8">Sa boutique ({products.length} pièces)</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.map(p => (
-              <StoryCard key={p.id} {...p} creator={creator.username} creatorSlug={slug} />
-            ))}
+            {products.length > 0 ? (
+              products.map(p => (
+                <StoryCard key={p.id} {...p} creator={creator.username} creatorSlug={slug} />
+              ))
+            ) : (
+              <p className="text-zinc-500">Aucune pièce mise en ligne pour le moment.</p>
+            )}
           </div>
         </div>
 
         {/* Avis approuvés */}
-        {approvedReviews.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-3xl font-light mb-8">Avis clients ({approvedReviews.length})</h2>
+        <div className="mt-16">
+          <h2 className="text-3xl font-light mb-8">Avis clients ({approvedReviews.length})</h2>
+          
+          {approvedReviews.length > 0 ? (
             <div className="space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-zinc-700">
               {approvedReviews.map(review => (
                 <div key={review.id} className="bg-zinc-900 rounded-2xl p-6">
@@ -154,8 +157,10 @@ export default function CreatorProfile() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <p className="text-zinc-500 italic">Aucun avis approuvé pour le moment.</p>
+          )}
+        </div>
       </div>
 
       <style jsx>{`
