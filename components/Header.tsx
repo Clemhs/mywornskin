@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User, LogOut, Plus, MessageCircle, ShoppingCart } from 'lucide-react';
+import { User, LogOut, MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
@@ -14,12 +14,14 @@ export default function Header() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isCreator, setIsCreator] = useState(false);
   const [cartCount, setCartCount] = useState(0);
 
-  // Récupération du nombre de messages non lus
+  // Récupération des messages non lus + realtime
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setUnreadCount(0);
+      return;
+    }
 
     const fetchUnread = async () => {
       const { count } = await supabase
@@ -33,16 +35,24 @@ export default function Header() {
 
     fetchUnread();
 
-    // Realtime
+    // Realtime subscription
     const channel = supabase
       .channel('unread-messages')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, 
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'messages', 
+          filter: `receiver_id=eq.${user.id}` 
+        }, 
         fetchUnread
       )
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   // Simulation panier
@@ -73,10 +83,10 @@ export default function Header() {
           {isLoggedIn && user ? (
             <>
               {/* Messages avec notification rouge */}
-              <Link href="/messages" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
+              <Link href="/messages" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all group">
                 <MessageCircle className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <div className="absolute top-1 right-1 w-5 h-5 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </div>
                 )}
@@ -86,13 +96,13 @@ export default function Header() {
               <Link href="/cart" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
                 <ShoppingCart className="w-5 h-5" />
                 {cartCount > 0 && (
-                  <div className="absolute top-1 right-1 w-5 h-5 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
                     {cartCount}
                   </div>
                 )}
               </Link>
 
-              {/* Menu utilisateur */}
+              {/* Menu profil */}
               <div className="relative">
                 <button 
                   onClick={() => setMenuOpen(!menuOpen)}
@@ -107,7 +117,7 @@ export default function Header() {
 
                 {menuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-[100]">
-                    <Link href="/creators/me" className="block px-6 py-3 hover:bg-zinc-800">👤 Mon Profil Créatrice</Link>
+                    <Link href="/creators/me" className="block px-6 py-3 hover:bg-zinc-800">👤 Mon Profil</Link>
                     <Link href="/creators/me/edit" className="block px-6 py-3 hover:bg-zinc-800">✏️ Éditer mon profil</Link>
                     <Link href="/messages" className="block px-6 py-3 hover:bg-zinc-800">💬 Messages</Link>
                     
