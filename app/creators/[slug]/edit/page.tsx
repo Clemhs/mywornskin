@@ -216,38 +216,33 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Commentaires à valider */}
-            <div>
-              <h2 className="text-xl mb-4">Commentaires à valider ({pendingReviews.length})</h2>
-              <div className="space-y-4">
-                {pendingReviews.length === 0 ? (
-                  <p className="text-zinc-500 italic p-4 bg-zinc-900 rounded-2xl">Aucun commentaire en attente.</p>
-                ) : (
-                  pendingReviews.map(review => (
-                    <div key={review.id} className="bg-zinc-900 rounded-2xl p-5 border border-zinc-700">
-                      <p className="italic text-sm">"{review.comment}"</p>
-                      <p className="text-xs text-zinc-500 mt-2">— {review.reviewer_name || 'Client anonyme'}</p>
-                      <div className="flex gap-3 mt-4">
-                        <button 
-                          onClick={() => handleModerateReview(review.id, 'approved')}
-                          className="flex-1 bg-green-600 hover:bg-green-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2"
-                        >
-                          <Check size={16} /> Valider
-                        </button>
-                        <button 
-                          onClick={() => handleModerateReview(review.id, 'rejected')}
-                          className="flex-1 bg-red-600 hover:bg-red-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2"
-                        >
-                          <X size={16} /> Rejeter
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+           {/* Commentaires à valider - Version debug */}
+<div>
+  <h2 className="text-xl mb-4">Commentaires à valider (Debug)</h2>
+  <div className="space-y-4">
+    {pendingReviews.length === 0 ? (
+      <p className="text-zinc-500 italic p-4 bg-zinc-900 rounded-2xl">
+        Aucun commentaire en attente.<br />
+        <span className="text-xs">Vérifie que les données existent dans la table reviews.</span>
+      </p>
+    ) : (
+      pendingReviews.map(review => (
+        <div key={review.id} className="bg-zinc-900 rounded-2xl p-5 border border-zinc-700">
+          <p className="italic text-sm">"{review.comment}"</p>
+          <p className="text-xs text-zinc-500 mt-2">— {review.reviewer_name || 'Client anonyme'}</p>
+          <div className="flex gap-3 mt-4">
+            <button onClick={() => handleModerateReview(review.id, 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
+              <Check size={16} /> Valider
+            </button>
+            <button onClick={() => handleModerateReview(review.id, 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
+              <X size={16} /> Rejeter
+            </button>
           </div>
-
+        </div>
+      ))
+    )}
+  </div>
+</div>
           {/* ===================== COLONNE DROITE ===================== */}
           <div className="lg:col-span-7 space-y-12">
             {/* Upload Images */}
