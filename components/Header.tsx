@@ -5,61 +5,14 @@ import { usePathname } from 'next/navigation';
 import { MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { createClient } from '@/lib/supabase/client';
 
 export default function Header() {
   const pathname = usePathname();
   const { user, isLoggedIn, logout } = useAuth();
-  const supabase = createClient();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
-  const [avatarUrl, setAvatarUrl] = useState("/default-avatar.png");
-
-  // Charger l'avatar depuis la table profiles
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchProfile = async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('avatar_url')
-        .eq('id', user.id)
-        .single();
-
-      if (data?.avatar_url) {
-        setAvatarUrl(data.avatar_url);
-      } else if (user.user_metadata?.avatar_url) {
-        setAvatarUrl(user.user_metadata.avatar_url);
-      }
-    };
-
-    fetchProfile();
-  }, [user]);
-
-  // Messages non lus
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchUnread = async () => {
-      const { count } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('receiver_id', user.id)
-        .eq('is_read', false);
-      setUnreadCount(count || 0);
-    };
-
-    fetchUnread();
-
-    const channel = supabase
-      .channel('unread')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, fetchUnread)
-      .subscribe();
-
-    return () => supabase.removeChannel(channel);
-  }, [user]);
 
   // Panier
   useEffect(() => {
@@ -72,6 +25,7 @@ export default function Header() {
     setMenuOpen(false);
   };
 
+  // Fermer le menu en changeant de page
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
@@ -84,8 +38,8 @@ export default function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-10 text-sm font-medium">
-          <Link href="/shop" className="hover:text-rose-400">Boutique</Link>
-          <Link href="/creators" className="hover:text-rose-400">Créatrices</Link>
+          <Link href="/shop" className="hover:text-rose-400 transition-colors">Boutique</Link>
+          <Link href="/creators" className="hover:text-rose-400 transition-colors">Créatrices</Link>
         </nav>
 
         <div className="flex items-center gap-4">
@@ -115,7 +69,7 @@ export default function Header() {
                   className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
                 >
                   <img 
-                    src={avatarUrl} 
+                    src={user.user_metadata?.avatar_url || "https://picsum.photos/id/64/128/128"} 
                     alt="Profil" 
                     className="w-full h-full object-cover"
                   />
