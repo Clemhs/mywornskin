@@ -30,8 +30,10 @@ export default function MessagesPage() {
     setLoading(false);
   };
 
+  // Realtime + initial load
   useEffect(() => {
     if (!user) return;
+
     loadMessages();
 
     const channel = supabase
@@ -39,20 +41,25 @@ export default function MessagesPage() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, loadMessages)
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
+  // Auto scroll
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !user) return;
+
     await supabase.from('messages').insert({
       sender_id: user.id,
       receiver_id: ADMIN_ID,
       message: newMessage.trim()
     });
+
     setNewMessage('');
     setShowEmoji(false);
   };
@@ -60,7 +67,7 @@ export default function MessagesPage() {
   const addEmoji = (emoji: string) => setNewMessage(prev => prev + emoji);
 
   const sendImage = () => {
-    alert("📸 Envoi de photo bientôt disponible (upload vers Supabase Storage)");
+    alert("📸 Fonction d'envoi de photo bientôt disponible");
   };
 
   return (
@@ -84,7 +91,7 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          {/* Chat */}
+          {/* Chat Area */}
           <div className="flex-1 flex flex-col">
             <div className="p-6 border-b border-zinc-800 flex items-center gap-4 bg-zinc-950">
               <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-3xl">👨‍💼</div>
@@ -95,7 +102,9 @@ export default function MessagesPage() {
             </div>
 
             <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
-              {messages.length === 0 ? (
+              {loading ? (
+                <p className="text-center text-zinc-500 mt-20">Chargement...</p>
+              ) : messages.length === 0 ? (
                 <p className="text-center text-zinc-500 mt-20">Aucun message pour le moment.<br />Écris-nous !</p>
               ) : (
                 messages.map((msg) => (
@@ -108,6 +117,7 @@ export default function MessagesPage() {
               )}
             </div>
 
+            {/* Input */}
             <div className="p-5 border-t border-zinc-800 bg-zinc-900">
               <div className="flex gap-3 items-center">
                 <label className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer" onClick={sendImage}>
@@ -126,7 +136,11 @@ export default function MessagesPage() {
                   className="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 focus:outline-none focus:border-rose-500"
                 />
 
-                <button onClick={sendMessage} disabled={!newMessage.trim()} className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl">
+                <button 
+                  onClick={sendMessage}
+                  disabled={!newMessage.trim()}
+                  className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl"
+                >
                   <Send className="w-5 h-5" />
                 </button>
               </div>
