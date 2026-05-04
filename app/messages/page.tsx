@@ -48,19 +48,21 @@ export default function MessagesPage() {
       message: newMessage.trim()
     });
 
-    setNewMessage('');
+    setNewMessage('');        // Vide le champ
     setShowEmoji(false);
-    loadMessages(); // Rafraîchit immédiatement
+    loadMessages();           // Rafraîchit la conversation
   };
 
   const addEmoji = (emoji: string) => {
     setNewMessage(prev => prev + emoji);
   };
 
-  const sendImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      alert(`📸 Photo sélectionnée : ${file.name}\n\n(Upload réel bientôt disponible)`);
+      alert(`📸 Photo sélectionnée : ${file.name}\n\nL'upload réel sera disponible bientôt.`);
+      // Reset input
+      e.target.value = '';
     }
   };
 
@@ -113,7 +115,7 @@ export default function MessagesPage() {
               <div className="flex gap-3 items-center">
                 {/* Photo */}
                 <label className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer">
-                  <input type="file" accept="image/*" className="hidden" onChange={sendImage} />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
                   <ImageIcon className="w-6 h-6" />
                 </label>
 
@@ -143,7 +145,7 @@ export default function MessagesPage() {
                 </button>
               </div>
 
-              {/* Emojis Panel */}
+              {/* Panneau emojis */}
               {showEmoji && (
                 <div className="mt-3 bg-zinc-800 border border-zinc-700 rounded-3xl p-4 grid grid-cols-6 gap-3">
                   {commonEmojis.map((emoji, i) => (
