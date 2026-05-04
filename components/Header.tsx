@@ -17,7 +17,6 @@ export default function Header() {
   const [avatarUrl, setAvatarUrl] = useState<string>('/default-avatar.png');
   const [isCreator, setIsCreator] = useState(false);
 
-  // Charger photo de profil + nombre de messages non lus
   useEffect(() => {
     if (!user) return;
 
@@ -29,9 +28,7 @@ export default function Header() {
         .eq('id', user.id)
         .single();
 
-      if (profile?.avatar_url) {
-        setAvatarUrl(profile.avatar_url);
-      }
+      if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
 
       // Vérifier si c'est une créatrice
       const { data: creator } = await supabase
@@ -45,31 +42,19 @@ export default function Header() {
 
     fetchUserData();
 
-    // Messages non lus en temps réel
+    // Messages non lus
     const fetchUnread = async () => {
       const { count } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .eq('receiver_id', user.id)
-        .eq('is_read', false);  // si tu as la colonne is_read
+        .is('is_read', false); // ou .eq('is_read', false) selon ta colonne
 
       setUnreadCount(count || 0);
     };
 
     fetchUnread();
 
-    // Realtime
-    const channel = supabase
-      .channel('unread-messages')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, 
-        fetchUnread
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [user]);
 
   const handleLogout = async () => {
@@ -93,26 +78,24 @@ export default function Header() {
         <div className="flex items-center gap-4">
           {user ? (
             <>
-              {/* Messages avec notification */}
               <Link href="/messages" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
                 <MessageCircle className="w-6 h-6" />
                 {unreadCount > 0 && (
-                  <div className="absolute top-1 right-1 w-5 h-5 bg-rose-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-rose-600 text-[10px] font-bold rounded-full flex items-center justify-center">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </div>
                 )}
               </Link>
 
-              {/* Panier */}
-              <Link href="/cart" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
+              <Link href="/cart" className="p-3 hover:bg-zinc-900 rounded-2xl transition-all">
                 <ShoppingCart className="w-6 h-6" />
               </Link>
 
-              {/* Menu profil */}
+              {/* Menu Profil */}
               <div className="relative">
                 <button 
                   onClick={() => setMenuOpen(!menuOpen)}
-                  className="w-10 h-10 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
+                  className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
                 >
                   <img 
                     src={avatarUrl} 
@@ -122,20 +105,18 @@ export default function Header() {
                 </button>
 
                 {menuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-50">
-                    <Link href="/profile" className="block px-6 py-3 hover:bg-zinc-800" onClick={() => setMenuOpen(false)}>
-                      👤 Mon Profil
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-50 overflow-hidden">
+                    <Link 
+                      href={isCreator ? "/creators/me/edit" : "/profile"} 
+                      className="block px-6 py-3 hover:bg-zinc-800 flex items-center gap-3"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      👤 {isCreator ? "Éditer mon profil créatrice" : "Mon Profil"}
                     </Link>
-                    
-                    {isCreator && (
-                      <Link href="/creators/me/edit" className="block px-6 py-3 hover:bg-zinc-800" onClick={() => setMenuOpen(false)}>
-                        ✏️ Éditer mon profil créatrice
-                      </Link>
-                    )}
 
                     <button 
                       onClick={handleLogout} 
-                      className="w-full text-left px-6 py-3 text-red-400 hover:bg-zinc-800"
+                      className="w-full text-left px-6 py-3 text-red-400 hover:bg-zinc-800 flex items-center gap-3"
                     >
                       Se déconnecter
                     </button>
