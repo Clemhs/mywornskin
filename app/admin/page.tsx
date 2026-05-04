@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Check, X, MessageCircle, Image as ImageIcon, AlertTriangle, Send, Clock } from 'lucide-react';
+import { Check, X, MessageCircle, Image as ImageIcon, AlertTriangle, Send, Clock, AlertCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function AdminPage() {
@@ -63,13 +63,13 @@ export default function AdminPage() {
     loadData();
   };
 
-  // Forcer la publication d'un commentaire
+  // Forcer la publication
   const forcePublishReview = async (reviewId: string) => {
     await supabase.from('reviews').update({ status: 'approved' }).eq('id', reviewId);
     loadData();
   };
 
-  // Envoyer un message à la créatrice
+  // Envoyer message à la créatrice
   const sendAdminMessage = async () => {
     if (!selectedReview || !adminReply.trim()) return;
 
@@ -91,30 +91,39 @@ export default function AdminPage() {
 
         {/* Onglets */}
         <div className="flex border-b border-zinc-800 mb-10">
-          <button onClick={() => setActiveTab('photos')} className={`px-10 py-4 font-medium flex items-center gap-3 transition-all ${activeTab === 'photos' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+          <button 
+            onClick={() => setActiveTab('photos')} 
+            className={`px-10 py-4 font-medium flex items-center gap-3 transition-all ${activeTab === 'photos' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+          >
             <ImageIcon size={22} /> Photos en attente
           </button>
-          <button onClick={() => setActiveTab('reviews')} className={`px-10 py-4 font-medium flex items-center gap-3 transition-all ${activeTab === 'reviews' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+          <button 
+            onClick={() => setActiveTab('reviews')} 
+            className={`px-10 py-4 font-medium flex items-center gap-3 transition-all ${activeTab === 'reviews' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+          >
             <AlertTriangle size={22} /> Commentaires refusés
           </button>
-          <button onClick={() => setActiveTab('messages')} className={`px-10 py-4 font-medium flex items-center gap-3 transition-all ${activeTab === 'messages' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
-            <MessageCircle size={22} /> Messages Admin
+          <button 
+            onClick={() => setActiveTab('messages')} 
+            className={`px-10 py-4 font-medium flex items-center gap-3 transition-all ${activeTab === 'messages' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+          >
+            <MessageCircle size={22} /> Messages
           </button>
         </div>
 
-        {/* PHOTOS EN ATTENTE */}
+        {/* PHOTOS */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
-              <p className="text-zinc-500 text-lg">Aucune photo en attente.</p>
+              <p className="text-zinc-500">Aucune photo en attente de validation.</p>
             ) : (
               pendingPhotos.map(p => (
                 <div key={p.id} className="bg-zinc-900 rounded-3xl p-8">
                   <h3 className="font-semibold text-xl mb-6">{p.username}</h3>
 
                   {p.avatar_pending_url && (
-                    <div className="mb-10">
-                      <p className="text-pink-400 mb-3 flex items-center gap-2"><Clock size={18} /> Photo de profil</p>
+                    <div className="mb-12">
+                      <p className="text-pink-400 mb-3">Photo de profil</p>
                       <img src={p.avatar_pending_url} className="w-48 h-48 rounded-2xl object-cover mb-6" />
                       <div className="flex gap-4">
                         <button onClick={() => handlePhotoAction(p.id, 'avatar', 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl">✅ Valider</button>
@@ -125,7 +134,7 @@ export default function AdminPage() {
 
                   {p.banner_pending_url && (
                     <div>
-                      <p className="text-pink-400 mb-3 flex items-center gap-2"><Clock size={18} /> Photo de couverture</p>
+                      <p className="text-pink-400 mb-3">Photo de couverture</p>
                       <img src={p.banner_pending_url} className="w-full h-64 object-cover rounded-2xl mb-6" />
                       <div className="flex gap-4">
                         <button onClick={() => handlePhotoAction(p.id, 'banner', 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl">✅ Valider</button>
@@ -143,16 +152,19 @@ export default function AdminPage() {
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             {refusedReviews.length === 0 ? (
-              <p className="text-zinc-500 text-lg">Aucun commentaire refusé pour le moment.</p>
+              <p className="text-zinc-500">Aucun commentaire refusé pour le moment.</p>
             ) : (
               refusedReviews.map(review => (
                 <div key={review.id} className="bg-zinc-900 rounded-3xl p-8">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-medium">{review.profiles?.username}</p>
+                      <p className="font-medium text-lg">{review.profiles?.username}</p>
                       <p className="text-sm text-zinc-500">Commentaire refusé par la créatrice</p>
                     </div>
-                    <button onClick={() => forcePublishReview(review.id)} className="bg-green-600 hover:bg-green-500 px-6 py-2 rounded-2xl text-sm">
+                    <button 
+                      onClick={() => forcePublishReview(review.id)}
+                      className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-2xl text-sm"
+                    >
                       Forcer la publication
                     </button>
                   </div>
@@ -163,7 +175,7 @@ export default function AdminPage() {
                     onClick={() => setSelectedReview(review)}
                     className="mt-6 text-pink-400 hover:text-pink-300 flex items-center gap-2"
                   >
-                    <MessageCircle /> Répondre à la créatrice
+                    <MessageCircle size={20} /> Répondre à la créatrice
                   </button>
                 </div>
               ))
@@ -171,15 +183,15 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MODAL MESSAGE */}
+        {/* MODAL POUR ENVOYER UN MESSAGE */}
         {selectedReview && (
           <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
             <div className="bg-zinc-900 rounded-3xl p-8 w-full max-w-lg">
-              <h3 className="text-xl mb-4">Message pour {selectedReview.profiles?.username}</h3>
+              <h3 className="text-xl mb-6">Message pour {selectedReview.profiles?.username}</h3>
               <textarea
                 value={adminReply}
                 onChange={(e) => setAdminReply(e.target.value)}
-                className="w-full h-40 bg-zinc-800 rounded-2xl p-4 mb-6"
+                className="w-full h-40 bg-zinc-800 rounded-2xl p-4 mb-6 text-white"
                 placeholder="Pourquoi as-tu refusé ce commentaire ?"
               />
               <div className="flex gap-4">
