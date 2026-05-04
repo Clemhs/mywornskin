@@ -1,131 +1,116 @@
 'use client';
 
 import Link from 'next/link';
-import { Camera, CheckCircle, XCircle, Shield, Clock } from 'lucide-react';
+import { Camera, Shield, Clock } from 'lucide-react';
 
 export default function GuidelinesPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-24">
-      <div className="max-w-4xl mx-auto px-6">
+      <div className="max-w-3xl mx-auto px-6">
         <Link href="/" className="inline-flex items-center gap-2 text-pink-400 hover:text-pink-300 mb-12 transition-colors">
           ← Retour à l’accueil
         </Link>
 
         <div className="text-center mb-16">
-          <h1 className="text-6xl font-bold tracking-tighter mb-4">Règles de validation</h1>
-          <p className="text-2xl text-zinc-400 max-w-2xl mx-auto">
+          <h1 className="text-5xl font-light tracking-tight mb-4">Règles de validation</h1>
+          <p className="text-zinc-400 text-lg max-w-md mx-auto">
             Pour une expérience élégante, authentique et respectueuse
           </p>
         </div>
 
-        <div className="space-y-20">
-          {/* Photos de profil & couverture */}
+        <div className="space-y-16">
+          {/* Profil & Couverture */}
           <section>
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 bg-pink-500/10 rounded-2xl flex items-center justify-center">
-                <Camera className="w-7 h-7 text-pink-400" />
-              </div>
-              <h2 className="text-4xl font-semibold">Photos de profil & couverture</h2>
+            <div className="flex items-center gap-4 mb-6">
+              <Camera className="w-6 h-6 text-pink-400" />
+              <h2 className="text-3xl font-light">Photos de profil & couverture</h2>
             </div>
+            <p className="text-zinc-400 leading-relaxed mb-8">
+              Ces photos sont moins strictes. Vous pouvez choisir de ne pas montrer votre visage.
+            </p>
 
             <div className="grid md:grid-cols-2 gap-8">
-              <div className="bg-zinc-900/70 border border-zinc-800 rounded-3xl p-10">
-                <div className="flex items-center gap-3 text-emerald-400 mb-6">
-                  <CheckCircle className="w-8 h-8" />
-                  <h3 className="text-2xl font-medium">Ce qui est accepté</h3>
-                </div>
-                <ul className="space-y-4 text-zinc-300">
-                  <li className="flex gap-3">• Visage caché ou partiellement visible</li>
-                  <li className="flex gap-3">• Photos artistiques, sensuelles et élégantes</li>
-                  <li className="flex gap-3">• Bonne qualité et éclairage correct</li>
-                  <li className="flex gap-3">• Tenue intime portée</li>
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8">
+                <p className="text-emerald-400 font-medium mb-4">✓ Autorisé</p>
+                <ul className="space-y-3 text-sm text-zinc-400">
+                  <li>• Visage caché ou partiellement visible</li>
+                  <li>• Photos artistiques et sensuelles</li>
+                  <li>• Bonne qualité et éclairage correct</li>
                 </ul>
               </div>
 
-              <div className="bg-zinc-900/70 border border-zinc-800 rounded-3xl p-10">
-                <div className="flex items-center gap-3 text-red-400 mb-6">
-                  <XCircle className="w-8 h-8" />
-                  <h3 className="text-2xl font-medium">Ce qui est refusé</h3>
-                </div>
-                <ul className="space-y-4 text-zinc-300">
-                  <li className="flex gap-3">• Photos floues ou de très mauvaise qualité</li>
-                  <li className="flex gap-3">• Contenu sexuel explicite (seins nus, parties génitales)</li>
-                  <li className="flex gap-3">• Photos trop sombres ou mal cadrées</li>
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8">
+                <p className="text-red-400 font-medium mb-4">✕ Interdit</p>
+                <ul className="space-y-3 text-sm text-zinc-400">
+                  <li>• Photos floues ou de très mauvaise qualité</li>
+                  <li>• Contenu sexuel explicite</li>
                 </ul>
               </div>
             </div>
           </section>
 
-          {/* Photos des produits (WornByMe) */}
+          {/* Photos Produits */}
           <section>
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center">
-                <Shield className="w-7 h-7 text-emerald-400" />
-              </div>
-              <h2 className="text-4xl font-semibold">Photos des produits en vente</h2>
+            <div className="flex items-center gap-4 mb-6">
+              <Shield className="w-6 h-6 text-pink-400" />
+              <h2 className="text-3xl font-light">Photos des produits en vente</h2>
             </div>
-            <p className="text-zinc-400 mb-10 text-lg">Ces photos sont plus strictes car elles sont vendues avec une histoire intime.</p>
+            <p className="text-zinc-400 leading-relaxed mb-8">
+              Ces photos doivent refléter l’authenticité du vêtement porté.
+            </p>
 
             <div className="grid md:grid-cols-2 gap-8">
-              <div className="bg-zinc-900/70 border border-zinc-800 rounded-3xl p-10">
-                <div className="flex items-center gap-3 text-emerald-400 mb-6">
-                  <CheckCircle className="w-8 h-8" />
-                  <h3 className="text-2xl font-medium">Recommandé</h3>
-                </div>
-                <ul className="space-y-4 text-zinc-300">
-                  <li className="flex gap-3">• Vêtement réellement porté sur vous</li>
-                  <li className="flex gap-3">• Visage visible de préférence</li>
-                  <li className="flex gap-3">• Plusieurs angles et bonne luminosité</li>
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8">
+                <p className="text-emerald-400 font-medium mb-4">✓ Recommandé</p>
+                <ul className="space-y-3 text-sm text-zinc-400">
+                  <li>• Vêtement réellement porté sur vous</li>
+                  <li>• Visage visible de préférence</li>
+                  <li>• Bonne luminosité et plusieurs angles</li>
                 </ul>
               </div>
 
-              <div className="bg-zinc-900/70 border border-zinc-800 rounded-3xl p-10">
-                <div className="flex items-center gap-3 text-red-400 mb-6">
-                  <XCircle className="w-8 h-8" />
-                  <h3 className="text-2xl font-medium">Interdit</h3>
-                </div>
-                <ul className="space-y-4 text-zinc-300">
-                  <li className="flex gap-3">• Vêtement sur cintre ou mannequin</li>
-                  <li className="flex gap-3">• Contenu sexuel explicite</li>
-                  <li className="flex gap-3">• Photos de mauvaise qualité</li>
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8">
+                <p className="text-red-400 font-medium mb-4">✕ Interdit</p>
+                <ul className="space-y-3 text-sm text-zinc-400">
+                  <li>• Vêtement sur cintre ou mannequin</li>
+                  <li>• Contenu sexuel explicite</li>
+                  <li>• Photos de mauvaise qualité</li>
                 </ul>
               </div>
             </div>
           </section>
 
-          {/* Option sans visage */}
-          <section className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-700 rounded-3xl p-12">
-            <div className="flex items-center gap-4 mb-8">
-              <Clock className="w-9 h-9 text-pink-400" />
-              <h3 className="text-3xl font-semibold">Option “Sans montrer mon visage”</h3>
+          {/* Sans visage */}
+          <section className="bg-zinc-900/70 border border-zinc-700 rounded-3xl p-10">
+            <div className="flex items-center gap-4 mb-6">
+              <Clock className="w-6 h-6 text-pink-400" />
+              <h3 className="text-2xl font-light">Option “Sans montrer mon visage”</h3>
             </div>
-            <p className="text-zinc-400 text-lg leading-relaxed max-w-3xl">
+            <p className="text-zinc-400 leading-relaxed">
               Vous pouvez cacher votre visage. Dans ce cas, nous demandons des preuves supplémentaires 
-              pour confirmer que le vêtement a bien été porté par vous.
+              pour confirmer l’authenticité du port du vêtement.
             </p>
-            <ul className="mt-8 grid md:grid-cols-2 gap-4 text-zinc-300">
-              <li className="flex gap-3 items-start">• Plusieurs photos sous différents angles</li>
-              <li className="flex gap-3 items-start">• Signes distinctifs (tatouage, piercing, bijou…)</li>
-              <li className="flex gap-3 items-start">• Photo avec un papier daté + votre pseudo</li>
-              <li className="flex gap-3 items-start">• Vidéo courte (fortement recommandée)</li>
+            <ul className="mt-8 grid md:grid-cols-2 gap-y-3 text-sm text-zinc-400">
+              <li>• Plusieurs photos sous différents angles</li>
+              <li>• Signes distinctifs visibles (tatouage, piercing, bijou...)</li>
+              <li>• Photo avec un papier daté + votre pseudo</li>
+              <li>• Vidéo courte (fortement appréciée)</li>
             </ul>
-            <p className="text-pink-400 mt-10 text-sm">La validation peut prendre 24 à 48h dans ce cas.</p>
+            <p className="text-pink-400 text-sm mt-8">La validation peut prendre un peu plus de temps dans ce cas.</p>
           </section>
 
-          {/* Règle générale */}
-          <div className="bg-red-950/30 border border-red-500/30 rounded-3xl p-12 text-center">
-            <h3 className="text-2xl font-semibold text-red-400 mb-6">Règle absolue du site</h3>
-            <p className="text-xl text-red-300 max-w-2xl mx-auto">
-              Aucune photo à caractère sexuel explicite n’est autorisée.<br />
-              Pas de tétons, pas de parties intimes visibles, même partiellement.
+          {/* Règle absolue */}
+          <div className="border border-red-500/30 bg-red-950/20 rounded-3xl p-10 text-center">
+            <p className="text-red-400 font-medium text-lg">
+              Aucune photo à caractère sexuel explicite n’est autorisée sur le site.
             </p>
-            <p className="text-zinc-400 mt-8">Le site doit rester élégant et accessible à tous.</p>
+            <p className="text-zinc-400 mt-3">Pas de tétons, pas de parties intimes visibles. L’élégance reste notre priorité.</p>
           </div>
         </div>
 
-        <div className="mt-20 text-center text-zinc-500">
-          Toute photo refusée peut être renvoyée après modification.<br />
-          L’équipe MyWornSkin valide chaque demande manuellement avec soin.
+        <div className="mt-20 text-center text-sm text-zinc-500">
+          Toute photo refusée peut être renvoyée après correction.<br />
+          L’équipe MyWornSkin valide chaque demande avec soin.
         </div>
       </div>
     </div>
