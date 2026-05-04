@@ -42,15 +42,24 @@ export default function MessagesPage() {
   const sendMessage = async () => {
     if (!newMessage.trim() || !user) return;
 
+    const messageText = newMessage.trim();
+
     await supabase.from('messages').insert({
       sender_id: user.id,
       receiver_id: ADMIN_ID,
-      message: newMessage.trim()
+      message: messageText
     });
 
-    setNewMessage('');        // Vide le champ
+    // Ajoute immédiatement le message localement (pour meilleure UX)
+    setMessages(prev => [...prev, {
+      id: Date.now(),
+      sender_id: user.id,
+      message: messageText,
+      created_at: new Date().toISOString()
+    }]);
+
+    setNewMessage('');
     setShowEmoji(false);
-    loadMessages();           // Rafraîchit la conversation
   };
 
   const addEmoji = (emoji: string) => {
@@ -61,8 +70,7 @@ export default function MessagesPage() {
     const file = e.target.files?.[0];
     if (file) {
       alert(`📸 Photo sélectionnée : ${file.name}\n\nL'upload réel sera disponible bientôt.`);
-      // Reset input
-      e.target.value = '';
+      e.target.value = ''; // Reset input
     }
   };
 
@@ -113,17 +121,12 @@ export default function MessagesPage() {
 
             <div className="p-5 border-t border-zinc-800 bg-zinc-900">
               <div className="flex gap-3 items-center">
-                {/* Photo */}
                 <label className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer">
                   <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
                   <ImageIcon className="w-6 h-6" />
                 </label>
 
-                {/* Emoji */}
-                <button 
-                  onClick={() => setShowEmoji(!showEmoji)} 
-                  className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer"
-                >
+                <button onClick={() => setShowEmoji(!showEmoji)} className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer">
                   <Smile className="w-6 h-6" />
                 </button>
 
@@ -145,7 +148,6 @@ export default function MessagesPage() {
                 </button>
               </div>
 
-              {/* Panneau emojis */}
               {showEmoji && (
                 <div className="mt-3 bg-zinc-800 border border-zinc-700 rounded-3xl p-4 grid grid-cols-6 gap-3">
                   {commonEmojis.map((emoji, i) => (
