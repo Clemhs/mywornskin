@@ -5,18 +5,40 @@ import { usePathname } from 'next/navigation';
 import { User, LogOut, Plus, MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { createClient } from '@/lib/supabase/client';
 
 export default function Header() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState<string>("https://picsum.photos/id/64/300/300");
 
   const { user, isLoggedIn, logout, loading } = useAuth();
+  const supabase = createClient();
 
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     setCartCount(cart.length);
   }, []);
+
+  // Chargement de l'avatar depuis la table profiles
+  useEffect(() => {
+    const loadAvatar = async () => {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .single();
+
+      if (data?.avatar_url) {
+        setAvatarUrl(data.avatar_url);
+      }
+    };
+
+    loadAvatar();
+  }, [user]);
 
   const handleLogout = async () => {
     await logout();
@@ -26,11 +48,6 @@ export default function Header() {
   const username = user?.user_metadata?.username || '';
   const isCreator = username.toLowerCase().includes('creator') || false;
   const profileSlug = username ? username.replace(/\s+/g, '') : 'me';
-
-  // Photo de profil dynamique
-  const avatarUrl = user?.user_metadata?.avatar_url || 
-                   user?.user_metadata?.picture || 
-                   "https://picsum.photos/id/64/300/300";
 
   if (loading) {
     return <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800 h-20" />;
