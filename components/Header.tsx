@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { User, LogOut, Plus, MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
+import Image from 'next/image';
 
 export default function Header() {
   const pathname = usePathname();
@@ -27,10 +28,9 @@ export default function Header() {
   const isCreator = username.toLowerCase().includes('creator') || false;
   const profileSlug = username ? username.replace(/\s+/g, '') : 'me';
 
-  // Ferme le menu quand on change de page
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
+  // Photo de profil dynamique
+  const avatarUrl = user?.user_metadata?.avatar_url || 
+                   (user ? `https://picsum.photos/id/64/300/300` : null);
 
   if (loading) {
     return <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800 h-20" />;
@@ -75,9 +75,19 @@ export default function Header() {
               <div className="relative">
                 <button 
                   onClick={() => setMenuOpen(!menuOpen)}
-                  className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all flex items-center justify-center bg-zinc-900"
+                  className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
                 >
-                  <User className="w-5 h-5 text-zinc-400" />
+                  {avatarUrl ? (
+                    <Image 
+                      src={avatarUrl} 
+                      alt="Profil" 
+                      width={36} 
+                      height={36} 
+                      className="object-cover" 
+                    />
+                  ) : (
+                    <User className="w-5 h-5 m-auto text-zinc-400" />
+                  )}
                 </button>
 
                 {menuOpen && (
