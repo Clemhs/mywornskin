@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Check, X, MessageCircle, Image as ImageIcon, AlertTriangle, Send, Clock, AlertCircle } from 'lucide-react';
+import { Check, X, MessageCircle, Image as ImageIcon, AlertTriangle, Send, Clock } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function AdminPage() {
@@ -86,24 +86,16 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold mb-10">Administration MyWornSkin</h1>
 
+        {/* Onglets */}
         <div className="flex border-b border-zinc-800 mb-10">
-          <button 
-            onClick={() => setActiveTab('photos')} 
-            className={`px-10 py-4 font-medium flex items-center gap-3 transition-all ${activeTab === 'photos' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
-          >
+          <button onClick={() => setActiveTab('photos')} className={`px-10 py-4 font-medium flex items-center gap-3 transition-all ${activeTab === 'photos' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <ImageIcon size={22} /> Photos en attente
           </button>
-          <button 
-            onClick={() => setActiveTab('reviews')} 
-            className={`px-10 py-4 font-medium flex items-center gap-3 transition-all ${activeTab === 'reviews' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
-          >
+          <button onClick={() => setActiveTab('reviews')} className={`px-10 py-4 font-medium flex items-center gap-3 transition-all ${activeTab === 'reviews' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <AlertTriangle size={22} /> Commentaires refusés
           </button>
-          <button 
-            onClick={() => setActiveTab('messages')} 
-            className={`px-10 py-4 font-medium flex items-center gap-3 transition-all ${activeTab === 'messages' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
-          >
-            <MessageCircle size={22} /> Messages Admin
+          <button onClick={() => setActiveTab('messages')} className={`px-10 py-4 font-medium flex items-center gap-3 transition-all ${activeTab === 'messages' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+            <MessageCircle size={22} /> Messages
           </button>
         </div>
 
@@ -179,7 +171,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MODAL MESSAGE */}
+        {/* MODAL POUR ENVOYER UN MESSAGE */}
         {selectedReview && (
           <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
             <div className="bg-zinc-900 rounded-3xl p-8 w-full max-w-lg">
