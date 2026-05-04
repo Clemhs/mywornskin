@@ -35,11 +35,22 @@ export default function Header() {
     fetchUnread();
 
     const channel = supabase
-      .channel('unread')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, fetchUnread)
+      .channel('unread-messages')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'messages', 
+          filter: `receiver_id=eq.${user.id}` 
+        }, 
+        fetchUnread
+      )
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   // Panier
@@ -53,7 +64,7 @@ export default function Header() {
     setMenuOpen(false);
   };
 
-  // Fermer le menu quand on change de page
+  // Fermer menu quand on change de page
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
