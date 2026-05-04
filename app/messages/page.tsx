@@ -21,7 +21,6 @@ export default function MessagesPage() {
   const [showEmoji, setShowEmoji] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // Charger les conversations (version simplifiée et robuste)
   const loadConversations = async () => {
     if (!user) return;
 
@@ -144,18 +143,25 @@ export default function MessagesPage() {
           </div>
         </div>
 
-        {/* Chat */}
+        {/* Chat Area */}
         <div className="flex-1 flex flex-col">
           {selectedConv ? (
             <>
-              <div className="p-6 border-b border-zinc-800 bg-zinc-950 flex items-center gap-4">
+              {/* Header cliquable */}
+              <Link 
+                href={selectedConv.id === ADMIN_ID ? '#' : `/creators/${selectedConv.id}`}
+                className="p-6 border-b border-zinc-800 bg-zinc-950 flex items-center gap-4 hover:bg-zinc-900 cursor-pointer group"
+              >
                 <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-3xl">
                   {selectedConv.id === ADMIN_ID ? '👨‍💼' : '👤'}
                 </div>
                 <div>
-                  <p className="font-semibold text-lg">{selectedConv.username}</p>
+                  <p className="font-semibold text-lg group-hover:text-rose-400 transition-colors">
+                    {selectedConv.username}
+                  </p>
+                  <p className="text-sm text-green-400">En ligne</p>
                 </div>
-              </div>
+              </Link>
 
               <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
                 {messages.map((msg) => {
