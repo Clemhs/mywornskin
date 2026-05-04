@@ -17,6 +17,8 @@ export default function CreatorEditPage() {
 
   const [avatarUrl, setAvatarUrl] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
+  const [pendingAvatar, setPendingAvatar] = useState("");
+  const [pendingBanner, setPendingBanner] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -28,14 +30,14 @@ export default function CreatorEditPage() {
     { id: "gold", name: "5 ans" },
   ];
 
-  // Chargement initial
+  // Chargement des données
   useEffect(() => {
     if (!user) return;
 
     const loadProfile = async () => {
       const { data } = await supabase
         .from('profiles')
-        .select('sales_badge, frame, avatar_url, banner_url')
+        .select('*')
         .eq('id', user.id)
         .single();
 
@@ -197,9 +199,59 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Badges, Cadres, Boutique... (identique à avant) */}
-            {/* Tu peux copier-coller les sections badges, cadres et boutique de ta version précédente */}
+            {/* Badges de ventes */}
+            <div>
+              <h2 className="text-xl mb-4">Badges de ventes</h2>
+              <div className="flex gap-4 overflow-x-auto pb-4">
+                {availableSalesBadges.map(level => {
+                  const isSelected = salesBadge === level;
+                  return (
+                    <button key={level} onClick={() => toggleSalesBadge(level)} className={`flex-shrink-0 w-28 h-28 rounded-3xl flex flex-col items-center justify-center border-2 transition-all relative ${isSelected ? 'border-pink-400 bg-pink-900/30' : 'border-zinc-700 hover:border-pink-400'}`}>
+                      <img src={`/badges/${level}.png`} className="w-14 h-14 mb-1" />
+                      <span className="text-sm">{level} ventes</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
+            {/* Cadres d'ancienneté */}
+            <div>
+              <h2 className="text-xl mb-4">Cadres d'ancienneté</h2>
+              <div className="flex gap-6 overflow-x-auto pb-6">
+                {availableFrames.map(f => {
+                  const isSelected = frame === f.id;
+                  return (
+                    <button key={f.id} onClick={() => selectFrame(f.id)} className={`flex-shrink-0 relative w-28 h-28 rounded-3xl overflow-hidden border-2 transition-all ${isSelected ? 'border-pink-400 scale-95' : 'border-zinc-700 hover:border-pink-400'}`}>
+                      <div className={`shimmer-frame absolute inset-0 rounded-3xl ${f.id}`} />
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-black/80 text-xs px-3 py-1 rounded-full">
+                        {f.name}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Boutique cosmétiques */}
+            <div>
+              <h2 className="text-xl mb-4 flex items-center gap-2">
+                <ShoppingBag className="text-pink-400" /> Boutique cosmétiques
+              </h2>
+              <div className="bg-zinc-900 rounded-3xl p-8">
+                <p className="text-zinc-400 mb-6">Débloquez de nouveaux badges et cadres exclusifs</p>
+                <div className="space-y-4">
+                  <button onClick={() => setSalesBadge(500)} className="w-full bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl flex justify-between items-center">
+                    <span>🎖️ Badge Légende (500 ventes)</span>
+                    <span className="text-pink-400">9,99€</span>
+                  </button>
+                  <button onClick={() => setFrame('gold')} className="w-full bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl flex justify-between items-center">
+                    <span>✨ Cadre Diamant</span>
+                    <span className="text-pink-400">14,99€</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
