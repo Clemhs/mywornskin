@@ -30,7 +30,6 @@ export default function Header() {
   // Photo de profil dynamique
   const avatarUrl = user?.user_metadata?.avatar_url || 
                    user?.user_metadata?.picture || 
-                   avatarUrl || // fallback si tu as déjà une variable
                    "https://picsum.photos/id/64/300/300";
 
   if (loading) {
