@@ -21,7 +21,9 @@ export default function Header() {
     if (!user) return;
 
     const fetchUserData = async () => {
-      // Photo de profil
+      console.log("🔍 User ID:", user.id);
+
+      // Photo
       const { data: profile } = await supabase
         .from('profiles')
         .select('avatar_url')
@@ -30,14 +32,15 @@ export default function Header() {
 
       if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
 
-      // Détection créateur (plusieurs façons de vérifier)
-      const { data: creator } = await supabase
+      // Vérification créateur
+      const { data: creator, error } = await supabase
         .from('creators')
         .select('id')
         .eq('id', user.id)
         .maybeSingle();
 
-      // Si pas trouvé dans creators, on peut aussi vérifier un champ role dans profiles si tu en as un
+      console.log("🔍 Creator check:", { creator, error });
+
       setIsCreator(!!creator);
     };
 
@@ -102,13 +105,12 @@ export default function Header() {
 
                 {menuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-50">
-                    
                     <Link 
                       href={isCreator ? "/creators/me" : "/profile"} 
                       className="block px-6 py-3 hover:bg-zinc-800"
                       onClick={() => setMenuOpen(false)}
                     >
-                      👤 Mon Profil
+                      👤 Mon Profil {isCreator && "(Créateur)"}
                     </Link>
 
                     {isCreator && (
