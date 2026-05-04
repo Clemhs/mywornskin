@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Award, Star } from 'lucide-react';
+import Header from '@/components/Header';           // ← Import ajouté
 import StoryCard from '@/components/StoryCard';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -58,7 +59,7 @@ export default function CreatorProfile() {
 
       setProducts(productsData || []);
 
-      // Avis approuvés (max 5 + scroll)
+      // Avis approuvés
       const { data: reviewsData } = await supabase
         .from('reviews')
         .select('*')
@@ -98,7 +99,6 @@ export default function CreatorProfile() {
 
       <div className="max-w-5xl mx-auto px-6 -mt-16 relative z-10">
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Photo de profil avec badge + cadre */}
           <div className="relative -mt-12 md:-mt-20 flex-shrink-0">
             <div className="relative">
               <img 
@@ -107,12 +107,10 @@ export default function CreatorProfile() {
                 className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
               />
 
-              {/* Cadre */}
               {creator.frame && (
                 <div className={`absolute inset-0 rounded-3xl border-4 shimmer-frame ${creator.frame}`} />
               )}
 
-              {/* Badge */}
               {creator.sales_badge && (
                 <img 
                   src={`/badges/${creator.sales_badge}.png`} 
