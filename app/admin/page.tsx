@@ -14,12 +14,7 @@ export default function AdminPage() {
   const loadRefusedReviews = async () => {
     const { data, error } = await supabase
       .from('reviews')
-      .select(`
-        *,
-        profiles (
-          username
-        )
-      `)
+      .select('*')                    // On enlève la jointure pour l'instant
       .eq('status', 'rejected')
       .order('created_at', { ascending: false });
 
@@ -76,9 +71,9 @@ export default function AdminPage() {
           <div className="space-y-6">
             {refusedReviews.map(review => (
               <div key={review.id} className="bg-zinc-900 rounded-3xl p-8">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-medium">{review.profiles?.username || 'Créatrice'}</p>
+                    <p className="font-medium text-lg">{review.reviewer_name}</p>
                     <p className="text-sm text-zinc-500">Refusé par la créatrice</p>
                   </div>
                   <button 
@@ -102,11 +97,10 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Modal réponse */}
         {selectedReview && (
           <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
             <div className="bg-zinc-900 rounded-3xl p-8 w-full max-w-lg">
-              <h3 className="text-xl mb-6">Message pour {selectedReview.profiles?.username}</h3>
+              <h3 className="text-xl mb-6">Message pour {selectedReview.reviewer_name}</h3>
               <textarea
                 value={adminReply}
                 onChange={(e) => setAdminReply(e.target.value)}
@@ -116,7 +110,7 @@ export default function AdminPage() {
               <div className="flex gap-4">
                 <button onClick={() => setSelectedReview(null)} className="flex-1 py-4 border border-zinc-700 rounded-2xl">Annuler</button>
                 <button onClick={sendAdminMessage} className="flex-1 bg-pink-600 hover:bg-pink-500 py-4 rounded-2xl flex items-center justify-center gap-2">
-                  <Send size={18} /> Envoyer le message
+                  <Send size={18} /> Envoyer
                 </button>
               </div>
             </div>
