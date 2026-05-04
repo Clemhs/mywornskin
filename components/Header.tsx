@@ -30,14 +30,14 @@ export default function Header() {
 
       if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
 
-      // Vérification créateur (plus robuste)
-      const { data: creator } = await supabase
+      // Détection créateur plus robuste
+      const { data: creatorCheck } = await supabase
         .from('creators')
         .select('id')
         .eq('id', user.id)
-        .maybeSingle();   // ← plus tolérant
+        .maybeSingle();
 
-      setIsCreator(!!creator);
+      setIsCreator(!!creatorCheck);
     };
 
     fetchUserData();
