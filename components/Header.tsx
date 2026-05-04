@@ -16,7 +16,13 @@ export default function Header() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
 
-  // Notification messages non lus
+  // Panier
+  useEffect(() => {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    setCartCount(cart.length);
+  }, []);
+
+  // Messages non lus (version simple sans realtime pour éviter l'erreur)
   useEffect(() => {
     if (!user) {
       setUnreadCount(0);
@@ -33,31 +39,14 @@ export default function Header() {
     };
 
     fetchUnread();
-
-    const channel = supabase
-      .channel('unread-messages')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'messages',
-        filter: `receiver_id=eq.${user.id}`
-      }, fetchUnread)
-      .subscribe();
-
-    return () => supabase.removeChannel(channel);
   }, [user]);
-
-  // Panier
-  useEffect(() => {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    setCartCount(cart.length);
-  }, []);
 
   const handleLogout = async () => {
     await logout();
     setMenuOpen(false);
   };
 
+  // Fermer le menu en changeant de page
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
@@ -70,8 +59,8 @@ export default function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-10 text-sm font-medium">
-          <Link href="/shop" className="hover:text-rose-400">Boutique</Link>
-          <Link href="/creators" className="hover:text-rose-400">Créatrices</Link>
+          <Link href="/shop" className="hover:text-rose-400 transition-colors">Boutique</Link>
+          <Link href="/creators" className="hover:text-rose-400 transition-colors">Créatrices</Link>
         </nav>
 
         <div className="flex items-center gap-4">
