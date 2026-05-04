@@ -5,10 +5,12 @@ import { useState, useEffect } from 'react';
 import { Save, Lock, Camera, ShoppingBag } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function CreatorEditPage() {
   const { user } = useAuth();
   const supabase = createClient();
+  const router = useRouter();
 
   const [totalSales] = useState(999);
   const [membershipMonths] = useState(120);
@@ -60,7 +62,6 @@ export default function CreatorEditPage() {
     setFrame(current => current === f ? null : f);
   };
 
-  // Upload réel vers Supabase Storage
   const uploadImage = async (file: File, type: 'avatar' | 'banner') => {
     if (!user) return null;
 
@@ -129,7 +130,11 @@ export default function CreatorEditPage() {
       setToast("❌ Erreur lors de l'enregistrement");
     } else {
       setToast("✅ Tout a été enregistré avec succès !");
-      setTimeout(() => setToast(null), 3000);
+      
+      // Rafraîchissement automatique
+      setTimeout(() => {
+        router.refresh();
+      }, 800);
     }
   };
 
