@@ -162,7 +162,9 @@ export default function CreatorEditPage() {
       setToast("❌ Erreur lors de l'enregistrement");
     } else {
       setToast("✅ Modifications enregistrées avec succès !");
-      setTimeout(() => router.refresh(), 800);
+      setTimeout(() => {
+        router.refresh();
+      }, 800);
     }
   };
 
