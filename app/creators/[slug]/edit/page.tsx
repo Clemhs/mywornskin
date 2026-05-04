@@ -12,6 +12,7 @@ export default function CreatorEditPage() {
   const supabase = createClient();
   const router = useRouter();
 
+  // États principaux
   const [salesBadge, setSalesBadge] = useState<number | null>(500);
   const [frame, setFrame] = useState<string | null>('gold');
 
@@ -35,7 +36,7 @@ export default function CreatorEditPage() {
     { id: "gold", name: "5 ans" },
   ];
 
-  // Chargement des données
+  // Chargement des données du profil + avis en attente
   useEffect(() => {
     if (!user) return;
 
@@ -57,6 +58,7 @@ export default function CreatorEditPage() {
         setBannerStatus(profile.banner_status || 'approved');
       }
 
+      // Avis en attente de validation par la créatrice
       const { data: reviews } = await supabase
         .from('reviews')
         .select('*')
@@ -193,8 +195,9 @@ export default function CreatorEditPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Colonne gauche : Aperçu + Commentaires */}
+          {/* ===================== COLONNE GAUCHE ===================== */}
           <div className="lg:col-span-5 space-y-8">
+            {/* Aperçu en direct */}
             <div>
               <h2 className="text-xl mb-4">Aperçu en direct</h2>
               <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
@@ -245,7 +248,7 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* Colonne droite : Configuration */}
+          {/* ===================== COLONNE DROITE ===================== */}
           <div className="lg:col-span-7 space-y-12">
             {/* Upload Images */}
             <div>
