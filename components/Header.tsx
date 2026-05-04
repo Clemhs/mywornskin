@@ -23,40 +23,23 @@ export default function Header() {
       return;
     }
 
-    let mounted = true;
-
     const fetchUnread = async () => {
-      if (!mounted) return;
       const { count } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .eq('receiver_id', user.id)
         .eq('is_read', false);
-      
-      if (mounted) setUnreadCount(count || 0);
+      setUnreadCount(count || 0);
     };
 
     fetchUnread();
 
-    // Realtime
     const channel = supabase
-      .channel('unread-messages')
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'messages', 
-          filter: `receiver_id=eq.${user.id}` 
-        }, 
-        fetchUnread
-      )
+      .channel('unread')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, fetchUnread)
       .subscribe();
 
-    return () => {
-      mounted = false;
-      supabase.removeChannel(channel);
-    };
+    return () => supabase.removeChannel(channel);
   }, [user]);
 
   // Panier
@@ -70,10 +53,14 @@ export default function Header() {
     setMenuOpen(false);
   };
 
+  // Fermer le menu quand on change de page
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
   return (
     <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        
         <Link href="/" className="text-3xl font-bold tracking-tighter">
           MyWornSkin
         </Link>
@@ -118,19 +105,16 @@ export default function Header() {
 
                 {menuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-50">
-                    <Link href="/creators/me" className="block px-6 py-3 hover:bg-zinc-800">👤 Mon Profil</Link>
-                    <Link href="/creators/me/edit" className="block px-6 py-3 hover:bg-zinc-800">✏️ Éditer mon profil</Link>
-                    <Link href="/messages" className="block px-6 py-3 hover:bg-zinc-800">💬 Messages</Link>
+                    <Link href="/creators/me" className="block px-6 py-3 hover:bg-zinc-800" onClick={() => setMenuOpen(false)}>👤 Mon Profil</Link>
+                    <Link href="/creators/me/edit" className="block px-6 py-3 hover:bg-zinc-800" onClick={() => setMenuOpen(false)}>✏️ Éditer mon profil</Link>
+                    <Link href="/messages" className="block px-6 py-3 hover:bg-zinc-800" onClick={() => setMenuOpen(false)}>💬 Messages</Link>
                     <button onClick={handleLogout} className="w-full text-left px-6 py-3 text-red-400 hover:bg-zinc-800">Se déconnecter</button>
                   </div>
                 )}
               </div>
             </>
           ) : (
-            <Link 
-              href="/login"
-              className="px-6 py-2.5 border border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-black rounded-2xl text-sm font-semibold transition-all"
-            >
+            <Link href="/login" className="px-6 py-2.5 border border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-black rounded-2xl text-sm font-semibold transition-all">
               Se connecter
             </Link>
           )}
