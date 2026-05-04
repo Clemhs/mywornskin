@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User, LogOut, MessageCircle, ShoppingCart } from 'lucide-react';
+import { MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
@@ -16,12 +16,9 @@ export default function Header() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
 
-  // Récupération des messages non lus + realtime
+  // Messages non lus
   useEffect(() => {
-    if (!user) {
-      setUnreadCount(0);
-      return;
-    }
+    if (!user) return;
 
     const fetchUnread = async () => {
       const { count } = await supabase
@@ -29,33 +26,20 @@ export default function Header() {
         .select('*', { count: 'exact', head: true })
         .eq('receiver_id', user.id)
         .eq('is_read', false);
-
       setUnreadCount(count || 0);
     };
 
     fetchUnread();
 
-    // Realtime subscription
     const channel = supabase
-      .channel('unread-messages')
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'messages', 
-          filter: `receiver_id=eq.${user.id}` 
-        }, 
-        fetchUnread
-      )
+      .channel('unread')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, fetchUnread)
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => supabase.removeChannel(channel);
   }, [user]);
 
-  // Simulation panier
+  // Panier
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     setCartCount(cart.length);
@@ -69,44 +53,40 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        
         <Link href="/" className="text-3xl font-bold tracking-tighter">
           MyWornSkin
         </Link>
 
         <nav className="hidden md:flex items-center gap-10 text-sm font-medium">
-          <Link href="/shop" className="hover:text-rose-400 transition-colors">Boutique</Link>
-          <Link href="/creators" className="hover:text-rose-400 transition-colors">Créatrices</Link>
+          <Link href="/shop" className="hover:text-rose-400">Boutique</Link>
+          <Link href="/creators" className="hover:text-rose-400">Créatrices</Link>
         </nav>
 
         <div className="flex items-center gap-4">
           {isLoggedIn && user ? (
             <>
-              {/* Messages avec notification rouge */}
-              <Link href="/messages" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all group">
+              <Link href="/messages" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
                 <MessageCircle className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
-                    {unreadCount > 9 ? '9+' : unreadCount}
+                  <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-[10px] font-bold rounded-full flex items-center justify-center px-1.5">
+                    {unreadCount}
                   </div>
                 )}
               </Link>
 
-              {/* Panier */}
               <Link href="/cart" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
                 <ShoppingCart className="w-5 h-5" />
                 {cartCount > 0 && (
-                  <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                  <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-[10px] font-bold rounded-full flex items-center justify-center px-1.5">
                     {cartCount}
                   </div>
                 )}
               </Link>
 
-              {/* Menu profil */}
               <div className="relative">
                 <button 
                   onClick={() => setMenuOpen(!menuOpen)}
-                  className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
+                  className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400"
                 >
                   <img 
                     src={user.user_metadata?.avatar_url || "https://picsum.photos/id/64/128/128"} 
@@ -116,28 +96,17 @@ export default function Header() {
                 </button>
 
                 {menuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-[100]">
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-50">
                     <Link href="/creators/me" className="block px-6 py-3 hover:bg-zinc-800">👤 Mon Profil</Link>
                     <Link href="/creators/me/edit" className="block px-6 py-3 hover:bg-zinc-800">✏️ Éditer mon profil</Link>
                     <Link href="/messages" className="block px-6 py-3 hover:bg-zinc-800">💬 Messages</Link>
-                    
-                    <div className="border-t border-zinc-800 my-1"></div>
-                    
-                    <button 
-                      onClick={handleLogout} 
-                      className="w-full text-left px-6 py-3 text-red-400 hover:bg-zinc-800"
-                    >
-                      Se déconnecter
-                    </button>
+                    <button onClick={handleLogout} className="w-full text-left px-6 py-3 text-red-400 hover:bg-zinc-800">Se déconnecter</button>
                   </div>
                 )}
               </div>
             </>
           ) : (
-            <Link 
-              href="/login"
-              className="px-6 py-2.5 border border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-black rounded-2xl text-sm font-semibold transition-all"
-            >
+            <Link href="/login" className="px-6 py-2.5 border border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-black rounded-2xl text-sm font-semibold">
               Se connecter
             </Link>
           )}
