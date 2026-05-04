@@ -5,14 +5,48 @@ import { usePathname } from 'next/navigation';
 import { MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { createClient } from '@/lib/supabase/client';
 
 export default function Header() {
   const pathname = usePathname();
   const { user, isLoggedIn, logout } = useAuth();
+  const supabase = createClient();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState("https://picsum.photos/id/64/128/128");
+
+  // Récupération de la photo de profil depuis la table profiles
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchAvatar = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .single();
+
+      if (data?.avatar_url) {
+        setAvatarUrl(data.avatar_url);
+      } else if (user.user_metadata?.avatar_url) {
+        setAvatarUrl(user.user_metadata.avatar_url);
+      }
+    };
+
+    fetchAvatar();
+  }, [user]);
+
+  // Messages non lus (désactivé temporairement pour éviter erreur)
+  useEffect(() => {
+    if (!user) {
+      setUnreadCount(0);
+      return;
+    }
+    // On peut réactiver plus tard
+    setUnreadCount(0);
+  }, [user]);
 
   // Panier
   useEffect(() => {
@@ -25,7 +59,6 @@ export default function Header() {
     setMenuOpen(false);
   };
 
-  // Fermer le menu en changeant de page
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
@@ -47,11 +80,6 @@ export default function Header() {
             <>
               <Link href="/messages" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
                 <MessageCircle className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </div>
-                )}
               </Link>
 
               <Link href="/cart" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
@@ -69,7 +97,7 @@ export default function Header() {
                   className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
                 >
                   <img 
-                    src={user.user_metadata?.avatar_url || "https://picsum.photos/id/64/128/128"} 
+                    src={avatarUrl} 
                     alt="Profil" 
                     className="w-full h-full object-cover"
                   />
