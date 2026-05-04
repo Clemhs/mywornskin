@@ -16,6 +16,7 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
   const ADMIN_ID = 'bc985ee6-d9dc-43e0-8069-b34deeea9e24';
 
@@ -42,36 +43,53 @@ export default function MessagesPage() {
   const sendMessage = async () => {
     if (!newMessage.trim() || !user) return;
 
-    const messageText = newMessage.trim();
-
     await supabase.from('messages').insert({
       sender_id: user.id,
       receiver_id: ADMIN_ID,
-      message: messageText
+      message: newMessage.trim()
     });
-
-    // Ajoute immédiatement le message localement (pour meilleure UX)
-    setMessages(prev => [...prev, {
-      id: Date.now(),
-      sender_id: user.id,
-      message: messageText,
-      created_at: new Date().toISOString()
-    }]);
 
     setNewMessage('');
     setShowEmoji(false);
+    loadMessages();
   };
 
-  const addEmoji = (emoji: string) => {
-    setNewMessage(prev => prev + emoji);
-  };
+  const addEmoji = (emoji: string) => setNewMessage(prev => prev + emoji);
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      alert(`📸 Photo sélectionnée : ${file.name}\n\nL'upload réel sera disponible bientôt.`);
-      e.target.value = ''; // Reset input
+    if (!file || !user) return;
+
+    setUploading(true);
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+    const filePath = `public/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('messages')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      alert("Erreur lors de l'upload : " + uploadError.message);
+      setUploading(false);
+      return;
     }
+
+    const { data: urlData } = supabase.storage
+      .from('messages')
+      .getPublicUrl(filePath);
+
+    // Envoie le lien de l'image comme message
+    await supabase.from('messages').insert({
+      sender_id: user.id,
+      receiver_id: ADMIN_ID,
+      message: `[Image] ${urlData.publicUrl}`
+    });
+
+    setUploading(false);
+    loadMessages();
+    e.target.value = '';
   };
 
   return (
@@ -112,7 +130,11 @@ export default function MessagesPage() {
                 messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[75%] px-6 py-4 rounded-3xl ${msg.sender_id === user?.id ? 'bg-rose-600 text-white' : 'bg-zinc-800'}`}>
-                      {msg.message}
+                      {msg.message.startsWith('[Image]') ? (
+                        <img src={msg.message.replace('[Image] ', '')} alt="uploaded" className="max-w-full rounded-2xl mt-2" />
+                      ) : (
+                        msg.message
+                      )}
                     </div>
                   </div>
                 ))
@@ -122,7 +144,7 @@ export default function MessagesPage() {
             <div className="p-5 border-t border-zinc-800 bg-zinc-900">
               <div className="flex gap-3 items-center">
                 <label className="p-4 hover:bg-zinc-800 rounded-2xl cursor-pointer">
-                  <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                   <ImageIcon className="w-6 h-6" />
                 </label>
 
@@ -141,8 +163,8 @@ export default function MessagesPage() {
 
                 <button 
                   onClick={sendMessage}
-                  disabled={!newMessage.trim()}
-                  className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl"
+                  disabled={!newMessage.trim() || uploading}
+                  className="bg-rose-600 hover:bg-rose-500 px-8 py-4 rounded-3xl disabled:opacity-50"
                 >
                   <Send className="w-5 h-5" />
                 </button>
@@ -151,11 +173,7 @@ export default function MessagesPage() {
               {showEmoji && (
                 <div className="mt-3 bg-zinc-800 border border-zinc-700 rounded-3xl p-4 grid grid-cols-6 gap-3">
                   {commonEmojis.map((emoji, i) => (
-                    <button 
-                      key={i} 
-                      onClick={() => addEmoji(emoji)} 
-                      className="text-3xl hover:scale-125 transition-transform p-2"
-                    >
+                    <button key={i} onClick={() => addEmoji(emoji)} className="text-3xl hover:scale-125 transition-transform p-2">
                       {emoji}
                     </button>
                   ))}
