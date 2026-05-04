@@ -16,12 +16,9 @@ export default function Header() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
 
-  // Messages non lus avec realtime
+  // Messages non lus
   useEffect(() => {
-    if (!user) {
-      setUnreadCount(0);
-      return;
-    }
+    if (!user) return;
 
     const fetchUnread = async () => {
       const { count } = await supabase
@@ -29,31 +26,23 @@ export default function Header() {
         .select('*', { count: 'exact', head: true })
         .eq('receiver_id', user.id)
         .eq('is_read', false);
-      
       setUnreadCount(count || 0);
     };
 
     fetchUnread();
 
-    // Realtime
     const channel = supabase
       .channel('unread-messages')
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'messages', 
-          filter: `receiver_id=eq.${user.id}` 
-        }, 
-        fetchUnread
-      )
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'messages',
+        filter: `receiver_id=eq.${user.id}`
+      }, fetchUnread)
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, supabase]);
+    return () => supabase.removeChannel(channel);
+  }, [user]);
 
   // Panier
   useEffect(() => {
@@ -69,20 +58,18 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        
         <Link href="/" className="text-3xl font-bold tracking-tighter">
           MyWornSkin
         </Link>
 
         <nav className="hidden md:flex items-center gap-10 text-sm font-medium">
-          <Link href="/shop" className="hover:text-rose-400 transition-colors">Boutique</Link>
-          <Link href="/creators" className="hover:text-rose-400 transition-colors">Créatrices</Link>
+          <Link href="/shop" className="hover:text-rose-400">Boutique</Link>
+          <Link href="/creators" className="hover:text-rose-400">Créatrices</Link>
         </nav>
 
         <div className="flex items-center gap-4">
           {isLoggedIn && user ? (
             <>
-              {/* Messages */}
               <Link href="/messages" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
                 <MessageCircle className="w-5 h-5" />
                 {unreadCount > 0 && (
@@ -92,7 +79,6 @@ export default function Header() {
                 )}
               </Link>
 
-              {/* Panier */}
               <Link href="/cart" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
                 <ShoppingCart className="w-5 h-5" />
                 {cartCount > 0 && (
@@ -102,7 +88,6 @@ export default function Header() {
                 )}
               </Link>
 
-              {/* Profil */}
               <div className="relative">
                 <button 
                   onClick={() => setMenuOpen(!menuOpen)}
@@ -120,21 +105,13 @@ export default function Header() {
                     <Link href="/creators/me" className="block px-6 py-3 hover:bg-zinc-800">👤 Mon Profil</Link>
                     <Link href="/creators/me/edit" className="block px-6 py-3 hover:bg-zinc-800">✏️ Éditer mon profil</Link>
                     <Link href="/messages" className="block px-6 py-3 hover:bg-zinc-800">💬 Messages</Link>
-                    <button 
-                      onClick={handleLogout} 
-                      className="w-full text-left px-6 py-3 text-red-400 hover:bg-zinc-800"
-                    >
-                      Se déconnecter
-                    </button>
+                    <button onClick={handleLogout} className="w-full text-left px-6 py-3 text-red-400 hover:bg-zinc-800">Se déconnecter</button>
                   </div>
                 )}
               </div>
             </>
           ) : (
-            <Link 
-              href="/login"
-              className="px-6 py-2.5 border border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-black rounded-2xl text-sm font-semibold transition-all"
-            >
+            <Link href="/login" className="px-6 py-2.5 border border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-black rounded-2xl text-sm font-semibold transition-all">
               Se connecter
             </Link>
           )}
