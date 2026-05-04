@@ -47,7 +47,6 @@ export default function AdminPage() {
     loadData();
   }, [activeTab]);
 
-  // Valider / Refuser une photo
   const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
     const statusField = type === 'avatar' ? 'avatar_status' : 'banner_status';
     const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
@@ -63,13 +62,11 @@ export default function AdminPage() {
     loadData();
   };
 
-  // Forcer la publication
   const forcePublishReview = async (reviewId: string) => {
     await supabase.from('reviews').update({ status: 'approved' }).eq('id', reviewId);
     loadData();
   };
 
-  // Envoyer message à la créatrice
   const sendAdminMessage = async () => {
     if (!selectedReview || !adminReply.trim()) return;
 
@@ -89,7 +86,6 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold mb-10">Administration MyWornSkin</h1>
 
-        {/* Onglets */}
         <div className="flex border-b border-zinc-800 mb-10">
           <button 
             onClick={() => setActiveTab('photos')} 
@@ -107,15 +103,15 @@ export default function AdminPage() {
             onClick={() => setActiveTab('messages')} 
             className={`px-10 py-4 font-medium flex items-center gap-3 transition-all ${activeTab === 'messages' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
           >
-            <MessageCircle size={22} /> Messages
+            <MessageCircle size={22} /> Messages Admin
           </button>
         </div>
 
-        {/* PHOTOS */}
+        {/* PHOTOS EN ATTENTE */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
-              <p className="text-zinc-500">Aucune photo en attente de validation.</p>
+              <p className="text-zinc-500 text-lg">Aucune photo en attente de validation.</p>
             ) : (
               pendingPhotos.map(p => (
                 <div key={p.id} className="bg-zinc-900 rounded-3xl p-8">
@@ -152,7 +148,7 @@ export default function AdminPage() {
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             {refusedReviews.length === 0 ? (
-              <p className="text-zinc-500">Aucun commentaire refusé pour le moment.</p>
+              <p className="text-zinc-500 text-lg">Aucun commentaire refusé pour le moment.</p>
             ) : (
               refusedReviews.map(review => (
                 <div key={review.id} className="bg-zinc-900 rounded-3xl p-8">
@@ -183,7 +179,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MODAL POUR ENVOYER UN MESSAGE */}
+        {/* MODAL MESSAGE */}
         {selectedReview && (
           <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
             <div className="bg-zinc-900 rounded-3xl p-8 w-full max-w-lg">
