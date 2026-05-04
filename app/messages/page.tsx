@@ -32,7 +32,6 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (!user) return;
-
     loadMessages();
 
     const channel = supabase
@@ -40,9 +39,7 @@ export default function MessagesPage() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, loadMessages)
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => supabase.removeChannel(channel);
   }, [user]);
 
   useEffect(() => {
@@ -69,9 +66,10 @@ export default function MessagesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 pt-20">
-      <div className="flex items-center justify-center p-4 min-h-[calc(100vh-5rem)]">
-        <div className="hidden md:flex w-full max-w-5xl h-[68vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 shadow-2xl">
+    <div className="min-h-screen bg-zinc-950 pt-16"> {/* Réduit le padding du haut */}
+      <div className="flex items-start justify-center p-4">
+        
+        <div className="hidden md:flex w-full max-w-5xl h-[82vh] bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 shadow-2xl">
 
           {/* Sidebar */}
           <div className="w-96 border-r border-zinc-800 flex flex-col">
