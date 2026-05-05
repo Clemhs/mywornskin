@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Save, Camera, ShoppingBag, Check, X, Clock } from 'lucide-react';
+import { Save, Camera, ShoppingBag, Clock } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
 
@@ -55,10 +55,10 @@ export default function CreatorEditPage() {
       setAvatarStatus(profile.avatar_status || 'approved');
       setBannerStatus(profile.banner_status || 'approved');
 
-      // Toast rouge si photo refusée
+      // Toast rouge si une photo a été refusée
       if (profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') {
         setToast({ 
-          message: "❌ Photo refusée par l'administrateur", 
+          message: "❌ Une de vos photos a été refusée", 
           type: 'error', 
           link: "/guidelines" 
         });
@@ -80,7 +80,10 @@ export default function CreatorEditPage() {
     const fileName = `${user.id}-${type}-${Date.now()}.${file.name.split('.').pop()}`;
 
     const { error } = await supabase.storage.from('profiles').upload(fileName, file, { upsert: true });
-    if (error) return setToast({ message: "Erreur d'upload", type: 'error' });
+    if (error) {
+      setToast({ message: "Erreur lors de l'upload", type: 'error' });
+      return;
+    }
 
     const { data: { publicUrl } } = supabase.storage.from('profiles').getPublicUrl(fileName);
 
@@ -121,6 +124,11 @@ export default function CreatorEditPage() {
     setPendingReviews(prev => prev.filter(r => r.id !== reviewId));
   };
 
+  // Calcul du toast className (pour éviter le problème Turbopack)
+  const toastClass = toast?.type === 'success' 
+    ? 'bg-emerald-600 text-white' 
+    : 'bg-red-600 text-white';
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-12">
       <div className="max-w-6xl mx-auto px-6">
@@ -139,24 +147,36 @@ export default function CreatorEditPage() {
           </button>
         </div>
 
-        {/* Toast centré horizontalement en haut */}
+        {/* Toast centré horizontalement */}
         {toast && (
-          <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-8 py-4 rounded-2xl text-lg shadow-2xl flex items-center gap-3
-            ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}">
+          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-8 py-4 rounded-2xl text-lg shadow-2xl flex items-center gap-3 ${toastClass}`}>
             {toast.message}
-            {toast.link && <Link href={toast.link} className="underline ml-2 hover:text-white">Voir les guidelines →</Link>}
+            {toast.link && (
+              <Link href={toast.link} className="underline ml-2 hover:text-white">
+                Voir les guidelines →
+              </Link>
+            )}
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Aperçu */}
           <div className="lg:col-span-5 space-y-8">
             <div>
               <h2 className="text-xl mb-4">Aperçu en direct</h2>
               <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
-                <img src={bannerUrl || bannerPendingUrl || "https://picsum.photos/id/1015/1200/400"} alt="Bannière" className="w-full h-full object-cover" />
+                <img 
+                  src={bannerUrl || bannerPendingUrl || "https://picsum.photos/id/1015/1200/400"} 
+                  alt="Bannière" 
+                  className="w-full h-full object-cover" 
+                />
                 <div className="absolute bottom-8 left-8">
                   <div className="relative">
-                    <img src={avatarUrl || avatarPendingUrl || "https://picsum.photos/id/64/300/300"} alt="Avatar" className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" />
+                    <img 
+                      src={avatarUrl || avatarPendingUrl || "https://picsum.photos/id/64/300/300"} 
+                      alt="Avatar" 
+                      className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" 
+                    />
                     {frame && <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />}
                     {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-14 h-14" />}
                   </div>
@@ -169,6 +189,7 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
+            {/* Commentaires à valider */}
             <div>
               <h2 className="text-xl mb-4">Commentaires à valider ({pendingReviews.length})</h2>
               <div className="space-y-4">
@@ -189,6 +210,7 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
+          {/* Colonne droite */}
           <div className="lg:col-span-7 space-y-12">
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
@@ -207,6 +229,7 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
+            {/* Badges, Cadres, Boutique... (gardés complets) */}
             <div>
               <h2 className="text-xl mb-4">Badges de ventes</h2>
               <div className="flex gap-6 overflow-x-auto pb-6">
