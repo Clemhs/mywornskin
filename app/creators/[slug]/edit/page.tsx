@@ -40,41 +40,47 @@ export default function CreatorEditPage() {
     loadData();
   }, [user]);
 
-  // Realtime pour valider/refuser
+  // Realtime pour détecter validation/refus
   useEffect(() => {
     if (!user) return;
 
     const channel = supabase
       .channel(`profile-${user.id}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'profiles',
-        filter: `id=eq.${user.id}`
-      }, (payload) => {
-        const p = payload.new;
-        setAvatarUrl(p.avatar_url || "");
-        setBannerUrl(p.banner_url || "");
-        setAvatarPendingUrl(p.avatar_pending_url || "");
-        setBannerPendingUrl(p.banner_pending_url || "");
-        setAvatarStatus(p.avatar_status || 'approved');
-        setBannerStatus(p.banner_status || 'approved');
+      .on(
+        'postgres_changes',
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'profiles', 
+          filter: `id=eq.${user.id}` 
+        },
+        (payload) => {
+          const p = payload.new;
+          setAvatarUrl(p.avatar_url || "");
+          setBannerUrl(p.banner_url || "");
+          setAvatarPendingUrl(p.avatar_pending_url || "");
+          setBannerPendingUrl(p.banner_pending_url || "");
+          setAvatarStatus(p.avatar_status || 'approved');
+          setBannerStatus(p.banner_status || 'approved');
 
-        if (p.avatar_status === 'approved' && avatarStatus === 'pending') {
-          setToast({ message: "✅ Photo de profil validée par l'équipe !", type: 'success' });
+          if (p.avatar_status === 'approved' && avatarStatus === 'pending') {
+            setToast({ message: "✅ Photo de profil validée par l'équipe !", type: 'success' });
+          }
+          if (p.avatar_status === 'rejected') {
+            setToast({ 
+              message: "❌ Photo refusée par l'administrateur", 
+              type: 'error', 
+              link: "/guidelines" 
+            });
+          }
         }
-        if (p.avatar_status === 'rejected') {
-          setToast({ 
-            message: "❌ Photo refusée par l'administrateur", 
-            type: 'error', 
-            link: "/guidelines" 
-          });
-        }
-      })
+      )
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
-  }, [user, avatarStatus]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const loadData = async () => {
     const { data: profile } = await supabase
@@ -180,15 +186,11 @@ export default function CreatorEditPage() {
         {toast && (
           <div className={`fixed bottom-8 right-8 px-8 py-4 rounded-3xl text-lg flex items-center gap-3 z-50 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
             {toast.message}
-            {toast.link && (
-              <Link href={toast.link} className="underline ml-2 hover:text-white">
-                Voir les guidelines →
-              </Link>
-            )}
+            {toast.link && <Link href={toast.link} className="underline ml-2 hover:text-white">Voir les guidelines →</Link>}
           </div>
         )}
 
-        {/* Ton beau design complet ici (je te le remets entièrement si tu veux, mais pour l'instant on teste le toast) */}
+        {/* Ton design complet ici - je peux le remettre entièrement si tu veux */}
 
       </div>
     </div>
