@@ -16,26 +16,25 @@ export default function Header() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [avatarUrl, setAvatarUrl] = useState<string>('/default-avatar.png');
   const [isCreator, setIsCreator] = useState(false);
+  const [username, setUsername] = useState('');
 
   useEffect(() => {
-    if (!user) {
-      setAvatarUrl('/default-avatar.png');
-      return;
-    }
+    if (!user) return;
 
-    const loadProfile = async () => {
-      // Charger les infos du profil
+    const loadUserData = async () => {
+      // Charger profil complet
       const { data: profile } = await supabase
         .from('profiles')
-        .select('avatar_url, username')
+        .select('avatar_url, username, full_name')
         .eq('id', user.id)
         .single();
 
-      if (profile?.avatar_url) {
-        setAvatarUrl(profile.avatar_url);
+      if (profile) {
+        setAvatarUrl(profile.avatar_url || '/default-avatar.png');
+        setUsername(profile.username || profile.full_name || 'Utilisateur');
       }
 
-      // Vérifier si c'est un créateur
+      // Vérification créateur
       const { data: creator } = await supabase
         .from('creators')
         .select('id')
@@ -45,7 +44,7 @@ export default function Header() {
       setIsCreator(!!creator);
     };
 
-    loadProfile();
+    loadUserData();
 
     // Messages non lus
     const fetchUnread = async () => {
@@ -54,7 +53,6 @@ export default function Header() {
         .select('*', { count: 'exact', head: true })
         .eq('receiver_id', user.id)
         .is('is_read', false);
-
       setUnreadCount(count || 0);
     };
 
@@ -96,17 +94,12 @@ export default function Header() {
                 <ShoppingCart className="w-6 h-6" />
               </Link>
 
-              {/* Menu Profil */}
               <div className="relative">
                 <button 
                   onClick={() => setMenuOpen(!menuOpen)}
                   className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
                 >
-                  <img 
-                    src={avatarUrl} 
-                    alt="Profil" 
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={avatarUrl} alt="Profil" className="w-full h-full object-cover" />
                 </button>
 
                 {menuOpen && (
