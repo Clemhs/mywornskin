@@ -129,24 +129,25 @@ export default function CreatorEditPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-12">
       <div className="max-w-6xl mx-auto px-6">
-        <div className="flex justify-between items-center mb-10">
-          <Link href="/creators/me" className="text-zinc-400 hover:text-white flex items-center gap-2">
+        {/* Header amélioré - titre parfaitement centré */}
+        <div className="relative flex items-center justify-center mb-12">
+          <Link href="/creators/me" className="absolute left-0 text-zinc-400 hover:text-white flex items-center gap-2">
             ← Retour au profil
           </Link>
           
-          <h1 className="text-4xl font-bold text-center flex-1">Édition de profil</h1>
+          <h1 className="text-4xl font-bold text-center">Édition de profil</h1>
 
           <button 
             onClick={handleSave}
             disabled={saving}
-            className="bg-pink-600 hover:bg-pink-500 px-10 py-4 rounded-3xl font-semibold flex items-center gap-3 disabled:opacity-70"
+            className="absolute right-0 bg-pink-600 hover:bg-pink-500 px-10 py-4 rounded-3xl font-semibold flex items-center gap-3 disabled:opacity-70"
           >
             <Save className="w-5 h-5" />
             {saving ? "Enregistrement..." : "Enregistrer tout"}
           </button>
         </div>
 
-        {/* Toast plus petit, centré, avec croix */}
+        {/* Toast plus petit + croix cliquable */}
         {toast && (
           <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 ${toastClass}`}>
             {toast.message}
@@ -155,14 +156,17 @@ export default function CreatorEditPage() {
                 Voir les guidelines →
               </Link>
             )}
-            <button onClick={closeToast} className="ml-auto hover:bg-white/20 p-1 rounded-full transition">
+            <button 
+              onClick={closeToast} 
+              className="ml-4 hover:bg-white/20 p-1 rounded-full transition-colors"
+            >
               <X size={18} />
             </button>
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Le reste du code est inchangé (aperçu, badges, cadres, boutique, commentaires...) */}
+          {/* Le reste du contenu reste identique (aperçu, badges, cadres, etc.) */}
           <div className="lg:col-span-5 space-y-8">
             <div>
               <h2 className="text-xl mb-4">Aperçu en direct</h2>
@@ -221,6 +225,7 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
+            {/* Badges, Cadres, Boutique... (identique) */}
             <div>
               <h2 className="text-xl mb-4">Badges de ventes</h2>
               <div className="flex gap-6 overflow-x-auto pb-6">
