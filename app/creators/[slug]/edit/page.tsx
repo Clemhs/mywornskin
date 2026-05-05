@@ -24,6 +24,7 @@ export default function CreatorEditPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  // Chargement initial
   useEffect(() => {
     if (!user) return;
     loadProfile();
@@ -51,6 +52,7 @@ export default function CreatorEditPage() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  // Upload photo + mise en attente automatique
   const uploadAndSavePhoto = async (file: File, type: 'avatar' | 'banner') => {
     if (!user) return;
     const fileExt = file.name.split('.').pop();
@@ -79,10 +81,13 @@ export default function CreatorEditPage() {
 
     await supabase
       .from('profiles')
-      .update({ sales_badge: salesBadge, frame })
+      .update({ 
+        sales_badge: salesBadge, 
+        frame 
+      })
       .eq('id', user.id);
 
-    showToast("✅ Badges et cadres enregistrés", 'success');
+    showToast("✅ Badges et cadres enregistrés avec succès", 'success');
     setSaving(false);
   };
 
@@ -101,13 +106,13 @@ export default function CreatorEditPage() {
           </button>
         </div>
 
-        {/* Photos avec auto-save */}
+        {/* === PHOTOS === */}
         <div className="grid md:grid-cols-2 gap-10 mb-16">
           <div className="text-center">
             <p className="text-zinc-400 mb-4">Photo de profil</p>
             <div className="relative w-64 h-64 mx-auto rounded-3xl overflow-hidden border-4 border-zinc-800">
               <img src={pendingAvatar || avatarUrl || "https://picsum.photos/id/64/300/300"} className="w-full h-full object-cover" />
-              {pendingAvatar && <div className="absolute inset-0 bg-black/70 flex items-center justify-center"><p className="text-rose-400">En attente</p></div>}
+              {pendingAvatar && <div className="absolute inset-0 bg-black/70 flex items-center justify-center"><p className="text-rose-400">En attente de validation</p></div>}
             </div>
             <label className="mt-6 block text-rose-400 cursor-pointer hover:text-rose-500">
               Changer photo de profil
@@ -119,7 +124,7 @@ export default function CreatorEditPage() {
             <p className="text-zinc-400 mb-4">Photo de couverture</p>
             <div className="relative h-64 bg-zinc-900 rounded-3xl overflow-hidden">
               <img src={pendingBanner || bannerUrl || "https://picsum.photos/id/1015/800/300"} className="w-full h-full object-cover" />
-              {pendingBanner && <div className="absolute inset-0 bg-black/70 flex items-center justify-center"><p className="text-rose-400">En attente</p></div>}
+              {pendingBanner && <div className="absolute inset-0 bg-black/70 flex items-center justify-center"><p className="text-rose-400">En attente de validation</p></div>}
             </div>
             <label className="mt-6 block text-rose-400 cursor-pointer hover:text-rose-500">
               Changer photo de couverture
@@ -128,10 +133,52 @@ export default function CreatorEditPage() {
           </div>
         </div>
 
-        {/* Badges, Cadres, Boutique... (je peux te remettre le reste complet si tu veux) */}
+        {/* Badges de ventes */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold mb-6">Badges de ventes</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[10, 50, 100, 500].map(level => (
+              <button
+                key={level}
+                onClick={() => setSalesBadge(level)}
+                className={`p-6 rounded-3xl border-2 transition-all ${salesBadge === level ? 'border-rose-500 bg-zinc-900' : 'border-zinc-700 hover:border-zinc-500'}`}
+              >
+                <div className="text-4xl mb-2">🏆</div>
+                <div className="font-semibold">{level} ventes</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Cadres */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold mb-6">Cadres de profil</h2>
+          <div className="grid grid-cols-3 gap-6">
+            {['rose', 'silver', 'gold'].map(f => (
+              <button
+                key={f}
+                onClick={() => setFrame(f)}
+                className={`h-32 rounded-3xl border-4 flex items-center justify-center text-xl font-medium transition-all ${frame === f ? 'border-rose-500 scale-105' : 'border-zinc-700'}`}
+              >
+                Cadre {f}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Boutique cosmétique */}
+        <div>
+          <h2 className="text-2xl font-semibold mb-6">Boutique cosmétique</h2>
+          <div className="bg-zinc-900 rounded-3xl p-10 text-center">
+            <p className="text-zinc-400 mb-6">Prochainement disponible : badges et cadres à acheter</p>
+            <div className="inline-block bg-zinc-800 px-8 py-4 rounded-2xl text-rose-400 font-medium">
+              Boutique bientôt active
+            </div>
+          </div>
+        </div>
 
         {toast && (
-          <div className={`fixed bottom-8 right-8 px-8 py-4 rounded-2xl ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
+          <div className={`fixed bottom-8 right-8 px-8 py-4 rounded-2xl text-lg ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
             {toast.message}
           </div>
         )}
