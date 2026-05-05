@@ -2,152 +2,74 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Star } from 'lucide-react';
-import StoryCard from '@/components/StoryCard';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
+import Header from '@/components/Header';
 
 export default function CreatorProfile() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
-
   const { user } = useAuth();
   const supabase = createClient();
 
   const [creator, setCreator] = useState<any>(null);
-  const [products, setProducts] = useState<any[]>([]);
-  const [approvedReviews, setApprovedReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Gestion du "me"
+  // Gestion du slug "me"
   useEffect(() => {
     if (slug === 'me' && user) {
-      router.replace(`/creators/creator_test`); // Forcé pour ton compte de test
+      const username = user.user_metadata?.username || 'creator_test';
+      router.replace(`/creators/${username}`);
     }
   }, [slug, user, router]);
 
-  const fetchCreatorData = async () => {
+  // Chargement du profil
+  useEffect(() => {
     if (!slug || slug === 'me') return;
 
-    try {
-      const { data: creatorData, error } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          creators(*)
-        `)
-        .eq('username', slug)
-        .single();
+    const fetchCreator = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select(`
+            *,
+            creators(*)
+          `)
+          .eq('username', slug)
+          .single();
 
-      if (error || !creatorData) {
-        setError('Créatrice non trouvée');
+        if (error || !data) {
+          setError('Créatrice non trouvée');
+          console.error('Erreur fetch:', error);
+        } else {
+          setCreator(data);
+        }
+      } catch (err) {
+        setError('Erreur lors du chargement');
+        console.error(err);
+      } finally {
         setLoading(false);
-        return;
       }
+    };
 
-      setCreator(creatorData);
+    fetchCreator();
+  }, [slug, supabase]);
 
-      // Produits
-      const { data: productsData } = await supabase
-        .from('products')
-        .select('*')
-        .eq('creator_id', creatorData.id)
-        .order('created_at', { ascending: false });
-      setProducts(productsData || []);
-
-      // Avis approuvés
-      const { data: reviewsData } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('creator_id', creatorData.id)
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      setApprovedReviews(reviewsData || []);
-    } catch (err) {
-      console.error(err);
-      setError('Erreur lors du chargement du profil');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (slug && slug !== 'me') fetchCreatorData();
-  }, [slug]);
-
-  if (loading) return <div className="min-h-screen bg-zinc-950 pt-32 text-center">Chargement du profil...</div>;
-  if (error || !creator) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-red-400">{error}</div>;
+  if (loading) return <div className="min-h-screen bg-zinc-950 text-white pt-20 text-center">Chargement...</div>;
+  if (error) return <div className="min-h-screen bg-zinc-950 text-white pt-20 text-center text-red-400">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-zinc-950 pb-20">
-      {/* Bannière */}
-      <div className="h-80 relative">
-        <img 
-          src={creator.banner_url || "https://picsum.photos/id/1015/1200/400"} 
-          alt="Bannière" 
-          className="w-full h-full object-cover" 
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/70 to-zinc-950" />
-      </div>
-
-      <div className="max-w-5xl mx-auto px-6 -mt-16 relative z-10">
-        <div className="flex flex-col md:flex-row gap-8">
-          <div className="relative -mt-12 md:-mt-20 flex-shrink-0">
-            <img 
-              src={creator.avatar_url || "https://picsum.photos/id/64/300/300"} 
-              alt={creator.username} 
-              className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
-            />
-          </div>
-
-          <div className="pt-6 flex-1">
-            <h1 className="text-4xl font-bold">{creator.full_name || creator.username}</h1>
-            <p className="text-rose-400">@{creator.username}</p>
-            <p className="text-zinc-400 mt-4 leading-relaxed">
-              {creator.bio || "Passionnée de lingerie portée et d'histoires intimes."}
-            </p>
-          </div>
-        </div>
-
-        {/* Boutique */}
-        <div className="mt-16">
-          <h2 className="text-3xl font-light mb-8">Sa boutique ({products.length} pièces)</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.length > 0 ? (
-              products.map(p => (
-                <StoryCard key={p.id} {...p} creator={creator.username} creatorSlug={slug} />
-              ))
-            ) : (
-              <p className="text-zinc-500">Aucune pièce mise en ligne pour le moment.</p>
-            )}
-          </div>
-        </div>
-
-        {/* Avis approuvés */}
-        <div className="mt-16">
-          <h2 className="text-3xl font-light mb-8">Avis clients ({approvedReviews.length})</h2>
-          {approvedReviews.length > 0 ? (
-            <div className="space-y-6">
-              {approvedReviews.map(review => (
-                <div key={review.id} className="bg-zinc-900 rounded-2xl p-6">
-                  <div className="flex items-center gap-1 mb-3">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="italic text-zinc-300">"{review.comment}"</p>
-                  <p className="text-xs text-zinc-500 mt-4">- {review.reviewer_name || 'Client anonyme'}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-zinc-500 italic">Aucun avis approuvé pour le moment.</p>
-          )}
-        </div>
+    <div className="min-h-screen bg-zinc-950 text-white">
+      <Header />
+      <div className="pt-20 max-w-5xl mx-auto px-6">
+        <h1 className="text-4xl font-bold mt-10">Profil de {creator.full_name}</h1>
+        <p className="text-zinc-400">@{creator.username}</p>
+        {/* Le reste de ton profil (bannière, badges, etc.) */}
+        <pre className="mt-10 bg-zinc-900 p-6 rounded-2xl text-sm overflow-auto">
+          {JSON.stringify(creator, null, 2)}
+        </pre>
       </div>
     </div>
   );
