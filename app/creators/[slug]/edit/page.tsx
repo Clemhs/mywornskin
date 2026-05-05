@@ -40,9 +40,11 @@ export default function CreatorEditPage() {
     loadData();
   }, [user]);
 
-  // Realtime pour les validations de l'admin
+  // Realtime - Détection validation / refus par l'admin
   useEffect(() => {
     if (!user) return;
+
+    const previousStatus = avatarStatus;
 
     const channel = supabase
       .channel(`profile-${user.id}`)
@@ -54,9 +56,6 @@ export default function CreatorEditPage() {
       }, (payload) => {
         const p = payload.new;
 
-        const wasPending = avatarStatus === 'pending';
-        const isNowApproved = p.avatar_status === 'approved';
-
         setAvatarUrl(p.avatar_url || "");
         setBannerUrl(p.banner_url || "");
         setAvatarPendingUrl(p.avatar_pending_url || "");
@@ -64,9 +63,12 @@ export default function CreatorEditPage() {
         setAvatarStatus(p.avatar_status || 'approved');
         setBannerStatus(p.banner_status || 'approved');
 
-        if (wasPending && isNowApproved) {
+        // Toast vert quand validé
+        if (p.avatar_status === 'approved' && previousStatus === 'pending') {
           setToast({ message: "✅ Photo de profil validée par l'équipe !", type: 'success' });
         }
+
+        // Toast rouge quand refusé
         if (p.avatar_status === 'rejected') {
           setToast({ 
             message: "❌ Photo refusée par l'administrateur", 
@@ -141,4 +143,37 @@ export default function CreatorEditPage() {
 
   const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file)
+    if (file) uploadImage(file, 'banner');
+  };
+
+  const handleModerateReview = async (reviewId: string, status: 'approved' | 'rejected') => {
+    await supabase.from('reviews').update({ status }).eq('id', reviewId);
+    setPendingReviews(prev => prev.filter(r => r.id !== reviewId));
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+    setSaving(true);
+
+    await supabase.from('profiles').update({
+      sales_badge: salesBadge,
+      frame: frame,
+    }).eq('id', user.id);
+
+    setSaving(false);
+    setToast({ message: "✅ Badges et cadres enregistrés", type: 'success' });
+    setTimeout(() => setToast(null), 2000);
+  };
+
+  return (
+    <div className="min-h-screen bg-zinc-950 text-white pb-12 pt-20">
+      <div className="max-w-6xl mx-auto px-6 pt-4">
+        <div className="flex justify-between items-center mb-10">
+          <Link href={`/creators/me`} className="text-zinc-400 hover:text-white flex items-center gap-2">
+            ← Retour au profil
+          </Link>
+          <h1 className="text-3xl font-semibold">Mon profil</h1>
+          <button 
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-pink-600 hover:bg-pink-500 px-8 py
