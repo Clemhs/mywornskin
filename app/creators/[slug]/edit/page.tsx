@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Save, Camera, ShoppingBag, Clock } from 'lucide-react';
+import { Save, Camera, ShoppingBag, Clock, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
 
@@ -55,7 +55,6 @@ export default function CreatorEditPage() {
       setAvatarStatus(profile.avatar_status || 'approved');
       setBannerStatus(profile.banner_status || 'approved');
 
-      // Toast rouge si photo refusée
       if (profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') {
         setToast({ 
           message: "❌ Une de vos photos a été refusée", 
@@ -121,6 +120,8 @@ export default function CreatorEditPage() {
     setPendingReviews(prev => prev.filter(r => r.id !== reviewId));
   };
 
+  const closeToast = () => setToast(null);
+
   const toastClass = toast?.type === 'success' 
     ? 'bg-emerald-600 text-white' 
     : 'bg-red-600 text-white';
@@ -132,7 +133,9 @@ export default function CreatorEditPage() {
           <Link href="/creators/me" className="text-zinc-400 hover:text-white flex items-center gap-2">
             ← Retour au profil
           </Link>
-          <h1 className="text-4xl font-bold">Édition de profil</h1>
+          
+          <h1 className="text-4xl font-bold text-center flex-1">Édition de profil</h1>
+
           <button 
             onClick={handleSave}
             disabled={saving}
@@ -143,7 +146,7 @@ export default function CreatorEditPage() {
           </button>
         </div>
 
-        {/* Toast plus petit et centré */}
+        {/* Toast plus petit, centré, avec croix */}
         {toast && (
           <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 ${toastClass}`}>
             {toast.message}
@@ -152,10 +155,14 @@ export default function CreatorEditPage() {
                 Voir les guidelines →
               </Link>
             )}
+            <button onClick={closeToast} className="ml-auto hover:bg-white/20 p-1 rounded-full transition">
+              <X size={18} />
+            </button>
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Le reste du code est inchangé (aperçu, badges, cadres, boutique, commentaires...) */}
           <div className="lg:col-span-5 space-y-8">
             <div>
               <h2 className="text-xl mb-4">Aperçu en direct</h2>
@@ -214,7 +221,6 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Badges, Cadres, Boutique restent identiques */}
             <div>
               <h2 className="text-xl mb-4">Badges de ventes</h2>
               <div className="flex gap-6 overflow-x-auto pb-6">
