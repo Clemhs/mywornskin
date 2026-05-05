@@ -10,7 +10,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 export default function CreatorProfile() {
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug as string;
+  let slug = (params.slug as string).toLowerCase();   // ← Force minuscule
 
   const { user } = useAuth();
   const supabase = createClient();
@@ -21,27 +21,25 @@ export default function CreatorProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Gestion du "me"
+  // Redirection si "me"
   useEffect(() => {
-    if (slug === 'me') {
-      if (!user) return router.push('/login');
-      const username = user.user_metadata?.username || user.email?.split('@')[0];
-      if (username) router.replace(`/creators/${username.replace(/\s+/g, '')}`);
+    if (params.slug === 'me' && user) {
+      const username = (user.user_metadata?.username || user.email?.split('@')[0] || '').toLowerCase();
+      if (username) router.replace(`/creators/${username}`);
     }
-  }, [slug, user, router]);
+  }, [params.slug, user, router]);
 
   const fetchCreatorData = async () => {
-    if (!slug || slug === 'me') return;
+    if (!slug) return;
 
     try {
-      // 1. Profil principal
-      const { data: creatorData, error: profileError } = await supabase
+      const { data: creatorData } = await supabase
         .from('profiles')
         .select('*')
-        .eq('username', slug)
+        .eq('username', slug)        // Recherche en minuscule
         .single();
 
-      if (profileError || !creatorData) {
+      if (!creatorData) {
         setError('Créatrice non trouvée');
         setLoading(false);
         return;
@@ -49,16 +47,15 @@ export default function CreatorProfile() {
 
       setCreator(creatorData);
 
-      // 2. Produits (optionnel)
+      // Produits
       const { data: productsData } = await supabase
         .from('products')
         .select('*')
         .eq('creator_id', creatorData.id)
         .order('created_at', { ascending: false });
-
       setProducts(productsData || []);
 
-      // 3. Avis approuvés (optionnel)
+      // Avis
       const { data: reviewsData } = await supabase
         .from('reviews')
         .select('*')
@@ -66,7 +63,6 @@ export default function CreatorProfile() {
         .eq('status', 'approved')
         .order('created_at', { ascending: false })
         .limit(5);
-
       setApprovedReviews(reviewsData || []);
 
     } catch (err) {
@@ -78,7 +74,7 @@ export default function CreatorProfile() {
   };
 
   useEffect(() => {
-    if (slug && slug !== 'me') fetchCreatorData();
+    if (slug) fetchCreatorData();
   }, [slug]);
 
   if (loading) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-white">Chargement...</div>;
@@ -86,6 +82,8 @@ export default function CreatorProfile() {
 
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
+      {/* Un seul Header */}
+      <Header />
 
       {/* Bannière */}
       <div className="h-80 relative">
@@ -100,13 +98,11 @@ export default function CreatorProfile() {
       <div className="max-w-5xl mx-auto px-6 -mt-16 relative z-10">
         <div className="flex flex-col md:flex-row gap-8">
           <div className="relative -mt-12 md:-mt-20 flex-shrink-0">
-            <div className="relative">
-              <img 
-                src={creator.avatar_url || "https://picsum.photos/id/64/300/300"} 
-                alt={creator.username} 
-                className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
-              />
-            </div>
+            <img 
+              src={creator.avatar_url || "https://picsum.photos/id/64/300/300"} 
+              alt={creator.username} 
+              className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
+            />
           </div>
 
           <div className="pt-6 flex-1">
@@ -118,21 +114,18 @@ export default function CreatorProfile() {
           </div>
         </div>
 
-        {/* Boutique */}
+        {/* Boutique et Avis (comme avant) */}
         <div className="mt-16">
           <h2 className="text-3xl font-light mb-8">Sa boutique ({products.length} pièces)</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.length > 0 ? (
-              products.map(p => (
-                <StoryCard key={p.id} {...p} creator={creator.username} creatorSlug={slug} />
-              ))
+              products.map(p => <StoryCard key={p.id} {...p} creator={creator.username} creatorSlug={slug} />)
             ) : (
               <p className="text-zinc-500 col-span-full">Aucune pièce mise en ligne pour le moment.</p>
             )}
           </div>
         </div>
 
-        {/* Avis */}
         <div className="mt-16">
           <h2 className="text-3xl font-light mb-8">Avis clients ({approvedReviews.length})</h2>
           {approvedReviews.length > 0 ? (
