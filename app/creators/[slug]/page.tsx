@@ -1,56 +1,149 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { Star } from 'lucide-react';
+import StoryCard from '@/components/StoryCard';
 import { createClient } from '@/lib/supabase/client';
-import Header from '@/components/Header';
 
 export default function CreatorProfile() {
   const params = useParams();
+  const router = useRouter();
   const rawSlug = params.slug as string;
   const slug = rawSlug.toLowerCase();   // Force minuscule
 
+  const supabase = createClient();
+
   const [creator, setCreator] = useState<any>(null);
+  const [products, setProducts] = useState<any[]>([]);
+  const [approvedReviews, setApprovedReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Redirection si majuscule
+  useEffect(() => {
+    if (rawSlug !== slug) {
+      router.replace(`/creators/${slug}`);
+    }
+  }, [rawSlug, slug, router]);
+
+  // Gestion "me"
+  useEffect(() => {
+    if (rawSlug === 'me') {
+      router.replace('/creators/creator_test'); // ou dynamique plus tard
+    }
+  }, [rawSlug, router]);
+
+  const fetchCreatorData = async () => {
+    if (!slug) return;
+
+    try {
+      const { data: creatorData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('username', slug)
+        .single();
+
+      if (!creatorData) {
+        setError('Créatrice non trouvée');
+        setLoading(false);
+        return;
+      }
+
+      setCreator(creatorData);
+
+      const { data: productsData } = await supabase
+        .from('products')
+        .select('*')
+        .eq('creator_id', creatorData.id);
+
+      setProducts(productsData || []);
+
+      const { data: reviewsData } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('creator_id', creatorData.id)
+        .eq('status', 'approved')
+        .limit(5);
+
+      setApprovedReviews(reviewsData || []);
+    } catch (err) {
+      setError('Erreur de chargement');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const supabase = createClient();
-
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('username', slug)
-      .single()
-      .then(({ data, error }) => {
-        console.log(`Recherche "${slug}" →`, data ? 'Trouvé' : 'Non trouvé', error);
-        setCreator(data);
-        setLoading(false);
-      });
+    fetchCreatorData();
   }, [slug]);
 
-  if (loading) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-white">Chargement...</div>;
+  if (loading) return <div className="min-h-screen bg-zinc-950 pt-32 text-center">Chargement...</div>;
+  if (error || !creator) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-red-400">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      <Header />
+    <div className="min-h-screen bg-zinc-950 pb-20">
+      {/* Pas de Header ici */}
 
-      <div className="pt-20 max-w-5xl mx-auto px-6 text-center">
-        {creator ? (
-          <div>
+      {/* Bannière */}
+      <div className="h-80 relative">
+        <img 
+          src={creator.banner_url || "https://picsum.photos/id/1015/1200/400"} 
+          alt="Bannière" 
+          className="w-full h-full object-cover" 
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/70 to-zinc-950" />
+      </div>
+
+      <div className="max-w-5xl mx-auto px-6 -mt-16 relative z-10">
+        <div className="flex flex-col md:flex-row gap-8">
+          <div className="relative -mt-12 md:-mt-20 flex-shrink-0">
             <img 
               src={creator.avatar_url || "https://picsum.photos/id/64/300/300"} 
-              alt={creator.full_name}
-              className="w-40 h-40 mx-auto rounded-3xl border-4 border-zinc-800 object-cover mb-6"
+              alt={creator.username} 
+              className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
             />
+          </div>
+
+          <div className="pt-6 flex-1">
             <h1 className="text-4xl font-bold">{creator.full_name}</h1>
-            <p className="text-2xl text-rose-400">@{creator.username}</p>
-            <p className="text-zinc-400 mt-6 max-w-md mx-auto">
-              {creator.bio || "Aucune biographie pour le moment."}
+            <p className="text-rose-400 text-xl">@{creator.username}</p>
+            <p className="text-zinc-400 mt-4 leading-relaxed">
+              {creator.bio || "Passionnée de lingerie portée et d'histoires intimes."}
             </p>
           </div>
-        ) : (
-          <p className="text-red-400 text-2xl">Créatrice non trouvée ({rawSlug})</p>
-        )}
+        </div>
+
+        {/* Boutique */}
+        <div className="mt-16">
+          <h2 className="text-3xl font-light mb-8">Sa boutique ({products.length} pièces)</h2>
+          {products.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {products.map(p => <StoryCard key={p.id} {...p} creator={creator.username} creatorSlug={slug} />)}
+            </div>
+          ) : (
+            <p className="text-zinc-500">Aucune pièce mise en ligne pour le moment.</p>
+          )}
+        </div>
+
+        {/* Avis */}
+        <div className="mt-16">
+          <h2 className="text-3xl font-light mb-8">Avis clients ({approvedReviews.length})</h2>
+          {approvedReviews.length > 0 ? (
+            <div className="space-y-6">
+              {approvedReviews.map(review => (
+                <div key={review.id} className="bg-zinc-900 rounded-2xl p-6">
+                  <div className="flex gap-1 mb-3">
+                    {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />)}
+                  </div>
+                  <p className="italic text-zinc-300">"{review.comment}"</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-zinc-500 italic">Aucun avis approuvé pour le moment.</p>
+          )}
+        </div>
       </div>
     </div>
   );
