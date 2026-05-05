@@ -1,72 +1,85 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/app/contexts/AuthContext';
+import Header from '@/components/Header';
 
-export default function CreatorProfileDebug() {
+export default function CreatorProfile() {
   const params = useParams();
+  const router = useRouter();
   const slug = params.slug as string;
+  const { user } = useAuth();
+  const supabase = createClient();
 
   const [creator, setCreator] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [rawData, setRawData] = useState<any>(null);
 
+  // Gestion du "me"
   useEffect(() => {
-    const fetchDebug = async () => {
-      const supabase = createClient();
+    if (slug === 'me' && user) {
+      const username = user.user_metadata?.username || user.email?.split('@')[0] || 'creator_test';
+      router.replace(`/creators/${username}`);
+    }
+  }, [slug, user, router]);
 
-      console.log("🔍 Recherche du slug :", slug);
+  // Chargement du profil
+  useEffect(() => {
+    if (!slug || slug === 'me') return;
 
-      // Requête brute
+    const fetchCreator = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          *,
+          creators(*)
+        `)
         .eq('username', slug)
         .single();
 
-      console.log("📊 Résultat brut :", { data, error });
-
-      setRawData({ data, error });
-
       if (error || !data) {
-        setError(`Créatrice non trouvée (slug: ${slug})`);
+        setError('Créatrice non trouvée');
       } else {
         setCreator(data);
       }
       setLoading(false);
     };
 
-    fetchDebug();
-  }, [slug]);
+    fetchCreator();
+  }, [slug, supabase]);
 
-  if (loading) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-white">Chargement...</div>;
+  if (loading) return <div className="min-h-screen bg-zinc-950 text-white pt-20 flex items-center justify-center">Chargement du profil...</div>;
+  if (error || !creator) return <div className="min-h-screen bg-zinc-950 text-white pt-20 text-center text-red-400">{error || 'Créatrice non trouvée'}</div>;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-8">
-      <h1 className="text-3xl mb-8">🔍 Debug Profil</h1>
-      
-      <div className="bg-zinc-900 p-6 rounded-2xl mb-6">
-        <p><strong>Slug recherché :</strong> {slug}</p>
-        {creator ? (
-          <div className="mt-4">
-            <p>✅ Trouvé !</p>
-            <pre className="mt-4 bg-black p-4 rounded-xl overflow-auto text-sm">
-              {JSON.stringify(creator, null, 2)}
-            </pre>
-          </div>
-        ) : (
-          <p className="text-red-400 mt-4">❌ Non trouvé</p>
-        )}
-      </div>
-
-      {rawData && (
-        <div className="bg-zinc-900 p-6 rounded-2xl text-xs">
-          <strong>Données brutes de Supabase :</strong>
-          <pre className="mt-2 overflow-auto">{JSON.stringify(rawData, null, 2)}</pre>
+    <div className="min-h-screen bg-zinc-950 text-white">
+      <Header />
+      <div className="pt-20 max-w-5xl mx-auto px-6">
+        <div className="h-80 bg-zinc-900 rounded-3xl relative overflow-hidden mb-8">
+          {/* Bannière à venir */}
         </div>
-      )}
+
+        <div className="flex gap-8">
+          {/* Photo de profil + infos */}
+          <div className="w-64">
+            <img 
+              src={creator.avatar_url || "https://picsum.photos/id/64/300/300"} 
+              alt={creator.full_name}
+              className="w-64 h-64 object-cover rounded-3xl border-4 border-zinc-800"
+            />
+            <h1 className="text-3xl font-bold mt-6">{creator.full_name}</h1>
+            <p className="text-zinc-400">@{creator.username}</p>
+          </div>
+
+          {/* Contenu principal */}
+          <div className="flex-1">
+            <p className="text-zinc-300 text-lg">{creator.bio || "Aucune bio pour le moment."}</p>
+            {/* Tu pourras ajouter ici les produits, avis, badges, etc. plus tard */}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
