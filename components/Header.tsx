@@ -39,8 +39,8 @@ export default function Header() {
     setMenuOpen(false);
   };
 
-  // FORÇAGE temporaire pour ton compte créateur
-  const isCreator = user?.email === 'creator@gmail.com';
+  // FORÇAGE pour ton compte de test
+  const isCreator = user?.email?.includes('creator') || user?.email === 'creator@gmail.com';
 
   return (
     <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800">
@@ -75,7 +75,7 @@ export default function Header() {
                 </button>
 
                 {menuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-50">
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-[100]">
                     <Link 
                       href={isCreator ? "/creators/me" : "/profile"} 
                       className="block px-6 py-3 hover:bg-zinc-800"
