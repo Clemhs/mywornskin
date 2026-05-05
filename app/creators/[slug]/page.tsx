@@ -1,175 +1,147 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { Star } from 'lucide-react';
-import StoryCard from '@/components/StoryCard';
-import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { createClient } from '@/lib/supabase/client';
 
-export default function CreatorProfile() {
-  const params = useParams();
-  const router = useRouter();
-  const slug = params.slug as string;
+const CREATOR_TEST_ID = 'bc985ee6-d9dc-43e0-8069-b34deeea9e24'; // ton ancien ID
 
-  const { user } = useAuth();
+export default function Header() {
+  const pathname = usePathname();
+  const { user, logout } = useAuth();
   const supabase = createClient();
 
-  const [creator, setCreator] = useState<any>(null);
-  const [products, setProducts] = useState<any[]>([]);
-  const [approvedReviews, setApprovedReviews] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState<string>('/default-avatar.png');
+  const [isCreator, setIsCreator] = useState(false);
 
-  // Gestion du "me"
   useEffect(() => {
-    if (slug === 'me') {
-      if (!user) return router.push('/login');
-      const username = user.user_metadata?.username || user.email?.split('@')[0];
-      if (username) router.replace(`/creators/${username.replace(/\s+/g, '')}`);
-    }
-  }, [slug, user, router]);
+    if (!user) return;
 
-  const fetchCreatorData = async () => {
-    if (!slug || slug === 'me') return;
-
-    try {
-      const { data: creatorData } = await supabase
+    const loadUserData = async () => {
+      // Photo de profil
+      const { data: profile } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('username', slug)
+        .select('avatar_url')
+        .eq('id', user.id)
         .single();
 
-      if (!creatorData) {
-        setError('Créatrice non trouvée');
-        setLoading(false);
-        return;
+      if (profile?.avatar_url) {
+        setAvatarUrl(profile.avatar_url);
       }
 
-      setCreator(creatorData);
+      // Détection forcée pour les tests
+      if (user.id === CREATOR_TEST_ID) {
+        setIsCreator(true);
+      } else {
+        const { data: creator } = await supabase
+          .from('creators')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle();
+        setIsCreator(!!creator);
+      }
+    };
 
-      // Produits
-      const { data: productsData } = await supabase
-        .from('products')
-        .select('*')
-        .eq('creator_id', creatorData.id)
-        .order('created_at', { ascending: false });
-      setProducts(productsData || []);
+    loadUserData();
 
-      // Avis approuvés
-      const { data: reviewsData } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('creator_id', creatorData.id)
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false })
-        .limit(5);
+    // Messages non lus
+    const fetchUnread = async () => {
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('receiver_id', user.id)
+        .is('is_read', false);
+      setUnreadCount(count || 0);
+    };
 
-      setApprovedReviews(reviewsData || []);
-    } catch (err) {
-      console.error(err);
-      setError('Erreur lors du chargement');
-    } finally {
-      setLoading(false);
-    }
+    fetchUnread();
+
+  }, [user]);
+
+  const handleLogout = async () => {
+    await logout();
+    setMenuOpen(false);
   };
 
-  useEffect(() => {
-    if (slug && slug !== 'me') fetchCreatorData();
-  }, [slug]);
-
-  if (loading) return <div className="min-h-screen bg-zinc-950 pt-32 text-center">Chargement...</div>;
-  if (error || !creator) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-red-400">{error}</div>;
-
   return (
-    <div className="min-h-screen bg-zinc-950 pb-20">
-      {/* Pas de <Header /> ici → il est déjà dans le layout */}
+    <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        
+        <Link href="/" className="text-3xl font-bold tracking-tighter">
+          MyWornSkin
+        </Link>
 
-      {/* Bannière */}
-      <div className="h-80 relative">
-        <img 
-          src={creator.banner_url || "https://picsum.photos/id/1015/1200/400"} 
-          alt="Bannière" 
-          className="w-full h-full object-cover" 
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/70 to-zinc-950" />
-      </div>
+        <nav className="hidden md:flex items-center gap-10 text-sm font-medium">
+          <Link href="/shop" className="hover:text-rose-400 transition-colors">Boutique</Link>
+          <Link href="/creators" className="hover:text-rose-400 transition-colors">Créatrices</Link>
+        </nav>
 
-      <div className="max-w-5xl mx-auto px-6 -mt-16 relative z-10">
-        <div className="flex flex-col md:flex-row gap-8">
-          <div className="relative -mt-12 md:-mt-20 flex-shrink-0">
-            <div className="relative">
-              <img 
-                src={creator.avatar_url || "https://picsum.photos/id/64/300/300"} 
-                alt={creator.username} 
-                className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
-              />
-
-              {creator.frame && <div className={`absolute inset-0 rounded-3xl border-4 shimmer-frame ${creator.frame}`} />}
-              
-              {creator.sales_badge && (
-                <img 
-                  src={`/badges/${creator.sales_badge}.png`} 
-                  alt={`${creator.sales_badge} ventes`}
-                  className="absolute -top-3 -right-3 w-14 h-14 drop-shadow-2xl z-10" 
-                />
-              )}
-            </div>
-          </div>
-
-          <div className="pt-6 flex-1">
-            <h1 className="text-4xl font-bold">{creator.username}</h1>
-            <p className="text-zinc-400 mt-2 leading-relaxed">
-              {creator.bio || "Passionnée de lingerie portée et d'histoires intimes."}
-            </p>
-          </div>
-        </div>
-
-        {/* Boutique */}
-        <div className="mt-16">
-          <h2 className="text-3xl font-light mb-8">Sa boutique ({products.length} pièces)</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.length > 0 ? (
-              products.map(p => (
-                <StoryCard key={p.id} {...p} creator={creator.username} creatorSlug={slug} />
-              ))
-            ) : (
-              <p className="text-zinc-500">Aucune pièce mise en ligne pour le moment.</p>
-            )}
-          </div>
-        </div>
-
-        {/* Avis approuvés */}
-        <div className="mt-16">
-          <h2 className="text-3xl font-light mb-8">Avis clients ({approvedReviews.length})</h2>
-          
-          {approvedReviews.length > 0 ? (
-            <div className="space-y-6 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-zinc-700">
-              {approvedReviews.map(review => (
-                <div key={review.id} className="bg-zinc-900 rounded-2xl p-6">
-                  <div className="flex items-center gap-1 mb-3">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                    ))}
+        <div className="flex items-center gap-4">
+          {user ? (
+            <>
+              <Link href="/messages" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
+                <MessageCircle className="w-6 h-6" />
+                {unreadCount > 0 && (
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-rose-600 text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
                   </div>
-                  <p className="italic text-zinc-300">"{review.comment}"</p>
-                  <p className="text-xs text-zinc-500 mt-4">- {review.reviewer_name || 'Client anonyme'}</p>
-                </div>
-              ))}
-            </div>
+                )}
+              </Link>
+
+              <Link href="/cart" className="p-3 hover:bg-zinc-900 rounded-2xl transition-all">
+                <ShoppingCart className="w-6 h-6" />
+              </Link>
+
+              <div className="relative">
+                <button 
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
+                >
+                  <img src={avatarUrl} alt="Profil" className="w-full h-full object-cover" />
+                </button>
+
+                {menuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-50">
+                    <Link 
+                      href={isCreator ? "/creators/me" : "/profile"} 
+                      className="block px-6 py-3 hover:bg-zinc-800"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      👤 Mon Profil
+                    </Link>
+
+                    {isCreator && (
+                      <Link 
+                        href="/creators/me/edit" 
+                        className="block px-6 py-3 hover:bg-zinc-800"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        ✏️ Éditer mon profil
+                      </Link>
+                    )}
+
+                    <button 
+                      onClick={handleLogout} 
+                      className="w-full text-left px-6 py-3 text-red-400 hover:bg-zinc-800"
+                    >
+                      Se déconnecter
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
           ) : (
-            <p className="text-zinc-500 italic">Aucun avis approuvé pour le moment.</p>
+            <Link href="/login" className="px-6 py-2.5 border border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-black rounded-2xl text-sm font-semibold transition-all">
+              Se connecter
+            </Link>
           )}
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes shimmer-frame { 0% { background-position: -200% 0; } 100% { background-position: 300% 0; } }
-        .shimmer-frame { animation: shimmer-frame 8s linear infinite; background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.85) 50%, transparent 60%); background-size: 200% 100%; }
-        .shimmer-frame.rose { border-color: #f472b6; box-shadow: inset 0 0 40px #f472b6; }
-        .shimmer-frame.silver { border-color: #e2e8f0; box-shadow: inset 0 0 40px #e2e8f0; }
-        .shimmer-frame.gold { border-color: #fbbf24; box-shadow: inset 0 0 45px #fbbf24; }
-      `}</style>
-    </div>
+    </header>
   );
 }
