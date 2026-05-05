@@ -40,43 +40,6 @@ export default function CreatorEditPage() {
     loadData();
   }, [user]);
 
-  // Realtime pour détecter validation/refus par l'admin
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel(`profile-${user.id}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'profiles',
-        filter: `id=eq.${user.id}`
-      }, (payload) => {
-        const p = payload.new;
-
-        setAvatarUrl(p.avatar_url || "");
-        setBannerUrl(p.banner_url || "");
-        setAvatarPendingUrl(p.avatar_pending_url || "");
-        setBannerPendingUrl(p.banner_pending_url || "");
-        setAvatarStatus(p.avatar_status || 'approved');
-        setBannerStatus(p.banner_status || 'approved');
-
-        if (p.avatar_status === 'approved' && avatarStatus === 'pending') {
-          setToast({ message: "✅ Photo de profil validée par l'équipe !", type: 'success' });
-        }
-        if (p.avatar_status === 'rejected') {
-          setToast({ 
-            message: "❌ Photo refusée par l'administrateur", 
-            type: 'error', 
-            link: "/guidelines" 
-          });
-        }
-      })
-      .subscribe();
-
-    return () => supabase.removeChannel(channel);
-  }, [user, avatarStatus]);
-
   const loadData = async () => {
     const { data: profile } = await supabase
       .from('profiles')
@@ -288,9 +251,4 @@ export default function CreatorEditPage() {
         @keyframes shimmer-frame { 0% { background-position: -200% 0; } 100% { background-position: 300% 0; } }
         .shimmer-frame { animation: shimmer-frame 8s linear infinite; background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.85) 50%, transparent 60%); background-size: 200% 100%; }
         .shimmer-frame.rose { border-color: #f472b6; box-shadow: inset 0 0 40px #f472b6; }
-        .shimmer-frame.silver { border-color: #e2e8f0; box-shadow: inset 0 0 40px #e2e8f0; }
-        .shimmer-frame.gold { border-color: #fbbf24; box-shadow: inset 0 0 45px #fbbf24; }
-      `}</style>
-    </div>
-  );
-}
+        .shimmer-frame
