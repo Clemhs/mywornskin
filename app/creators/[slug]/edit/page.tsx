@@ -77,40 +77,42 @@ export default function CreatorEditPage() {
     setFrame(current => current === f ? null : f);
   };
 
+  // Upload + sauvegarde automatique
   const uploadImage = async (file: File, type: 'avatar' | 'banner') => {
     if (!user) return null;
     const fileExt = file.name.split('.').pop();
     const fileName = `${user.id}-${type}-${Date.now()}.${fileExt}`;
 
     const { error } = await supabase.storage.from('profiles').upload(fileName, file, { upsert: true });
-    if (error) return null;
+    if (error) {
+      setToast("❌ Erreur lors de l'upload");
+      return null;
+    }
 
     const { data: { publicUrl } } = supabase.storage.from('profiles').getPublicUrl(fileName);
+
+    const updateData = type === 'avatar' 
+      ? { avatar_pending_url: publicUrl, avatar_status: 'pending' }
+      : { banner_pending_url: publicUrl, banner_status: 'pending' };
+
+    await supabase.from('profiles').update(updateData).eq('id', user.id);
+
+    if (type === 'avatar') setAvatarPendingUrl(publicUrl);
+    else setBannerPendingUrl(publicUrl);
+
+    setToast(`📸 Photo de ${type} envoyée en attente de validation`);
+    setTimeout(() => setToast(null), 2500);
     return publicUrl;
   };
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const newUrl = await uploadImage(file, 'avatar');
-    if (newUrl) {
-      setAvatarPendingUrl(newUrl);
-      setAvatarStatus('pending');
-      setToast("📸 Photo de profil envoyée en attente");
-      setTimeout(() => setToast(null), 2500);
-    }
+    if (file) uploadImage(file, 'avatar');
   };
 
-  const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const newUrl = await uploadImage(file, 'banner');
-    if (newUrl) {
-      setBannerPendingUrl(newUrl);
-      setBannerStatus('pending');
-      setToast("📸 Photo de couverture envoyée en attente");
-      setTimeout(() => setToast(null), 2500);
-    }
+    if (file) uploadImage(file, 'banner');
   };
 
   const handleModerateReview = async (reviewId: string, status: 'approved' | 'rejected') => {
@@ -130,7 +132,7 @@ export default function CreatorEditPage() {
     }).eq('id', user.id);
 
     setSaving(false);
-    setToast("✅ Modifications enregistrées !");
+    setToast("✅ Badges et cadres enregistrés");
     setTimeout(() => setToast(null), 2000);
   };
 
@@ -155,7 +157,6 @@ export default function CreatorEditPage() {
         {toast && <div className="mb-8 p-4 rounded-3xl text-center font-medium bg-emerald-600">{toast}</div>}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Colonne de gauche - Aperçu + Commentaires */}
           <div className="lg:col-span-5 space-y-8">
             <div>
               <h2 className="text-xl mb-4">Aperçu en direct</h2>
@@ -196,7 +197,6 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* Colonne de droite */}
           <div className="lg:col-span-7 space-y-12">
             {/* Photos */}
             <div>
