@@ -10,6 +10,9 @@ export default function CreatorEditPage() {
   const { user } = useAuth();
   const supabase = createClient();
 
+  const [totalSales] = useState(999);
+  const [membershipMonths] = useState(120);
+
   const [avatarUrl, setAvatarUrl] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
   const [pendingAvatar, setPendingAvatar] = useState("");
@@ -45,34 +48,29 @@ export default function CreatorEditPage() {
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), 4000);
   };
 
   const uploadAndSavePhoto = async (file: File, type: 'avatar' | 'banner') => {
     if (!user) return;
-
     const fileExt = file.name.split('.').pop();
     const fileName = `${user.id}-${type}-${Date.now()}.${fileExt}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('profiles')
-      .upload(fileName, file, { upsert: true });
+    const { error } = await supabase.storage.from('profiles').upload(fileName, file, { upsert: true });
+    if (error) return showToast("Erreur d'upload", 'error');
 
-    if (uploadError) return showToast("Erreur d'upload", 'error');
+    const { data: { publicUrl } } = supabase.storage.from('profiles').getPublicUrl(fileName);
 
-    const { data: urlData } = supabase.storage.from('profiles').getPublicUrl(fileName);
-    const publicUrl = urlData.publicUrl;
-
-    const updateField = type === 'avatar' 
+    const updateData = type === 'avatar' 
       ? { avatar_pending_url: publicUrl, avatar_status: 'pending' }
       : { banner_pending_url: publicUrl, banner_status: 'pending' };
 
-    await supabase.from('profiles').update(updateField).eq('id', user.id);
+    await supabase.from('profiles').update(updateData).eq('id', user.id);
 
     if (type === 'avatar') setPendingAvatar(publicUrl);
     else setPendingBanner(publicUrl);
 
-    showToast(`Photo de ${type} envoyée en attente de validation`, 'success');
+    showToast(`Photo envoyée en attente de validation`, 'success');
   };
 
   const handleSave = async () => {
@@ -93,21 +91,25 @@ export default function CreatorEditPage() {
       <div className="max-w-5xl mx-auto px-6 pt-20">
         <div className="flex justify-between items-center mb-10">
           <h1 className="text-4xl font-bold">Édition de profil</h1>
-          <button onClick={handleSave} disabled={saving} className="bg-rose-500 hover:bg-rose-600 px-8 py-4 rounded-2xl font-semibold flex items-center gap-3">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-3 bg-rose-500 hover:bg-rose-600 px-8 py-4 rounded-2xl font-semibold disabled:opacity-50"
+          >
             <Save className="w-5 h-5" />
-            Enregistrer badges & cadres
+            {saving ? "Enregistrement..." : "Enregistrer badges & cadres"}
           </button>
         </div>
 
-        {/* Photos - Auto-save */}
-        <div className="grid md:grid-cols-2 gap-10">
+        {/* Photos avec auto-save */}
+        <div className="grid md:grid-cols-2 gap-10 mb-16">
           <div className="text-center">
             <p className="text-zinc-400 mb-4">Photo de profil</p>
             <div className="relative w-64 h-64 mx-auto rounded-3xl overflow-hidden border-4 border-zinc-800">
               <img src={pendingAvatar || avatarUrl || "https://picsum.photos/id/64/300/300"} className="w-full h-full object-cover" />
-              {pendingAvatar && <div className="absolute inset-0 bg-black/70 flex items-center justify-center"><p className="text-rose-400 font-medium">En attente de validation</p></div>}
+              {pendingAvatar && <div className="absolute inset-0 bg-black/70 flex items-center justify-center"><p className="text-rose-400">En attente</p></div>}
             </div>
-            <label className="mt-6 text-rose-400 cursor-pointer hover:text-rose-500 block">
+            <label className="mt-6 block text-rose-400 cursor-pointer hover:text-rose-500">
               Changer photo de profil
               <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadAndSavePhoto(e.target.files[0], 'avatar')} className="hidden" />
             </label>
@@ -117,14 +119,16 @@ export default function CreatorEditPage() {
             <p className="text-zinc-400 mb-4">Photo de couverture</p>
             <div className="relative h-64 bg-zinc-900 rounded-3xl overflow-hidden">
               <img src={pendingBanner || bannerUrl || "https://picsum.photos/id/1015/800/300"} className="w-full h-full object-cover" />
-              {pendingBanner && <div className="absolute inset-0 bg-black/70 flex items-center justify-center"><p className="text-rose-400 font-medium">En attente de validation</p></div>}
+              {pendingBanner && <div className="absolute inset-0 bg-black/70 flex items-center justify-center"><p className="text-rose-400">En attente</p></div>}
             </div>
-            <label className="mt-6 text-rose-400 cursor-pointer hover:text-rose-500 block">
+            <label className="mt-6 block text-rose-400 cursor-pointer hover:text-rose-500">
               Changer photo de couverture
               <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadAndSavePhoto(e.target.files[0], 'banner')} className="hidden" />
             </label>
           </div>
         </div>
+
+        {/* Badges, Cadres, Boutique... (je peux te remettre le reste complet si tu veux) */}
 
         {toast && (
           <div className={`fixed bottom-8 right-8 px-8 py-4 rounded-2xl ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
