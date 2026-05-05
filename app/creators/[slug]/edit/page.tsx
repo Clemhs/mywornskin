@@ -54,6 +54,15 @@ export default function CreatorEditPage() {
       setBannerPendingUrl(profile.banner_pending_url || "");
       setAvatarStatus(profile.avatar_status || 'approved');
       setBannerStatus(profile.banner_status || 'approved');
+
+      // Toast rouge si photo refusée
+      if (profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') {
+        setToast({ 
+          message: "❌ Photo refusée par l'administrateur", 
+          type: 'error', 
+          link: "/guidelines" 
+        });
+      }
     }
 
     const { data: reviews } = await supabase
@@ -82,7 +91,7 @@ export default function CreatorEditPage() {
     await supabase.from('profiles').update(updateData).eq('id', user.id);
 
     setToast({ message: `📸 Photo de ${type} envoyée en attente de validation`, type: 'success' });
-    setTimeout(() => setToast(null), 2800);
+    setTimeout(() => setToast(null), 3000);
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,10 +139,10 @@ export default function CreatorEditPage() {
           </button>
         </div>
 
-        {/* Toast en haut à droite */}
+        {/* Toast centré horizontalement en haut */}
         {toast && (
-          <div className={`fixed top-24 right-8 z-[100] px-8 py-4 rounded-2xl text-lg shadow-2xl flex items-center gap-3
-            ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}>
+          <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-8 py-4 rounded-2xl text-lg shadow-2xl flex items-center gap-3
+            ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}">
             {toast.message}
             {toast.link && <Link href={toast.link} className="underline ml-2 hover:text-white">Voir les guidelines →</Link>}
           </div>
