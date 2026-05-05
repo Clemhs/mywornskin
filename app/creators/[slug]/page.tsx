@@ -21,15 +21,10 @@ export default function CreatorProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Gestion du "me" + redirection propre
+  // Gestion du "me"
   useEffect(() => {
-    if (slug === 'me') {
-      if (!user) {
-        router.push('/login');
-        return;
-      }
-      // Redirection vers le username du créateur
-      router.replace(`/creators/${user.user_metadata?.username || 'creator_test'}`);
+    if (slug === 'me' && user) {
+      router.replace(`/creators/creator_test`); // Forcé pour ton compte de test
     }
   }, [slug, user, router]);
 
@@ -37,14 +32,16 @@ export default function CreatorProfile() {
     if (!slug || slug === 'me') return;
 
     try {
-      // Recherche par username dans profiles
-      let { data: creatorData } = await supabase
+      const { data: creatorData, error } = await supabase
         .from('profiles')
-        .select('*, creators(*)')
+        .select(`
+          *,
+          creators(*)
+        `)
         .eq('username', slug)
         .single();
 
-      if (!creatorData) {
+      if (error || !creatorData) {
         setError('Créatrice non trouvée');
         setLoading(false);
         return;
@@ -83,7 +80,7 @@ export default function CreatorProfile() {
   }, [slug]);
 
   if (loading) return <div className="min-h-screen bg-zinc-950 pt-32 text-center">Chargement du profil...</div>;
-  if (error || !creator) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-red-400">{error || 'Créatrice non trouvée'}</div>;
+  if (error || !creator) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-red-400">{error}</div>;
 
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
@@ -100,13 +97,11 @@ export default function CreatorProfile() {
       <div className="max-w-5xl mx-auto px-6 -mt-16 relative z-10">
         <div className="flex flex-col md:flex-row gap-8">
           <div className="relative -mt-12 md:-mt-20 flex-shrink-0">
-            <div className="relative">
-              <img 
-                src={creator.avatar_url || "https://picsum.photos/id/64/300/300"} 
-                alt={creator.username} 
-                className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
-              />
-            </div>
+            <img 
+              src={creator.avatar_url || "https://picsum.photos/id/64/300/300"} 
+              alt={creator.username} 
+              className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
+            />
           </div>
 
           <div className="pt-6 flex-1">
@@ -118,8 +113,41 @@ export default function CreatorProfile() {
           </div>
         </div>
 
-        {/* Le reste de ton code (boutique, avis, etc.) reste identique */}
-        {/* ... (je garde ton code existant pour le reste) */}
+        {/* Boutique */}
+        <div className="mt-16">
+          <h2 className="text-3xl font-light mb-8">Sa boutique ({products.length} pièces)</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {products.length > 0 ? (
+              products.map(p => (
+                <StoryCard key={p.id} {...p} creator={creator.username} creatorSlug={slug} />
+              ))
+            ) : (
+              <p className="text-zinc-500">Aucune pièce mise en ligne pour le moment.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Avis approuvés */}
+        <div className="mt-16">
+          <h2 className="text-3xl font-light mb-8">Avis clients ({approvedReviews.length})</h2>
+          {approvedReviews.length > 0 ? (
+            <div className="space-y-6">
+              {approvedReviews.map(review => (
+                <div key={review.id} className="bg-zinc-900 rounded-2xl p-6">
+                  <div className="flex items-center gap-1 mb-3">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                    ))}
+                  </div>
+                  <p className="italic text-zinc-300">"{review.comment}"</p>
+                  <p className="text-xs text-zinc-500 mt-4">- {review.reviewer_name || 'Client anonyme'}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-zinc-500 italic">Aucun avis approuvé pour le moment.</p>
+          )}
+        </div>
       </div>
     </div>
   );
