@@ -2,77 +2,156 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { Star } from 'lucide-react';
+import StoryCard from '@/components/StoryCard';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Header from '@/components/Header';
-import { Save, Lock, Camera } from 'lucide-react'; // si tu veux des icônes
 
 export default function CreatorProfile() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
+
   const { user } = useAuth();
   const supabase = createClient();
 
   const [creator, setCreator] = useState<any>(null);
+  const [products, setProducts] = useState<any[]>([]);
+  const [approvedReviews, setApprovedReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
+  // Gestion du "me"
   useEffect(() => {
-    if (slug === 'me' && user) {
-      router.replace(`/creators/${user.user_metadata?.username || 'creator_test'}`);
-      return;
+    if (slug === 'me') {
+      if (!user) return router.push('/login');
+      const username = user.user_metadata?.username || user.email?.split('@')[0];
+      if (username) router.replace(`/creators/${username.replace(/\s+/g, '')}`);
     }
+  }, [slug, user, router]);
 
-    const fetchCreator = async () => {
-      const { data } = await supabase
+  const fetchCreatorData = async () => {
+    if (!slug || slug === 'me') return;
+
+    try {
+      // 1. Profil principal
+      const { data: creatorData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('username', slug)
         .single();
 
-      setCreator(data);
+      if (profileError || !creatorData) {
+        setError('Créatrice non trouvée');
+        setLoading(false);
+        return;
+      }
+
+      setCreator(creatorData);
+
+      // 2. Produits (optionnel)
+      const { data: productsData } = await supabase
+        .from('products')
+        .select('*')
+        .eq('creator_id', creatorData.id)
+        .order('created_at', { ascending: false });
+
+      setProducts(productsData || []);
+
+      // 3. Avis approuvés (optionnel)
+      const { data: reviewsData } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('creator_id', creatorData.id)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      setApprovedReviews(reviewsData || []);
+
+    } catch (err) {
+      console.error(err);
+      setError('Erreur lors du chargement');
+    } finally {
       setLoading(false);
-    };
+    }
+  };
 
-    fetchCreator();
-  }, [slug, user, router, supabase]);
+  useEffect(() => {
+    if (slug && slug !== 'me') fetchCreatorData();
+  }, [slug]);
 
-  if (loading) return <div className="min-h-screen bg-zinc-950 pt-32 text-center">Chargement...</div>;
-  if (!creator) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-red-400">Créatrice non trouvée</div>;
+  if (loading) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-white">Chargement...</div>;
+  if (error || !creator) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-red-400">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-zinc-950 pb-20">
       <Header />
 
-      <div className="pt-20 max-w-6xl mx-auto px-6">
-        {/* Bannière */}
-        <div className="h-80 bg-gradient-to-r from-rose-950 to-zinc-900 rounded-3xl relative overflow-hidden mb-12">
-          {creator.banner_url && <img src={creator.banner_url} className="w-full h-full object-cover" />}
-        </div>
+      {/* Bannière */}
+      <div className="h-80 relative">
+        <img 
+          src={creator.banner_url || "https://picsum.photos/id/1015/1200/400"} 
+          alt="Bannière" 
+          className="w-full h-full object-cover" 
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/70 to-zinc-950" />
+      </div>
 
-        <div className="flex flex-col md:flex-row gap-10 -mt-20">
-          {/* Photo profil */}
-          <div className="md:w-80 flex-shrink-0 text-center md:text-left">
-            <img 
-              src={creator.avatar_url || "https://picsum.photos/id/64/400/400"} 
-              alt={creator.full_name}
-              className="w-56 h-56 mx-auto md:mx-0 object-cover rounded-3xl border-4 border-zinc-950 shadow-2xl"
-            />
-            <h1 className="text-4xl font-bold mt-6">{creator.full_name}</h1>
-            <p className="text-2xl text-rose-400">@{creator.username}</p>
-          </div>
-
-          {/* Contenu principal */}
-          <div className="flex-1 pt-8">
-            <p className="text-zinc-300 text-lg leading-relaxed">
-              {creator.bio || "Aucune biographie pour le moment."}
-            </p>
-
-            {/* On remettra ici les badges, cadres, commentaires, produits... */}
-            <div className="mt-12 text-rose-400 text-sm">
-              Badges, cadres et avis seront ajoutés dans les prochaines étapes.
+      <div className="max-w-5xl mx-auto px-6 -mt-16 relative z-10">
+        <div className="flex flex-col md:flex-row gap-8">
+          <div className="relative -mt-12 md:-mt-20 flex-shrink-0">
+            <div className="relative">
+              <img 
+                src={creator.avatar_url || "https://picsum.photos/id/64/300/300"} 
+                alt={creator.username} 
+                className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
+              />
             </div>
           </div>
+
+          <div className="pt-6 flex-1">
+            <h1 className="text-4xl font-bold">{creator.full_name}</h1>
+            <p className="text-rose-400 text-xl">@{creator.username}</p>
+            <p className="text-zinc-400 mt-4 leading-relaxed">
+              {creator.bio || "Passionnée de lingerie portée et d'histoires intimes."}
+            </p>
+          </div>
+        </div>
+
+        {/* Boutique */}
+        <div className="mt-16">
+          <h2 className="text-3xl font-light mb-8">Sa boutique ({products.length} pièces)</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {products.length > 0 ? (
+              products.map(p => (
+                <StoryCard key={p.id} {...p} creator={creator.username} creatorSlug={slug} />
+              ))
+            ) : (
+              <p className="text-zinc-500 col-span-full">Aucune pièce mise en ligne pour le moment.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Avis */}
+        <div className="mt-16">
+          <h2 className="text-3xl font-light mb-8">Avis clients ({approvedReviews.length})</h2>
+          {approvedReviews.length > 0 ? (
+            <div className="space-y-6">
+              {approvedReviews.map(review => (
+                <div key={review.id} className="bg-zinc-900 rounded-2xl p-6">
+                  <div className="flex items-center gap-1 mb-3">
+                    {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />)}
+                  </div>
+                  <p className="italic text-zinc-300">"{review.comment}"</p>
+                  <p className="text-xs text-zinc-500 mt-4">- {review.reviewer_name || 'Client anonyme'}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-zinc-500 italic">Aucun avis approuvé pour le moment.</p>
+          )}
         </div>
       </div>
     </div>
