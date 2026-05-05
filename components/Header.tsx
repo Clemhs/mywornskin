@@ -15,55 +15,32 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [avatarUrl, setAvatarUrl] = useState<string>('/default-avatar.png');
-  const [isCreator, setIsCreator] = useState(false);
-  const [username, setUsername] = useState('');
 
   useEffect(() => {
     if (!user) return;
 
-    const loadUserData = async () => {
-      // Charger profil complet
+    const loadProfile = async () => {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('avatar_url, username, full_name')
+        .select('avatar_url')
         .eq('id', user.id)
         .single();
 
-      if (profile) {
-        setAvatarUrl(profile.avatar_url || '/default-avatar.png');
-        setUsername(profile.username || profile.full_name || 'Utilisateur');
+      if (profile?.avatar_url) {
+        setAvatarUrl(profile.avatar_url);
       }
-
-      // Vérification créateur
-      const { data: creator } = await supabase
-        .from('creators')
-        .select('id')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      setIsCreator(!!creator);
     };
 
-    loadUserData();
-
-    // Messages non lus
-    const fetchUnread = async () => {
-      const { count } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('receiver_id', user.id)
-        .is('is_read', false);
-      setUnreadCount(count || 0);
-    };
-
-    fetchUnread();
-
+    loadProfile();
   }, [user]);
 
   const handleLogout = async () => {
     await logout();
     setMenuOpen(false);
   };
+
+  // FORÇAGE temporaire pour ton compte créateur
+  const isCreator = user?.email === 'creator@gmail.com';
 
   return (
     <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800">
@@ -83,11 +60,6 @@ export default function Header() {
             <>
               <Link href="/messages" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
                 <MessageCircle className="w-6 h-6" />
-                {unreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-rose-600 text-[10px] font-bold rounded-full flex items-center justify-center">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </div>
-                )}
               </Link>
 
               <Link href="/cart" className="p-3 hover:bg-zinc-900 rounded-2xl transition-all">
