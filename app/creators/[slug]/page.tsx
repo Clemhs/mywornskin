@@ -1,147 +1,149 @@
 'use client';
 
+import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { Star } from 'lucide-react';
+import StoryCard from '@/components/StoryCard';
 import { createClient } from '@/lib/supabase/client';
-import { useAuth } from '@/app/contexts/AuthContext';
-import { Save, Camera, Lock } from 'lucide-react';
 
-export default function CreatorEditPage() {
-  const { user } = useAuth();
+export default function CreatorProfile() {
+  const params = useParams();
+  const router = useRouter();
+  const rawSlug = params.slug as string;
+  const slug = rawSlug.toLowerCase();   // Force minuscule
+
   const supabase = createClient();
 
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [bannerUrl, setBannerUrl] = useState("");
-  const [pendingAvatar, setPendingAvatar] = useState("");
-  const [pendingBanner, setPendingBanner] = useState("");
+  const [creator, setCreator] = useState<any>(null);
+  const [products, setProducts] = useState<any[]>([]);
+  const [approvedReviews, setApprovedReviews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const [salesBadge, setSalesBadge] = useState<number | null>(null);
-  const [frame, setFrame] = useState<string | null>(null);
-
-  const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{message: string; type: 'success' | 'error'} | null>(null);
-
+  // Redirection si majuscule
   useEffect(() => {
-    if (!user) return;
+    if (rawSlug !== slug) {
+      router.replace(`/creators/${slug}`);
+    }
+  }, [rawSlug, slug, router]);
 
-    const loadProfile = async () => {
-      const { data } = await supabase
+  // Gestion "me"
+  useEffect(() => {
+    if (rawSlug === 'me') {
+      router.replace('/creators/creator_test'); // ou dynamique plus tard
+    }
+  }, [rawSlug, router]);
+
+  const fetchCreatorData = async () => {
+    if (!slug) return;
+
+    try {
+      const { data: creatorData } = await supabase
         .from('profiles')
-        .select('avatar_url, banner_url, avatar_pending_url, banner_pending_url, sales_badge, frame')
-        .eq('id', user.id)
+        .select('*')
+        .eq('username', slug)
         .single();
 
-      if (data) {
-        setAvatarUrl(data.avatar_url || "");
-        setBannerUrl(data.banner_url || "");
-        setPendingAvatar(data.avatar_pending_url || "");
-        setPendingBanner(data.banner_pending_url || "");
-        setSalesBadge(data.sales_badge);
-        setFrame(data.frame);
+      if (!creatorData) {
+        setError('Créatrice non trouvée');
+        setLoading(false);
+        return;
       }
-    };
 
-    loadProfile();
-  }, [user, supabase]);
+      setCreator(creatorData);
 
-  const handleFileUpload = async (file: File, type: 'avatar' | 'banner') => {
-    if (!user) return;
+      const { data: productsData } = await supabase
+        .from('products')
+        .select('*')
+        .eq('creator_id', creatorData.id);
 
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}-${type}-${Date.now()}.${fileExt}`;
+      setProducts(productsData || []);
 
-    const { data, error } = await supabase.storage
-      .from('profiles')
-      .upload(fileName, file, { upsert: true });
+      const { data: reviewsData } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('creator_id', creatorData.id)
+        .eq('status', 'approved')
+        .limit(5);
 
-    if (error) {
-      setToast({ message: "Erreur lors de l'upload", type: 'error' });
-      return;
-    }
-
-    const { data: { publicUrl } } = supabase.storage.from('profiles').getPublicUrl(fileName);
-
-    if (type === 'avatar') {
-      setPendingAvatar(publicUrl);
-    } else {
-      setPendingBanner(publicUrl);
+      setApprovedReviews(reviewsData || []);
+    } catch (err) {
+      setError('Erreur de chargement');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const saveProfile = async () => {
-    if (!user) return;
-    setSaving(true);
+  useEffect(() => {
+    fetchCreatorData();
+  }, [slug]);
 
-    const updates: any = {};
-
-    if (pendingAvatar) updates.avatar_pending_url = pendingAvatar;
-    if (pendingBanner) updates.banner_pending_url = pendingBanner;
-    if (salesBadge !== null) updates.sales_badge = salesBadge;
-    if (frame) updates.frame = frame;
-
-    const { error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', user.id);
-
-    if (error) {
-      setToast({ message: "Erreur lors de l'enregistrement", type: 'error' });
-    } else {
-      setToast({ message: "✅ Profil mis à jour ! En attente de validation.", type: 'success' });
-      // Reset pending
-      if (pendingAvatar) setAvatarUrl(pendingAvatar);
-      if (pendingBanner) setBannerUrl(pendingBanner);
-      setPendingAvatar("");
-      setPendingBanner("");
-    }
-
-    setSaving(false);
-  };
+  if (loading) return <div className="min-h-screen bg-zinc-950 pt-32 text-center">Chargement...</div>;
+  if (error || !creator) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-red-400">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white pt-20">
-      <div className="max-w-4xl mx-auto px-6">
-        <h1 className="text-4xl font-bold mb-10">Mon profil créatrice</h1>
+    <div className="min-h-screen bg-zinc-950 pb-20">
+      {/* Pas de Header ici */}
 
-        {/* Photos */}
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
-          <div>
-            <label className="block text-sm text-zinc-400 mb-3">Photo de profil</label>
-            <div className="relative">
-              <img src={pendingAvatar || avatarUrl || "https://picsum.photos/id/64/300/300"} className="w-full aspect-square object-cover rounded-3xl" />
-              <label className="absolute bottom-4 right-4 bg-black/70 hover:bg-rose-600 px-4 py-2 rounded-2xl cursor-pointer flex items-center gap-2 text-sm">
-                <Camera className="w-4 h-4" /> Changer
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'avatar')} />
-              </label>
-            </div>
+      {/* Bannière */}
+      <div className="h-80 relative">
+        <img 
+          src={creator.banner_url || "https://picsum.photos/id/1015/1200/400"} 
+          alt="Bannière" 
+          className="w-full h-full object-cover" 
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/70 to-zinc-950" />
+      </div>
+
+      <div className="max-w-5xl mx-auto px-6 -mt-16 relative z-10">
+        <div className="flex flex-col md:flex-row gap-8">
+          <div className="relative -mt-12 md:-mt-20 flex-shrink-0">
+            <img 
+              src={creator.avatar_url || "https://picsum.photos/id/64/300/300"} 
+              alt={creator.username} 
+              className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
+            />
           </div>
 
-          <div>
-            <label className="block text-sm text-zinc-400 mb-3">Photo de couverture</label>
-            <div className="relative">
-              <img src={pendingBanner || bannerUrl || "https://picsum.photos/id/1015/800/300"} className="w-full aspect-video object-cover rounded-3xl" />
-              <label className="absolute bottom-4 right-4 bg-black/70 hover:bg-rose-600 px-4 py-2 rounded-2xl cursor-pointer flex items-center gap-2 text-sm">
-                <Camera className="w-4 h-4" /> Changer
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'banner')} />
-              </label>
-            </div>
+          <div className="pt-6 flex-1">
+            <h1 className="text-4xl font-bold">{creator.full_name}</h1>
+            <p className="text-rose-400 text-xl">@{creator.username}</p>
+            <p className="text-zinc-400 mt-4 leading-relaxed">
+              {creator.bio || "Passionnée de lingerie portée et d'histoires intimes."}
+            </p>
           </div>
         </div>
 
-        {/* Badges & Cadres (à compléter si besoin) */}
+        {/* Boutique */}
+        <div className="mt-16">
+          <h2 className="text-3xl font-light mb-8">Sa boutique ({products.length} pièces)</h2>
+          {products.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {products.map(p => <StoryCard key={p.id} {...p} creator={creator.username} creatorSlug={slug} />)}
+            </div>
+          ) : (
+            <p className="text-zinc-500">Aucune pièce mise en ligne pour le moment.</p>
+          )}
+        </div>
 
-        <button
-          onClick={saveProfile}
-          disabled={saving}
-          className="w-full py-4 bg-rose-600 hover:bg-rose-700 rounded-2xl font-semibold text-lg disabled:opacity-50"
-        >
-          {saving ? "Enregistrement..." : "Enregistrer les modifications"}
-        </button>
-
-        {toast && (
-          <div className={`mt-6 p-4 rounded-2xl text-center ${toast.type === 'success' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
-            {toast.message}
-          </div>
-        )}
+        {/* Avis */}
+        <div className="mt-16">
+          <h2 className="text-3xl font-light mb-8">Avis clients ({approvedReviews.length})</h2>
+          {approvedReviews.length > 0 ? (
+            <div className="space-y-6">
+              {approvedReviews.map(review => (
+                <div key={review.id} className="bg-zinc-900 rounded-2xl p-6">
+                  <div className="flex gap-1 mb-3">
+                    {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />)}
+                  </div>
+                  <p className="italic text-zinc-300">"{review.comment}"</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-zinc-500 italic">Aucun avis approuvé pour le moment.</p>
+          )}
+        </div>
       </div>
     </div>
   );
