@@ -79,35 +79,24 @@ export default function CreatorEditPage() {
 
   const uploadImage = async (file: File, type: 'avatar' | 'banner') => {
     if (!user) return null;
-
     const fileExt = file.name.split('.').pop();
     const fileName = `${user.id}-${type}-${Date.now()}.${fileExt}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('profiles')
-      .upload(fileName, file, { upsert: true });
+    const { error } = await supabase.storage.from('profiles').upload(fileName, file, { upsert: true });
+    if (error) return null;
 
-    if (uploadError) {
-      console.error(uploadError);
-      return null;
-    }
-
-    const { data: urlData } = supabase.storage
-      .from('profiles')
-      .getPublicUrl(fileName);
-
-    return urlData.publicUrl;
+    const { data: { publicUrl } } = supabase.storage.from('profiles').getPublicUrl(fileName);
+    return publicUrl;
   };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const newUrl = await uploadImage(file, 'avatar');
     if (newUrl) {
       setAvatarPendingUrl(newUrl);
       setAvatarStatus('pending');
-      setToast("📸 Photo de profil envoyée en attente de validation");
+      setToast("📸 Photo de profil en attente de validation");
       setTimeout(() => setToast(null), 2500);
     }
   };
@@ -115,22 +104,17 @@ export default function CreatorEditPage() {
   const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const newUrl = await uploadImage(file, 'banner');
     if (newUrl) {
       setBannerPendingUrl(newUrl);
       setBannerStatus('pending');
-      setToast("📸 Photo de couverture envoyée en attente de validation");
+      setToast("📸 Photo de couverture en attente de validation");
       setTimeout(() => setToast(null), 2500);
     }
   };
 
   const handleModerateReview = async (reviewId: string, status: 'approved' | 'rejected') => {
-    await supabase
-      .from('reviews')
-      .update({ status })
-      .eq('id', reviewId);
-
+    await supabase.from('reviews').update({ status }).eq('id', reviewId);
     setPendingReviews(prev => prev.filter(r => r.id !== reviewId));
     setToast(status === 'approved' ? "✅ Avis validé" : "❌ Avis rejeté");
     setTimeout(() => setToast(null), 2000);
@@ -140,25 +124,14 @@ export default function CreatorEditPage() {
     if (!user) return;
     setSaving(true);
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        sales_badge: salesBadge,
-        frame: frame,
-        avatar_pending_url: avatarPendingUrl || null,
-        banner_pending_url: bannerPendingUrl || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', user.id);
+    await supabase.from('profiles').update({
+      sales_badge: salesBadge,
+      frame: frame,
+    }).eq('id', user.id);
 
     setSaving(false);
-
-    if (error) {
-      setToast("❌ Erreur lors de l'enregistrement");
-    } else {
-      setToast("✅ Modifications enregistrées avec succès !");
-      setTimeout(() => router.refresh(), 800);
-    }
+    setToast("✅ Modifications enregistrées !");
+    setTimeout(() => setToast(null), 2000);
   };
 
   return (
@@ -179,11 +152,7 @@ export default function CreatorEditPage() {
           </button>
         </div>
 
-        {toast && (
-          <div className={`mb-8 p-4 rounded-3xl text-center font-medium ${toast.includes('✅') ? 'bg-green-600' : 'bg-amber-600'}`}>
-            {toast}
-          </div>
-        )}
+        {toast && <div className="mb-8 p-4 rounded-3xl text-center font-medium bg-emerald-600">{toast}</div>}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div className="lg:col-span-5 space-y-8">
@@ -194,13 +163,9 @@ export default function CreatorEditPage() {
                 <img src={bannerUrl || "https://picsum.photos/id/1015/1200/400"} alt="Bannière" className="w-full h-full object-cover" />
                 <div className="absolute bottom-8 left-8">
                   <div className="relative">
-                    <img 
-                      src={avatarUrl || "https://picsum.photos/id/64/300/300"} 
-                      alt="Avatar" 
-                      className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" 
-                    />
+                    <img src={avatarUrl || "https://picsum.photos/id/64/300/300"} alt="Avatar" className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" />
                     {frame && <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />}
-                    {salesBadge && <div className="absolute -top-3 -right-3 bg-rose-500 text-white text-xs font-bold px-3 py-1 rounded-full">🏆 {salesBadge}</div>}
+                    {salesBadge && <div className="absolute -top-3 -right-3 text-4xl">🏆</div>}
                   </div>
                 </div>
               </div>
@@ -216,18 +181,12 @@ export default function CreatorEditPage() {
                   pendingReviews.map(review => (
                     <div key={review.id} className="bg-zinc-900 rounded-2xl p-5 border border-zinc-700">
                       <p className="italic text-sm">"{review.comment}"</p>
-                      <p className="text-xs text-zinc-500 mt-2">— {review.reviewer_name || 'Client anonyme'}</p>
+                      <p className="text-xs text-zinc-500 mt-2">— {review.reviewer_name}</p>
                       <div className="flex gap-3 mt-4">
-                        <button 
-                          onClick={() => handleModerateReview(review.id, 'approved')}
-                          className="flex-1 bg-green-600 hover:bg-green-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2"
-                        >
+                        <button onClick={() => handleModerateReview(review.id, 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
                           <Check size={16} /> Valider
                         </button>
-                        <button 
-                          onClick={() => handleModerateReview(review.id, 'rejected')}
-                          className="flex-1 bg-red-600 hover:bg-red-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2"
-                        >
+                        <button onClick={() => handleModerateReview(review.id, 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
                           <X size={16} /> Rejeter
                         </button>
                       </div>
@@ -239,7 +198,7 @@ export default function CreatorEditPage() {
           </div>
 
           <div className="lg:col-span-7 space-y-12">
-            {/* Changer les images */}
+            {/* Photos */}
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
               <div className="grid grid-cols-2 gap-6">
@@ -247,33 +206,28 @@ export default function CreatorEditPage() {
                   <input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
                   <Camera className="mx-auto mb-3 text-pink-400" size={32} />
                   <span className="text-pink-400 font-medium">Changer la couverture</span>
-                  <p className="text-xs text-zinc-500 mt-2">Recommandé : 1200×400 px</p>
-                  {bannerStatus === 'pending' && <div className="absolute top-4 right-4 text-amber-400 flex items-center gap-1"><Clock size={16} /> En attente</div>}
+                  {bannerStatus === 'pending' && <div className="absolute top-4 right-4 text-amber-400"><Clock size={16} /></div>}
                 </label>
 
                 <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500 transition-all relative">
                   <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
                   <Camera className="mx-auto mb-3 text-pink-400" size={32} />
                   <span className="text-pink-400 font-medium">Changer la photo de profil</span>
-                  <p className="text-xs text-zinc-500 mt-2">Recommandé : 512×512 px</p>
-                  {avatarStatus === 'pending' && <div className="absolute top-4 right-4 text-amber-400 flex items-center gap-1"><Clock size={16} /> En attente</div>}
+                  {avatarStatus === 'pending' && <div className="absolute top-4 right-4 text-amber-400"><Clock size={16} /></div>}
                 </label>
               </div>
             </div>
 
-            {/* Badges de ventes */}
+            {/* Badges */}
             <div>
               <h2 className="text-xl mb-4">Badges de ventes</h2>
               <div className="flex gap-4 overflow-x-auto pb-4">
-                {availableSalesBadges.map(level => {
-                  const isSelected = salesBadge === level;
-                  return (
-                    <button key={level} onClick={() => toggleSalesBadge(level)} className={`flex-shrink-0 w-28 h-28 rounded-3xl flex flex-col items-center justify-center border-2 transition-all relative ${isSelected ? 'border-pink-400 bg-pink-900/30' : 'border-zinc-700 hover:border-pink-400'}`}>
-                      <div className="text-4xl mb-1">🏆</div>
-                      <span className="text-sm">{level} ventes</span>
-                    </button>
-                  );
-                })}
+                {availableSalesBadges.map(level => (
+                  <button key={level} onClick={() => toggleSalesBadge(level)} className={`flex-shrink-0 w-28 h-28 rounded-3xl flex flex-col items-center justify-center border-2 transition-all ${salesBadge === level ? 'border-pink-400 bg-pink-900/30' : 'border-zinc-700 hover:border-pink-400'}`}>
+                    <div className="text-5xl mb-1">🏆</div>
+                    <span className="text-sm font-medium">{level} ventes</span>
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -281,37 +235,22 @@ export default function CreatorEditPage() {
             <div>
               <h2 className="text-xl mb-4">Cadres d'ancienneté</h2>
               <div className="flex gap-6 overflow-x-auto pb-6">
-                {availableFrames.map(f => {
-                  const isSelected = frame === f.id;
-                  return (
-                    <button key={f.id} onClick={() => selectFrame(f.id)} className={`flex-shrink-0 relative w-28 h-28 rounded-3xl overflow-hidden border-2 transition-all ${isSelected ? 'border-pink-400 scale-95' : 'border-zinc-700 hover:border-pink-400'}`}>
-                      <div className={`shimmer-frame absolute inset-0 rounded-3xl ${f.id}`} />
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-black/80 text-xs px-3 py-1 rounded-full">
-                        {f.name}
-                      </div>
-                    </button>
-                  );
-                })}
+                {availableFrames.map(f => (
+                  <button key={f.id} onClick={() => selectFrame(f.id)} className={`flex-shrink-0 relative w-28 h-28 rounded-3xl overflow-hidden border-2 transition-all ${frame === f.id ? 'border-pink-400 scale-95' : 'border-zinc-700 hover:border-pink-400'}`}>
+                    <div className={`shimmer-frame absolute inset-0 rounded-3xl ${f.id}`} />
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/80 text-xs px-3 py-1 rounded-full">
+                      {f.name}
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Boutique cosmétique */}
+            {/* Boutique */}
             <div>
-              <h2 className="text-xl mb-4 flex items-center gap-2">
-                <ShoppingBag className="text-pink-400" /> Boutique cosmétiques
-              </h2>
-              <div className="bg-zinc-900 rounded-3xl p-8">
-                <p className="text-zinc-400 mb-6">Débloquez de nouveaux badges et cadres exclusifs</p>
-                <div className="space-y-4">
-                  <button onClick={() => setSalesBadge(500)} className="w-full bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl flex justify-between items-center">
-                    <span>🎖️ Badge Légende (500 ventes)</span>
-                    <span className="text-pink-400">9,99€</span>
-                  </button>
-                  <button onClick={() => setFrame('gold')} className="w-full bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl flex justify-between items-center">
-                    <span>✨ Cadre Diamant</span>
-                    <span className="text-pink-400">14,99€</span>
-                  </button>
-                </div>
+              <h2 className="text-xl mb-4 flex items-center gap-2"><ShoppingBag className="text-pink-400" /> Boutique cosmétiques</h2>
+              <div className="bg-zinc-900 rounded-3xl p-8 text-center">
+                <p className="text-zinc-400">Débloquez de nouveaux badges et cadres exclusifs</p>
               </div>
             </div>
           </div>
