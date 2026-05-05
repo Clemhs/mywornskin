@@ -2,45 +2,46 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageCircle, ShoppingCart } from 'lucide-react';
+import { User, LogOut, Plus, MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 
 export default function Header() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout, isLoggedIn } = useAuth(); // isLoggedIn si tu l'as dans le context
   const supabase = createClient();
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [avatarUrl, setAvatarUrl] = useState<string>('/default-avatar.png');
+  const [isCreator, setIsCreator] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
+  // Chargement de l'avatar + statut créatrice
   useEffect(() => {
     if (!user) return;
 
     const loadProfile = async () => {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('avatar_url')
+        .select('avatar_url, role')
         .eq('id', user.id)
         .single();
 
       if (profile?.avatar_url) {
         setAvatarUrl(profile.avatar_url);
       }
+
+      setIsCreator(profile?.role === 'creator');
     };
 
     loadProfile();
-  }, [user]);
+  }, [user, supabase]);
 
   const handleLogout = async () => {
     await logout();
     setMenuOpen(false);
   };
-
-  // FORÇAGE pour ton compte créateur
-  const isCreator = user?.email?.includes('creator') || user?.email === 'creator@gmail.com';
 
   return (
     <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800">
@@ -53,17 +54,23 @@ export default function Header() {
         <nav className="hidden md:flex items-center gap-10 text-sm font-medium">
           <Link href="/shop" className="hover:text-rose-400 transition-colors">Boutique</Link>
           <Link href="/creators" className="hover:text-rose-400 transition-colors">Créatrices</Link>
+          <Link href="/messages" className="hover:text-rose-400 transition-colors">Messages</Link>
         </nav>
 
         <div className="flex items-center gap-4">
-          {user ? (
+          {isLoggedIn && user ? (
             <>
-              <Link href="/messages" className="relative p-3 hover:bg-zinc-900 rounded-2xl transition-all">
-                <MessageCircle className="w-6 h-6" />
+              <Link href="/messages" className="relative p-2 hover:bg-zinc-900 rounded-xl transition-colors">
+                <MessageCircle className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
+                    {unreadCount}
+                  </span>
+                )}
               </Link>
 
-              <Link href="/cart" className="p-3 hover:bg-zinc-900 rounded-2xl transition-all">
-                <ShoppingCart className="w-6 h-6" />
+              <Link href="/cart" className="relative p-2 hover:bg-zinc-900 rounded-xl transition-colors">
+                <ShoppingCart className="w-5 h-5" />
               </Link>
 
               <div className="relative">
@@ -71,13 +78,17 @@ export default function Header() {
                   onClick={() => setMenuOpen(!menuOpen)}
                   className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
                 >
-                  <img src={avatarUrl} alt="Profil" className="w-full h-full object-cover" />
+                  <img 
+                    src={avatarUrl} 
+                    alt="Profil" 
+                    className="w-full h-full object-cover"
+                  />
                 </button>
 
                 {menuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-[100] overflow-hidden">
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-50">
                     <Link 
-                      href={isCreator ? "/creators/me" : "/profile"} 
+                      href={isCreator ? `/creators/${user.user_metadata?.username || 'creator_test'}` : "/profile"} 
                       className="block px-6 py-3 hover:bg-zinc-800"
                       onClick={() => setMenuOpen(false)}
                     >
@@ -105,7 +116,10 @@ export default function Header() {
               </div>
             </>
           ) : (
-            <Link href="/login" className="px-6 py-2.5 border border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-black rounded-2xl text-sm font-semibold transition-all">
+            <Link 
+              href="/login"
+              className="px-6 py-2.5 border border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-black rounded-2xl text-sm font-semibold transition-all"
+            >
               Se connecter
             </Link>
           )}
