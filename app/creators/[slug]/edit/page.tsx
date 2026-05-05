@@ -40,46 +40,40 @@ export default function CreatorEditPage() {
     loadData();
   }, [user]);
 
-  // Realtime pour détecter validation/refus par l'admin
+  // Realtime pour valider/refuser
   useEffect(() => {
     if (!user) return;
 
     const channel = supabase
       .channel(`profile-${user.id}`)
-      .on(
-        'postgres_changes',
-        { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'profiles', 
-          filter: `id=eq.${user.id}` 
-        },
-        (payload) => {
-          const p = payload.new;
-          setAvatarUrl(p.avatar_url || "");
-          setBannerUrl(p.banner_url || "");
-          setAvatarPendingUrl(p.avatar_pending_url || "");
-          setBannerPendingUrl(p.banner_pending_url || "");
-          setAvatarStatus(p.avatar_status || 'approved');
-          setBannerStatus(p.banner_status || 'approved');
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'profiles',
+        filter: `id=eq.${user.id}`
+      }, (payload) => {
+        const p = payload.new;
+        setAvatarUrl(p.avatar_url || "");
+        setBannerUrl(p.banner_url || "");
+        setAvatarPendingUrl(p.avatar_pending_url || "");
+        setBannerPendingUrl(p.banner_pending_url || "");
+        setAvatarStatus(p.avatar_status || 'approved');
+        setBannerStatus(p.banner_status || 'approved');
 
-          if (p.avatar_status === 'approved' && avatarStatus === 'pending') {
-            setToast({ message: "✅ Photo de profil validée par l'équipe !", type: 'success' });
-          }
-          if (p.avatar_status === 'rejected') {
-            setToast({ 
-              message: "❌ Photo refusée par l'administrateur", 
-              type: 'error', 
-              link: "/guidelines" 
-            });
-          }
+        if (p.avatar_status === 'approved' && avatarStatus === 'pending') {
+          setToast({ message: "✅ Photo de profil validée par l'équipe !", type: 'success' });
         }
-      )
+        if (p.avatar_status === 'rejected') {
+          setToast({ 
+            message: "❌ Photo refusée par l'administrateur", 
+            type: 'error', 
+            link: "/guidelines" 
+          });
+        }
+      })
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => supabase.removeChannel(channel);
   }, [user, avatarStatus]);
 
   const loadData = async () => {
@@ -111,13 +105,8 @@ export default function CreatorEditPage() {
     setPendingReviews(reviews || []);
   };
 
-  const toggleSalesBadge = (level: number) => {
-    setSalesBadge(current => current === level ? null : level);
-  };
-
-  const selectFrame = (f: string) => {
-    setFrame(current => current === f ? null : f);
-  };
+  const toggleSalesBadge = (level: number) => setSalesBadge(current => current === level ? null : level);
+  const selectFrame = (f: string) => setFrame(current => current === f ? null : f);
 
   const uploadImage = async (file: File, type: 'avatar' | 'banner') => {
     if (!user) return null;
@@ -137,7 +126,7 @@ export default function CreatorEditPage() {
     if (type === 'avatar') setAvatarPendingUrl(publicUrl);
     else setBannerPendingUrl(publicUrl);
 
-    setToast(`📸 Photo de ${type} envoyée en attente de validation`);
+    setToast({ message: `📸 Photo de ${type} envoyée en attente de validation`, type: 'success' });
     setTimeout(() => setToast(null), 2500);
   };
 
@@ -166,7 +155,7 @@ export default function CreatorEditPage() {
     }).eq('id', user.id);
 
     setSaving(false);
-    setToast("✅ Badges et cadres enregistrés");
+    setToast({ message: "✅ Badges et cadres enregistrés", type: 'success' });
     setTimeout(() => setToast(null), 2000);
   };
 
@@ -191,12 +180,15 @@ export default function CreatorEditPage() {
         {toast && (
           <div className={`fixed bottom-8 right-8 px-8 py-4 rounded-3xl text-lg flex items-center gap-3 z-50 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
             {toast.message}
-            {toast.link && <Link href={toast.link} className="underline ml-2">Voir les guidelines →</Link>}
+            {toast.link && (
+              <Link href={toast.link} className="underline ml-2 hover:text-white">
+                Voir les guidelines →
+              </Link>
+            )}
           </div>
         )}
 
-        {/* Le reste de ton beau design (aperçu, badges, cadres, etc.) est conservé */}
-        {/* ... (je te mets le code complet si tu veux, mais pour l'instant on se concentre sur le fix) */}
+        {/* Ton beau design complet ici (je te le remets entièrement si tu veux, mais pour l'instant on teste le toast) */}
 
       </div>
     </div>
