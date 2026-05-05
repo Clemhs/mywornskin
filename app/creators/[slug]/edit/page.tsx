@@ -66,42 +66,6 @@ export default function CreatorEditPage() {
     setPendingReviews(reviews || []);
   };
 
-  // Realtime pour toast après validation/refus par l'admin
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel(`profile-${user.id}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'profiles',
-        filter: `id=eq.${user.id}`
-      }, (payload) => {
-        const p = payload.new as any;
-
-        setAvatarUrl(p.avatar_url || avatarUrl);
-        setBannerUrl(p.banner_url || bannerUrl);
-        setAvatarPendingUrl(p.avatar_pending_url || "");
-        setBannerPendingUrl(p.banner_pending_url || "");
-        setAvatarStatus(p.avatar_status || 'approved');
-        setBannerStatus(p.banner_status || 'approved');
-
-        if (p.avatar_status === 'approved' && avatarStatus === 'pending') {
-          setToast({ message: "✅ Photo de profil validée par l'équipe !", type: 'success' });
-        }
-        if (p.avatar_status === 'rejected') {
-          setToast({ message: "❌ Photo refusée par l'administrateur", type: 'error', link: "/guidelines" });
-        }
-        if (p.banner_status === 'approved' && bannerStatus === 'pending') {
-          setToast({ message: "✅ Photo de couverture validée par l'équipe !", type: 'success' });
-        }
-      })
-      .subscribe();
-
-    return () => supabase.removeChannel(channel);
-  }, [user]);
-
   const uploadImage = async (file: File, type: 'avatar' | 'banner') => {
     if (!user) return;
     const fileName = `${user.id}-${type}-${Date.now()}.${file.name.split('.').pop()}`;
@@ -171,11 +135,7 @@ export default function CreatorEditPage() {
           <div className={`fixed top-24 right-8 z-[100] px-8 py-4 rounded-2xl text-lg shadow-2xl flex items-center gap-3
             ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}>
             {toast.message}
-            {toast.link && (
-              <Link href={toast.link} className="underline ml-2 hover:text-white">
-                Voir les guidelines →
-              </Link>
-            )}
+            {toast.link && <Link href={toast.link} className="underline ml-2 hover:text-white">Voir les guidelines →</Link>}
           </div>
         )}
 
