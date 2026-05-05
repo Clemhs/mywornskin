@@ -3,12 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-  "dev": "next dev",
-  "build": "next build",
-  "start": "next start",
-  "lint": "echo 'Lint skipped in production'",
-  "typecheck": "tsc --noEmit"
-}
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "echo 'Lint skipped in production'",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@stripe/stripe-js": "^5.5.0",
