@@ -40,42 +40,6 @@ export default function CreatorEditPage() {
     loadData();
   }, [user]);
 
-  // Realtime pour les validations de l'admin
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel(`profile-${user.id}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'profiles',
-        filter: `id=eq.${user.id}`
-      }, (payload) => {
-        const p = payload.new;
-        setAvatarUrl(p.avatar_url || "");
-        setBannerUrl(p.banner_url || "");
-        setAvatarPendingUrl(p.avatar_pending_url || "");
-        setBannerPendingUrl(p.banner_pending_url || "");
-        setAvatarStatus(p.avatar_status || 'approved');
-        setBannerStatus(p.banner_status || 'approved');
-
-        if (p.avatar_status === 'approved' && avatarStatus === 'pending') {
-          setToast({ message: "✅ Photo de profil validée par l'équipe !", type: 'success' });
-        }
-        if (p.avatar_status === 'rejected') {
-          setToast({ 
-            message: "❌ Photo refusée par l'administrateur", 
-            type: 'error', 
-            link: "/guidelines" 
-          });
-        }
-      })
-      .subscribe();
-
-    return () => supabase.removeChannel(channel);
-  }, [user, avatarStatus]);
-
   const loadData = async () => {
     const { data: profile } = await supabase
       .from('profiles')
