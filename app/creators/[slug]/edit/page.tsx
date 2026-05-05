@@ -66,63 +66,49 @@ export default function CreatorEditPage() {
     setPendingReviews(reviews || []);
   };
 
-  // Realtime (version simplifiée et typée correctement)
+  // Realtime pour les validations admin
   useEffect(() => {
     if (!user) return;
 
     const channel = supabase
       .channel(`profile-${user.id}`)
-      .on(
-        'postgres_changes',
-        { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'profiles', 
-          filter: `id=eq.${user.id}` 
-        },
-        (payload) => {
-          const p = payload.new as any;
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'profiles',
+        filter: `id=eq.${user.id}`
+      }, (payload) => {
+        const p = payload.new as any;
 
-          setAvatarStatus(p.avatar_status || 'approved');
-          setBannerStatus(p.banner_status || 'approved');
-          setAvatarUrl(p.avatar_url || avatarUrl);
-          setBannerUrl(p.banner_url || bannerUrl);
+        setAvatarUrl(p.avatar_url || avatarUrl);
+        setBannerUrl(p.banner_url || bannerUrl);
+        setAvatarPendingUrl(p.avatar_pending_url || "");
+        setBannerPendingUrl(p.banner_pending_url || "");
+        setAvatarStatus(p.avatar_status || 'approved');
+        setBannerStatus(p.banner_status || 'approved');
 
-          // Toasts pour validation / refus
-          if (p.avatar_status === 'approved' && avatarStatus === 'pending') {
-            setToast({ message: "✅ Photo de profil validée par l'équipe !", type: 'success' });
-          }
-          if (p.avatar_status === 'rejected') {
-            setToast({ 
-              message: "❌ Photo refusée par l'administrateur", 
-              type: 'error', 
-              link: "/guidelines" 
-            });
-          }
-          if (p.banner_status === 'approved' && bannerStatus === 'pending') {
-            setToast({ message: "✅ Photo de couverture validée par l'équipe !", type: 'success' });
-          }
-
-          setTimeout(() => setToast(null), 4000);
+        if (p.avatar_status === 'approved' && avatarStatus === 'pending') {
+          setToast({ message: "✅ Photo de profil validée par l'équipe !", type: 'success' });
         }
-      )
+        if (p.avatar_status === 'rejected') {
+          setToast({ message: "❌ Photo refusée par l'administrateur", type: 'error', link: "/guidelines" });
+        }
+        if (p.banner_status === 'approved' && bannerStatus === 'pending') {
+          setToast({ message: "✅ Photo de couverture validée par l'équipe !", type: 'success' });
+        }
+        setTimeout(() => setToast(null), 4000);
+      })
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => supabase.removeChannel(channel);
   }, [user]);
 
   const uploadImage = async (file: File, type: 'avatar' | 'banner') => {
     if (!user) return;
+    const fileName = `${user.id}-${type}-${Date.now()}.${file.name.split('.').pop()}`;
 
-    const fileName = `${user.id}-${type}-${Date.now()}`;
     const { error } = await supabase.storage.from('profiles').upload(fileName, file, { upsert: true });
-
-    if (error) {
-      setToast({ message: "Erreur d'upload", type: 'error' });
-      return;
-    }
+    if (error) return setToast({ message: "Erreur d'upload", type: 'error' });
 
     const { data: { publicUrl } } = supabase.storage.from('profiles').getPublicUrl(fileName);
 
@@ -132,7 +118,7 @@ export default function CreatorEditPage() {
 
     await supabase.from('profiles').update(updateData).eq('id', user.id);
 
-    setToast({ message: `📸 Photo de ${type} envoyée en attente`, type: 'success' });
+    setToast({ message: `📸 Photo de ${type} envoyée en attente de validation`, type: 'success' });
     setTimeout(() => setToast(null), 3000);
   };
 
@@ -154,48 +140,159 @@ export default function CreatorEditPage() {
     setSaving(true);
     await supabase.from('profiles').update({ sales_badge: salesBadge, frame }).eq('id', user.id);
     setSaving(false);
-    setToast({ message: "✅ Tout a été enregistré", type: 'success' });
+    setToast({ message: "✅ Badges et cadres enregistrés", type: 'success' });
     setTimeout(() => setToast(null), 2500);
   };
 
-  const handleModerateReview = async (id: string, status: 'approved' | 'rejected') => {
-    await supabase.from('reviews').update({ status }).eq('id', id);
-    setPendingReviews(prev => prev.filter(r => r.id !== id));
+  const handleModerateReview = async (reviewId: string, status: 'approved' | 'rejected') => {
+    await supabase.from('reviews').update({ status }).eq('id', reviewId);
+    setPendingReviews(prev => prev.filter(r => r.id !== reviewId));
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-12">
       <div className="max-w-6xl mx-auto px-6">
-        {/* Header de la page */}
         <div className="flex justify-between items-center mb-10">
           <Link href="/creators/me" className="text-zinc-400 hover:text-white flex items-center gap-2">
             ← Retour au profil
           </Link>
           <h1 className="text-4xl font-bold">Édition de profil</h1>
-          <button onClick={handleSave} disabled={saving} className="bg-pink-600 hover:bg-pink-500 px-8 py-3.5 rounded-3xl font-medium flex items-center gap-2">
-            <Save size={20} />
-            {saving ? "Enregistrement..." : "Enregistrer"}
+          <button 
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-pink-600 hover:bg-pink-500 px-10 py-4 rounded-3xl font-semibold flex items-center gap-3 disabled:opacity-70"
+          >
+            <Save className="w-5 h-5" />
+            {saving ? "Enregistrement..." : "Enregistrer tout"}
           </button>
         </div>
 
-        {/* Toast centré et gros */}
+        {/* Toast centré */}
         {toast && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
-            <div className={`px-12 py-6 rounded-3xl text-2xl font-medium shadow-2xl flex items-center gap-4
+            <div className={`px-12 py-6 rounded-3xl text-2xl font-medium shadow-2xl flex items-center gap-4 
               ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
               {toast.message}
-              {toast.link && (
-                <Link href={toast.link} className="underline text-lg hover:no-underline ml-2">
-                  Voir les guidelines →
-                </Link>
-              )}
+              {toast.link && <Link href={toast.link} className="underline ml-3">Voir les guidelines →</Link>}
             </div>
           </div>
         )}
 
-        {/* Le reste de ton UI (badges, cadres, aperçus, etc.) reste identique à ta version précédente */}
-        {/* ... Colle ici le reste de ton code si tu veux que je te le redonne complet ... */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Aperçu + Commentaires */}
+          <div className="lg:col-span-5 space-y-8">
+            <div>
+              <h2 className="text-xl mb-4">Aperçu en direct</h2>
+              <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
+                <img src={bannerUrl || bannerPendingUrl || "https://picsum.photos/id/1015/1200/400"} alt="Bannière" className="w-full h-full object-cover" />
+                <div className="absolute bottom-8 left-8 flex items-end gap-4">
+                  <div className="relative">
+                    <img 
+                      src={avatarUrl || avatarPendingUrl || "https://picsum.photos/id/64/300/300"} 
+                      alt="Profil" 
+                      className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" 
+                    />
+                    {frame && <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />}
+                    {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-14 h-14" />}
+                  </div>
+                </div>
+                {(avatarStatus === 'pending' || bannerStatus === 'pending') && (
+                  <div className="absolute top-4 right-4 bg-amber-500/90 text-black text-sm px-4 py-1 rounded-full flex items-center gap-2">
+                    <Clock size={16} /> En attente de validation
+                  </div>
+                )}
+              </div>
+            </div>
 
+            {/* Commentaires à valider */}
+            <div>
+              <h2 className="text-xl mb-4">Commentaires à valider ({pendingReviews.length})</h2>
+              <div className="space-y-4">
+                {pendingReviews.length === 0 ? (
+                  <p className="text-zinc-500 italic bg-zinc-900 p-6 rounded-3xl">Aucun commentaire en attente pour le moment.</p>
+                ) : (
+                  pendingReviews.map(r => (
+                    <div key={r.id} className="bg-zinc-900 rounded-3xl p-6 border border-zinc-700">
+                      <p className="italic">"{r.comment}"</p>
+                      <div className="flex gap-3 mt-6">
+                        <button onClick={() => handleModerateReview(r.id, 'approved')} className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-2xl text-sm font-medium">✅ Valider</button>
+                        <button onClick={() => handleModerateReview(r.id, 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-2xl text-sm font-medium">❌ Rejeter</button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Colonne droite : Upload + Badges + Cadres + Boutique */}
+          <div className="lg:col-span-7 space-y-12">
+            <div>
+              <h2 className="text-xl mb-4">Changer les images</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <label className="cursor-pointer border border-dashed border-zinc-700 hover:border-pink-500 rounded-3xl p-8 text-center transition-all relative">
+                  <input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
+                  <Camera className="mx-auto mb-4 text-pink-400" size={40} />
+                  <p className="text-pink-400 font-medium">Changer la photo de couverture</p>
+                  {bannerStatus === 'pending' && <div className="absolute top-4 right-4 text-amber-400"><Clock size={20} /></div>}
+                </label>
+
+                <label className="cursor-pointer border border-dashed border-zinc-700 hover:border-pink-500 rounded-3xl p-8 text-center transition-all relative">
+                  <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+                  <Camera className="mx-auto mb-4 text-pink-400" size={40} />
+                  <p className="text-pink-400 font-medium">Changer la photo de profil</p>
+                  {avatarStatus === 'pending' && <div className="absolute top-4 right-4 text-amber-400"><Clock size={20} /></div>}
+                </label>
+              </div>
+            </div>
+
+            {/* Badges */}
+            <div>
+              <h2 className="text-xl mb-4">Badges de ventes</h2>
+              <div className="flex gap-6 overflow-x-auto pb-6">
+                {availableSalesBadges.map(level => (
+                  <button
+                    key={level}
+                    onClick={() => toggleSalesBadge(level)}
+                    className={`flex-shrink-0 w-28 h-28 rounded-3xl flex flex-col items-center justify-center border-2 transition-all ${salesBadge === level ? 'border-pink-400 bg-pink-900/30' : 'border-zinc-700 hover:border-pink-400'}`}
+                  >
+                    <img src={`/badges/${level}.png`} className="w-16 h-16" alt={`${level} ventes`} />
+                    <span className="text-sm mt-1">{level} ventes</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Cadres */}
+            <div>
+              <h2 className="text-xl mb-4">Cadres de profil</h2>
+              <div className="flex gap-6 overflow-x-auto pb-6">
+                {availableFrames.map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => selectFrame(f.id)}
+                    className={`flex-shrink-0 w-28 h-28 rounded-3xl overflow-hidden border-2 transition-all ${frame === f.id ? 'border-pink-400' : 'border-zinc-700 hover:border-pink-400'}`}
+                  >
+                    <div className={`shimmer-frame w-full h-full ${f.id}`} />
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-xs px-4 py-0.5 rounded-full">
+                      {f.name}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Boutique */}
+            <div>
+              <h2 className="text-xl mb-4 flex items-center gap-2">
+                <ShoppingBag className="text-pink-400" /> Boutique cosmétiques
+              </h2>
+              <div className="bg-zinc-900 rounded-3xl p-8 text-center text-zinc-400">
+                Prochainement : badges et cadres premium à acheter
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <style jsx>{`
