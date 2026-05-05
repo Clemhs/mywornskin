@@ -55,7 +55,7 @@ export default function CreatorEditPage() {
       setAvatarStatus(profile.avatar_status || 'approved');
       setBannerStatus(profile.banner_status || 'approved');
 
-      // Toast rouge si une photo a été refusée
+      // Toast rouge si photo refusée
       if (profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') {
         setToast({ 
           message: "❌ Une de vos photos a été refusée", 
@@ -80,10 +80,7 @@ export default function CreatorEditPage() {
     const fileName = `${user.id}-${type}-${Date.now()}.${file.name.split('.').pop()}`;
 
     const { error } = await supabase.storage.from('profiles').upload(fileName, file, { upsert: true });
-    if (error) {
-      setToast({ message: "Erreur lors de l'upload", type: 'error' });
-      return;
-    }
+    if (error) return setToast({ message: "Erreur d'upload", type: 'error' });
 
     const { data: { publicUrl } } = supabase.storage.from('profiles').getPublicUrl(fileName);
 
@@ -93,8 +90,8 @@ export default function CreatorEditPage() {
 
     await supabase.from('profiles').update(updateData).eq('id', user.id);
 
-    setToast({ message: `📸 Photo de ${type} envoyée en attente de validation`, type: 'success' });
-    setTimeout(() => setToast(null), 3000);
+    setToast({ message: `📸 Photo de ${type} envoyée en attente`, type: 'success' });
+    setTimeout(() => setToast(null), 2800);
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,8 +112,8 @@ export default function CreatorEditPage() {
     setSaving(true);
     await supabase.from('profiles').update({ sales_badge: salesBadge, frame }).eq('id', user.id);
     setSaving(false);
-    setToast({ message: "✅ Badges et cadres enregistrés", type: 'success' });
-    setTimeout(() => setToast(null), 2500);
+    setToast({ message: "✅ Enregistré avec succès", type: 'success' });
+    setTimeout(() => setToast(null), 2200);
   };
 
   const handleModerateReview = async (reviewId: string, status: 'approved' | 'rejected') => {
@@ -124,7 +121,6 @@ export default function CreatorEditPage() {
     setPendingReviews(prev => prev.filter(r => r.id !== reviewId));
   };
 
-  // Calcul du toast className (pour éviter le problème Turbopack)
   const toastClass = toast?.type === 'success' 
     ? 'bg-emerald-600 text-white' 
     : 'bg-red-600 text-white';
@@ -147,12 +143,12 @@ export default function CreatorEditPage() {
           </button>
         </div>
 
-        {/* Toast centré horizontalement */}
+        {/* Toast plus petit et centré */}
         {toast && (
-          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-8 py-4 rounded-2xl text-lg shadow-2xl flex items-center gap-3 ${toastClass}`}>
+          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 ${toastClass}`}>
             {toast.message}
             {toast.link && (
-              <Link href={toast.link} className="underline ml-2 hover:text-white">
+              <Link href={toast.link} className="underline ml-2 hover:text-white text-sm">
                 Voir les guidelines →
               </Link>
             )}
@@ -160,23 +156,14 @@ export default function CreatorEditPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Aperçu */}
           <div className="lg:col-span-5 space-y-8">
             <div>
               <h2 className="text-xl mb-4">Aperçu en direct</h2>
               <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
-                <img 
-                  src={bannerUrl || bannerPendingUrl || "https://picsum.photos/id/1015/1200/400"} 
-                  alt="Bannière" 
-                  className="w-full h-full object-cover" 
-                />
+                <img src={bannerUrl || bannerPendingUrl || "https://picsum.photos/id/1015/1200/400"} alt="Bannière" className="w-full h-full object-cover" />
                 <div className="absolute bottom-8 left-8">
                   <div className="relative">
-                    <img 
-                      src={avatarUrl || avatarPendingUrl || "https://picsum.photos/id/64/300/300"} 
-                      alt="Avatar" 
-                      className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" 
-                    />
+                    <img src={avatarUrl || avatarPendingUrl || "https://picsum.photos/id/64/300/300"} alt="Avatar" className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" />
                     {frame && <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />}
                     {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-14 h-14" />}
                   </div>
@@ -189,7 +176,6 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Commentaires à valider */}
             <div>
               <h2 className="text-xl mb-4">Commentaires à valider ({pendingReviews.length})</h2>
               <div className="space-y-4">
@@ -210,7 +196,6 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* Colonne droite */}
           <div className="lg:col-span-7 space-y-12">
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
@@ -229,13 +214,13 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Badges, Cadres, Boutique... (gardés complets) */}
+            {/* Badges, Cadres, Boutique restent identiques */}
             <div>
               <h2 className="text-xl mb-4">Badges de ventes</h2>
               <div className="flex gap-6 overflow-x-auto pb-6">
                 {availableSalesBadges.map(level => (
                   <button key={level} onClick={() => toggleSalesBadge(level)} className={`flex-shrink-0 w-28 h-28 rounded-3xl flex flex-col items-center justify-center border-2 transition-all ${salesBadge === level ? 'border-pink-400 bg-pink-900/30' : 'border-zinc-700 hover:border-pink-400'}`}>
-                    <img src={`/badges/${level}.png`} className="w-16 h-16" alt={`${level} ventes`} />
+                    <img src={`/badges/${level}.png`} className="w-16 h-16" alt={`${level}`} />
                     <span className="text-sm mt-1">{level} ventes</span>
                   </button>
                 ))}
