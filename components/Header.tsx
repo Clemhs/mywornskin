@@ -26,7 +26,9 @@ export default function Header() {
         .eq('id', user.id)
         .single();
 
-      if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
+      if (profile?.avatar_url) {
+        setAvatarUrl(profile.avatar_url);
+      }
     };
 
     loadProfile();
@@ -73,7 +75,7 @@ export default function Header() {
                 </button>
 
                 {menuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-[100]">
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-[100] overflow-hidden">
                     <Link 
                       href={isCreator ? "/creators/me" : "/profile"} 
                       className="block px-6 py-3 hover:bg-zinc-800"
