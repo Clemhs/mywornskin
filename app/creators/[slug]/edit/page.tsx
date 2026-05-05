@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Save, Camera, ShoppingBag, Clock, X } from 'lucide-react';
+import { Save, Camera, Clock, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
 
@@ -129,7 +129,7 @@ export default function CreatorEditPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-12">
       <div className="max-w-6xl mx-auto px-6">
-        {/* Header amélioré - titre parfaitement centré */}
+        {/* Titre parfaitement centré */}
         <div className="relative flex items-center justify-center mb-12">
           <Link href="/creators/me" className="absolute left-0 text-zinc-400 hover:text-white flex items-center gap-2">
             ← Retour au profil
@@ -147,27 +147,30 @@ export default function CreatorEditPage() {
           </button>
         </div>
 
-        {/* Toast plus petit + croix cliquable */}
+        {/* Toast propre - sans X fantôme à gauche */}
         {toast && (
-          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 ${toastClass}`}>
-            {toast.message}
+          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 min-w-[420px] ${toastClass}`}>
+            <span>{toast.message}</span>
+            
             {toast.link && (
-              <Link href={toast.link} className="underline ml-2 hover:text-white text-sm">
+              <Link href={toast.link} className="underline hover:text-white text-sm whitespace-nowrap ml-2">
                 Voir les guidelines →
               </Link>
             )}
+
             <button 
               onClick={closeToast} 
-              className="ml-4 hover:bg-white/20 p-1 rounded-full transition-colors"
+              className="ml-auto hover:bg-white/20 p-1 rounded-full transition-colors flex-shrink-0"
             >
               <X size={18} />
             </button>
           </div>
         )}
 
+        {/* Le reste du contenu (identique) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Le reste du contenu reste identique (aperçu, badges, cadres, etc.) */}
           <div className="lg:col-span-5 space-y-8">
+            {/* Aperçu, commentaires... (inchangé) */}
             <div>
               <h2 className="text-xl mb-4">Aperçu en direct</h2>
               <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
@@ -208,6 +211,7 @@ export default function CreatorEditPage() {
           </div>
 
           <div className="lg:col-span-7 space-y-12">
+            {/* Changer les images, Badges, Cadres, Boutique... (identique au code précédent) */}
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
               <div className="grid grid-cols-2 gap-6">
@@ -225,7 +229,7 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Badges, Cadres, Boutique... (identique) */}
+            {/* Badges, Cadres et Boutique restent identiques... */}
             <div>
               <h2 className="text-xl mb-4">Badges de ventes</h2>
               <div className="flex gap-6 overflow-x-auto pb-6">
