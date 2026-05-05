@@ -66,7 +66,7 @@ export default function CreatorEditPage() {
     setPendingReviews(reviews || []);
   };
 
-  // Realtime : toast quand l'admin valide ou refuse
+  // Realtime pour toast après validation/refus par l'admin
   useEffect(() => {
     if (!user) return;
 
@@ -87,7 +87,6 @@ export default function CreatorEditPage() {
         setAvatarStatus(p.avatar_status || 'approved');
         setBannerStatus(p.banner_status || 'approved');
 
-        // Toast après action de l'admin
         if (p.avatar_status === 'approved' && avatarStatus === 'pending') {
           setToast({ message: "✅ Photo de profil validée par l'équipe !", type: 'success' });
         }
@@ -169,33 +168,28 @@ export default function CreatorEditPage() {
 
         {/* Toast en haut à droite */}
         {toast && (
-          <div className="fixed top-24 right-8 z-[100] px-8 py-4 rounded-2xl text-lg shadow-xl flex items-center gap-3
-            ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}">
+          <div className={`fixed top-24 right-8 z-[100] px-8 py-4 rounded-2xl text-lg shadow-2xl flex items-center gap-3
+            ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}>
             {toast.message}
-            {toast.link && <Link href={toast.link} className="underline ml-2 hover:text-white">Voir les guidelines →</Link>}
+            {toast.link && (
+              <Link href={toast.link} className="underline ml-2 hover:text-white">
+                Voir les guidelines →
+              </Link>
+            )}
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Colonne gauche */}
           <div className="lg:col-span-5 space-y-8">
             <div>
               <h2 className="text-xl mb-4">Aperçu en direct</h2>
               <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
-                <img 
-                  src={bannerUrl || bannerPendingUrl || "https://picsum.photos/id/1015/1200/400"} 
-                  alt="Bannière" 
-                  className="w-full h-full object-cover" 
-                />
+                <img src={bannerUrl || bannerPendingUrl || "https://picsum.photos/id/1015/1200/400"} alt="Bannière" className="w-full h-full object-cover" />
                 <div className="absolute bottom-8 left-8">
                   <div className="relative">
-                    <img 
-                      src={avatarUrl || avatarPendingUrl || "https://picsum.photos/id/64/300/300"} 
-                      alt="Avatar" 
-                      className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" 
-                    />
+                    <img src={avatarUrl || avatarPendingUrl || "https://picsum.photos/id/64/300/300"} alt="Avatar" className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" />
                     {frame && <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />}
-                    {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-14 h-14 drop-shadow-xl" />}
+                    {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-14 h-14" />}
                   </div>
                 </div>
                 {(avatarStatus === 'pending' || bannerStatus === 'pending') && (
@@ -206,7 +200,6 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Commentaires à valider */}
             <div>
               <h2 className="text-xl mb-4">Commentaires à valider ({pendingReviews.length})</h2>
               <div className="space-y-4">
@@ -227,7 +220,6 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* Colonne droite */}
           <div className="lg:col-span-7 space-y-12">
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
@@ -246,16 +238,11 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Badges */}
             <div>
               <h2 className="text-xl mb-4">Badges de ventes</h2>
               <div className="flex gap-6 overflow-x-auto pb-6">
                 {availableSalesBadges.map(level => (
-                  <button
-                    key={level}
-                    onClick={() => toggleSalesBadge(level)}
-                    className={`flex-shrink-0 w-28 h-28 rounded-3xl flex flex-col items-center justify-center border-2 transition-all ${salesBadge === level ? 'border-pink-400 bg-pink-900/30' : 'border-zinc-700 hover:border-pink-400'}`}
-                  >
+                  <button key={level} onClick={() => toggleSalesBadge(level)} className={`flex-shrink-0 w-28 h-28 rounded-3xl flex flex-col items-center justify-center border-2 transition-all ${salesBadge === level ? 'border-pink-400 bg-pink-900/30' : 'border-zinc-700 hover:border-pink-400'}`}>
                     <img src={`/badges/${level}.png`} className="w-16 h-16" alt={`${level} ventes`} />
                     <span className="text-sm mt-1">{level} ventes</span>
                   </button>
@@ -263,20 +250,13 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Cadres */}
             <div>
               <h2 className="text-xl mb-4">Cadres de profil</h2>
               <div className="flex gap-6 overflow-x-auto pb-6">
                 {availableFrames.map(f => (
-                  <button
-                    key={f.id}
-                    onClick={() => selectFrame(f.id)}
-                    className={`flex-shrink-0 w-28 h-28 rounded-3xl border-2 overflow-hidden transition-all ${frame === f.id ? 'border-pink-400' : 'border-zinc-700 hover:border-pink-400'}`}
-                  >
+                  <button key={f.id} onClick={() => selectFrame(f.id)} className={`flex-shrink-0 w-28 h-28 rounded-3xl border-2 overflow-hidden transition-all ${frame === f.id ? 'border-pink-400' : 'border-zinc-700 hover:border-pink-400'}`}>
                     <div className={`shimmer-frame w-full h-full ${f.id}`} />
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs bg-black/70 px-3 py-0.5 rounded-full">
-                      {f.name}
-                    </div>
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs bg-black/70 px-3 py-0.5 rounded-full">{f.name}</div>
                   </button>
                 ))}
               </div>
