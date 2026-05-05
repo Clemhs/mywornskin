@@ -18,33 +18,34 @@ export default function Header() {
   const [isCreator, setIsCreator] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setAvatarUrl('/default-avatar.png');
+      return;
+    }
 
-    const fetchUserData = async () => {
-      console.log("🔍 User ID:", user.id);
-
-      // Photo
+    const loadProfile = async () => {
+      // Charger les infos du profil
       const { data: profile } = await supabase
         .from('profiles')
-        .select('avatar_url')
+        .select('avatar_url, username')
         .eq('id', user.id)
         .single();
 
-      if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
+      if (profile?.avatar_url) {
+        setAvatarUrl(profile.avatar_url);
+      }
 
-      // Vérification créateur
-      const { data: creator, error } = await supabase
+      // Vérifier si c'est un créateur
+      const { data: creator } = await supabase
         .from('creators')
         .select('id')
         .eq('id', user.id)
         .maybeSingle();
 
-      console.log("🔍 Creator check:", { creator, error });
-
       setIsCreator(!!creator);
     };
 
-    fetchUserData();
+    loadProfile();
 
     // Messages non lus
     const fetchUnread = async () => {
@@ -95,12 +96,17 @@ export default function Header() {
                 <ShoppingCart className="w-6 h-6" />
               </Link>
 
+              {/* Menu Profil */}
               <div className="relative">
                 <button 
                   onClick={() => setMenuOpen(!menuOpen)}
                   className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
                 >
-                  <img src={avatarUrl} alt="Profil" className="w-full h-full object-cover" />
+                  <img 
+                    src={avatarUrl} 
+                    alt="Profil" 
+                    className="w-full h-full object-cover"
+                  />
                 </button>
 
                 {menuOpen && (
@@ -110,7 +116,7 @@ export default function Header() {
                       className="block px-6 py-3 hover:bg-zinc-800"
                       onClick={() => setMenuOpen(false)}
                     >
-                      👤 Mon Profil {isCreator && "(Créateur)"}
+                      👤 Mon Profil
                     </Link>
 
                     {isCreator && (
