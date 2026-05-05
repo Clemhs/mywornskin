@@ -26,9 +26,7 @@ export default function Header() {
         .eq('id', user.id)
         .single();
 
-      if (profile?.avatar_url) {
-        setAvatarUrl(profile.avatar_url);
-      }
+      if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
     };
 
     loadProfile();
@@ -39,7 +37,7 @@ export default function Header() {
     setMenuOpen(false);
   };
 
-  // FORÇAGE pour ton compte de test
+  // FORÇAGE pour ton compte créateur
   const isCreator = user?.email?.includes('creator') || user?.email === 'creator@gmail.com';
 
   return (
