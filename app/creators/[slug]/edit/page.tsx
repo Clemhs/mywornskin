@@ -96,7 +96,7 @@ export default function CreatorEditPage() {
     if (newUrl) {
       setAvatarPendingUrl(newUrl);
       setAvatarStatus('pending');
-      setToast("📸 Photo de profil en attente de validation");
+      setToast("📸 Photo de profil envoyée en attente de validation");
       setTimeout(() => setToast(null), 2500);
     }
   };
@@ -108,7 +108,7 @@ export default function CreatorEditPage() {
     if (newUrl) {
       setBannerPendingUrl(newUrl);
       setBannerStatus('pending');
-      setToast("📸 Photo de couverture en attente de validation");
+      setToast("📸 Photo de couverture envoyée en attente de validation");
       setTimeout(() => setToast(null), 2500);
     }
   };
@@ -152,26 +152,32 @@ export default function CreatorEditPage() {
           </button>
         </div>
 
-        {toast && <div className="mb-8 p-4 rounded-3xl text-center font-medium bg-emerald-600">{toast}</div>}
+        {toast && (
+          <div className={`mb-8 p-4 rounded-3xl text-center font-medium ${toast.includes('✅') ? 'bg-green-600' : 'bg-amber-600'}`}>
+            {toast}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div className="lg:col-span-5 space-y-8">
-            {/* Aperçu en direct */}
             <div>
               <h2 className="text-xl mb-4">Aperçu en direct</h2>
               <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
                 <img src={bannerUrl || "https://picsum.photos/id/1015/1200/400"} alt="Bannière" className="w-full h-full object-cover" />
                 <div className="absolute bottom-8 left-8">
                   <div className="relative">
-                    <img src={avatarUrl || "https://picsum.photos/id/64/300/300"} alt="Avatar" className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" />
+                    <img 
+                      src={avatarUrl || "https://picsum.photos/id/64/300/300"} 
+                      alt="Avatar" 
+                      className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" 
+                    />
                     {frame && <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />}
-                    {salesBadge && <div className="absolute -top-3 -right-3 text-4xl">🏆</div>}
+                    {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-12 h-12 drop-shadow-2xl z-10" />}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Commentaires à valider */}
             <div>
               <h2 className="text-xl mb-4">Commentaires à valider ({pendingReviews.length})</h2>
               <div className="space-y-4">
@@ -181,7 +187,7 @@ export default function CreatorEditPage() {
                   pendingReviews.map(review => (
                     <div key={review.id} className="bg-zinc-900 rounded-2xl p-5 border border-zinc-700">
                       <p className="italic text-sm">"{review.comment}"</p>
-                      <p className="text-xs text-zinc-500 mt-2">— {review.reviewer_name}</p>
+                      <p className="text-xs text-zinc-500 mt-2">— {review.reviewer_name || 'Client anonyme'}</p>
                       <div className="flex gap-3 mt-4">
                         <button onClick={() => handleModerateReview(review.id, 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
                           <Check size={16} /> Valider
@@ -198,7 +204,7 @@ export default function CreatorEditPage() {
           </div>
 
           <div className="lg:col-span-7 space-y-12">
-            {/* Photos */}
+            {/* Changer les images */}
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
               <div className="grid grid-cols-2 gap-6">
@@ -206,28 +212,31 @@ export default function CreatorEditPage() {
                   <input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
                   <Camera className="mx-auto mb-3 text-pink-400" size={32} />
                   <span className="text-pink-400 font-medium">Changer la couverture</span>
-                  {bannerStatus === 'pending' && <div className="absolute top-4 right-4 text-amber-400"><Clock size={16} /></div>}
+                  {bannerStatus === 'pending' && <div className="absolute top-4 right-4 text-amber-400 flex items-center gap-1"><Clock size={16} /> En attente</div>}
                 </label>
 
                 <label className="cursor-pointer block border border-dashed border-zinc-700 rounded-3xl p-8 text-center hover:border-pink-500 transition-all relative">
                   <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
                   <Camera className="mx-auto mb-3 text-pink-400" size={32} />
                   <span className="text-pink-400 font-medium">Changer la photo de profil</span>
-                  {avatarStatus === 'pending' && <div className="absolute top-4 right-4 text-amber-400"><Clock size={16} /></div>}
+                  {avatarStatus === 'pending' && <div className="absolute top-4 right-4 text-amber-400 flex items-center gap-1"><Clock size={16} /> En attente</div>}
                 </label>
               </div>
             </div>
 
-            {/* Badges */}
+            {/* Badges de ventes */}
             <div>
               <h2 className="text-xl mb-4">Badges de ventes</h2>
               <div className="flex gap-4 overflow-x-auto pb-4">
-                {availableSalesBadges.map(level => (
-                  <button key={level} onClick={() => toggleSalesBadge(level)} className={`flex-shrink-0 w-28 h-28 rounded-3xl flex flex-col items-center justify-center border-2 transition-all ${salesBadge === level ? 'border-pink-400 bg-pink-900/30' : 'border-zinc-700 hover:border-pink-400'}`}>
-                    <div className="text-5xl mb-1">🏆</div>
-                    <span className="text-sm font-medium">{level} ventes</span>
-                  </button>
-                ))}
+                {availableSalesBadges.map(level => {
+                  const isSelected = salesBadge === level;
+                  return (
+                    <button key={level} onClick={() => toggleSalesBadge(level)} className={`flex-shrink-0 w-28 h-28 rounded-3xl flex flex-col items-center justify-center border-2 transition-all relative ${isSelected ? 'border-pink-400 bg-pink-900/30' : 'border-zinc-700 hover:border-pink-400'}`}>
+                      <img src={`/badges/${level}.png`} className="w-14 h-14 mb-1" alt={`${level} ventes`} />
+                      <span className="text-sm">{level} ventes</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -235,22 +244,37 @@ export default function CreatorEditPage() {
             <div>
               <h2 className="text-xl mb-4">Cadres d'ancienneté</h2>
               <div className="flex gap-6 overflow-x-auto pb-6">
-                {availableFrames.map(f => (
-                  <button key={f.id} onClick={() => selectFrame(f.id)} className={`flex-shrink-0 relative w-28 h-28 rounded-3xl overflow-hidden border-2 transition-all ${frame === f.id ? 'border-pink-400 scale-95' : 'border-zinc-700 hover:border-pink-400'}`}>
-                    <div className={`shimmer-frame absolute inset-0 rounded-3xl ${f.id}`} />
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/80 text-xs px-3 py-1 rounded-full">
-                      {f.name}
-                    </div>
-                  </button>
-                ))}
+                {availableFrames.map(f => {
+                  const isSelected = frame === f.id;
+                  return (
+                    <button key={f.id} onClick={() => selectFrame(f.id)} className={`flex-shrink-0 relative w-28 h-28 rounded-3xl overflow-hidden border-2 transition-all ${isSelected ? 'border-pink-400 scale-95' : 'border-zinc-700 hover:border-pink-400'}`}>
+                      <div className={`shimmer-frame absolute inset-0 rounded-3xl ${f.id}`} />
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-black/80 text-xs px-3 py-1 rounded-full">
+                        {f.name}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Boutique */}
+            {/* Boutique cosmétique */}
             <div>
-              <h2 className="text-xl mb-4 flex items-center gap-2"><ShoppingBag className="text-pink-400" /> Boutique cosmétiques</h2>
-              <div className="bg-zinc-900 rounded-3xl p-8 text-center">
-                <p className="text-zinc-400">Débloquez de nouveaux badges et cadres exclusifs</p>
+              <h2 className="text-xl mb-4 flex items-center gap-2">
+                <ShoppingBag className="text-pink-400" /> Boutique cosmétiques
+              </h2>
+              <div className="bg-zinc-900 rounded-3xl p-8">
+                <p className="text-zinc-400 mb-6">Débloquez de nouveaux badges et cadres exclusifs</p>
+                <div className="space-y-4">
+                  <button onClick={() => setSalesBadge(500)} className="w-full bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl flex justify-between items-center">
+                    <span>🎖️ Badge Légende (500 ventes)</span>
+                    <span className="text-pink-400">9,99€</span>
+                  </button>
+                  <button onClick={() => setFrame('gold')} className="w-full bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl flex justify-between items-center">
+                    <span>✨ Cadre Diamant</span>
+                    <span className="text-pink-400">14,99€</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
