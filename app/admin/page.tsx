@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MessageCircle, AlertTriangle, Image as ImageIcon, Send, Trash2 } from 'lucide-react';
+import { MessageCircle, AlertTriangle, Image as ImageIcon } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
 export default function AdminPage() {
   const supabase = createClient();
-  const [activeTab, setActiveTab] = useState<'photos' | 'reviews' | 'messages'>('photos');
+  const [activeTab, setActiveTab] = useState<'photos' | 'reviews'>('photos');
 
   const [pendingPhotos, setPendingPhotos] = useState<any[]>([]);
   const [refusedReviews, setRefusedReviews] = useState<any[]>([]);
@@ -47,18 +47,26 @@ export default function AdminPage() {
     loadData();
   }, [activeTab]);
 
-  const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
+  // Validation des photos
+  const handlePhotoAction = async (
+    profileId: string, 
+    type: 'avatar' | 'banner', 
+    action: 'approved' | 'rejected'
+  ) => {
     const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
     const statusField = type === 'avatar' ? 'avatar_status' : 'banner_status';
 
+    // Récupérer le profil complet
     const { data: profile } = await supabase
       .from('profiles')
-      .select(pendingField)
+      .select('*')
       .eq('id', profileId)
       .single();
 
-    if (action === 'approved' && profile?.[pendingField]) {
+    if (!profile) return;
+
+    if (action === 'approved' && profile[pendingField]) {
       await supabase
         .from('profiles')
         .update({
@@ -100,13 +108,13 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* PHOTOS EN ATTENTE */}
+        {/* PHOTOS */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
-              <p className="text-zinc-500 text-xl col-span-full">Aucune photo en attente de validation.</p>
+              <p className="text-zinc-500 text-xl">Aucune photo en attente de validation.</p>
             ) : (
-              pendingPhotos.map(p => (
+              pendingPhotos.map((p) => (
                 <div key={p.id} className="bg-zinc-900 rounded-3xl p-8">
                   <h3 className="font-semibold text-xl mb-6">@{p.username}</h3>
 
@@ -157,19 +165,10 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Commentaires refusés (conservé) */}
+        {/* REVIEWS (conservé) */}
         {activeTab === 'reviews' && (
-          <div className="space-y-6">
-            {refusedReviews.length === 0 ? (
-              <p className="text-zinc-500">Aucun commentaire refusé.</p>
-            ) : (
-              refusedReviews.map(r => (
-                <div key={r.id} className="bg-zinc-900 rounded-3xl p-8">
-                  <p className="italic">"{r.comment}"</p>
-                  {/* boutons valider / ignorer */}
-                </div>
-              ))
-            )}
+          <div className="text-zinc-400">
+            Section commentaires refusés (à compléter si besoin)
           </div>
         )}
       </div>
