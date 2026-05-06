@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Star } from 'lucide-react';
+import { Star, MapPin } from 'lucide-react';
 import StoryCard from '@/components/StoryCard';
 import { createClient } from '@/lib/supabase/client';
 
@@ -100,12 +100,10 @@ export default function CreatorProfile() {
                 className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
               />
 
-              {/* Cadre animé */}
               {creator.frame && (
                 <div className={`absolute inset-0 rounded-3xl border-4 shimmer-frame ${creator.frame}`} />
               )}
 
-              {/* Badge de ventes */}
               {creator.sales_badge && (
                 <img 
                   src={`/badges/${creator.sales_badge}.png`} 
@@ -119,7 +117,20 @@ export default function CreatorProfile() {
           <div className="pt-6 flex-1">
             <h1 className="text-4xl font-bold">{creator.full_name}</h1>
             <p className="text-rose-400 text-xl">@{creator.username}</p>
-            <p className="text-zinc-400 mt-4 leading-relaxed">
+
+            {/* Infos géo + tailles */}
+            <div className="flex items-center gap-4 mt-3 text-sm text-zinc-400">
+              {creator.country && (
+                <span className="flex items-center gap-1">
+                  <MapPin size={16} /> {creator.country}
+                </span>
+              )}
+              {creator.city && <span>{creator.city}</span>}
+              {creator.size && <span>• Taille {creator.size}</span>}
+              {creator.shoe_size && <span>• Pointure {creator.shoe_size}</span>}
+            </div>
+
+            <p className="text-zinc-400 mt-5 leading-relaxed">
               {creator.bio || "Passionnée de lingerie portée et d'histoires intimes."}
             </p>
           </div>
