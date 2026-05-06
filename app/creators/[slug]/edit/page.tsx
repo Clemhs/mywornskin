@@ -14,6 +14,9 @@ export default function CreatorEditPage() {
   const [pendingReviews, setPendingReviews] = useState<any[]>([]);
   const [salesBadge, setSalesBadge] = useState<number | null>(null);
   const [frame, setFrame] = useState<string | null>(null);
+  const [bio, setBio] = useState('');
+  const [country, setCountry] = useState('');
+  const [city, setCity] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; link?: string } | null>(null);
 
   const availableSalesBadges = [10, 50, 100, 500];
@@ -36,6 +39,9 @@ export default function CreatorEditPage() {
       setProfile(prof);
       setSalesBadge(prof.sales_badge);
       setFrame(prof.frame);
+      setBio(prof.bio || '');
+      setCountry(prof.country || '');
+      setCity(prof.city || '');
     }
 
     const { data: reviews } = await supabase
@@ -52,11 +58,10 @@ export default function CreatorEditPage() {
     loadData();
   }, [loadData]);
 
-  // Toast pour refusée ou validée (corrigé)
+  // Toast pour refusée ou validée
   useEffect(() => {
     if (!profile) return;
 
-    // Toast rouge pour refus (prioritaire)
     if (profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') {
       setToast({
         message: "Une de vos photos a été refusée",
@@ -66,10 +71,8 @@ export default function CreatorEditPage() {
       return;
     }
 
-    // Toast vert pour validation → affiché UNE SEULE FOIS
     if (profile.avatar_status === 'approved' || profile.banner_status === 'approved') {
       const alreadyShown = sessionStorage.getItem('validatedToastShown');
-      
       if (!alreadyShown) {
         setToast({
           message: "✅ Une de vos photos a été validée par l'équipe",
@@ -80,15 +83,16 @@ export default function CreatorEditPage() {
     }
   }, [profile]);
 
-  const saveCosmetic = async (newSalesBadge: number | null, newFrame: string | null) => {
+  // Sauvegarde automatique des champs cosmétiques + infos
+  const saveProfile = async (updates: any) => {
     if (!user) return;
-    await supabase.from('profiles').update({ sales_badge: newSalesBadge, frame: newFrame }).eq('id', user.id);
+    await supabase.from('profiles').update(updates).eq('id', user.id);
   };
 
   const toggleSalesBadge = async (level: number) => {
     const newBadge = salesBadge === level ? null : level;
     setSalesBadge(newBadge);
-    await saveCosmetic(newBadge, frame);
+    await saveProfile({ sales_badge: newBadge });
     setToast({ message: "✅ Badge mis à jour", type: 'success' });
     setTimeout(() => setToast(null), 1800);
   };
@@ -96,9 +100,27 @@ export default function CreatorEditPage() {
   const selectFrame = async (id: string) => {
     const newFrame = frame === id ? null : id;
     setFrame(newFrame);
-    await saveCosmetic(salesBadge, newFrame);
+    await saveProfile({ frame: newFrame });
     setToast({ message: "✅ Cadre mis à jour", type: 'success' });
     setTimeout(() => setToast(null), 1800);
+  };
+
+  const handleBioChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newBio = e.target.value;
+    setBio(newBio);
+    await saveProfile({ bio: newBio });
+  };
+
+  const handleCountryChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newCountry = e.target.value;
+    setCountry(newCountry);
+    await saveProfile({ country: newCountry });
+  };
+
+  const handleCityChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newCity = e.target.value;
+    setCity(newCity);
+    await saveProfile({ city: newCity });
   };
 
   const uploadImage = async (file: File, type: 'avatar' | 'banner') => {
@@ -122,7 +144,6 @@ export default function CreatorEditPage() {
 
   const closeToast = () => {
     setToast(null);
-    // Marquer le toast de validation comme vu si on le ferme manuellement
     if (toast?.type === 'success' && toast.message.includes('validée')) {
       sessionStorage.setItem('validatedToastShown', 'true');
     }
@@ -139,7 +160,6 @@ export default function CreatorEditPage() {
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-12">
       <div className="max-w-6xl mx-auto px-6">
 
-        {/* HEADER - Titre encore mieux centré */}
         <div className="flex items-center mb-12">
           <Link href="/creators/me" className="flex items-center gap-2 text-zinc-400 hover:text-white flex-shrink-0">
             <ArrowLeft size={20} />
@@ -148,19 +168,15 @@ export default function CreatorEditPage() {
 
           <h1 className="text-4xl font-bold flex-1 text-center">Édition de profil</h1>
 
-          <div className="w-[140px] flex-shrink-0" /> {/* Espace symétrique */}
+          <div className="w-[140px] flex-shrink-0" />
         </div>
 
-        {/* TOAST UNIQUE EN HAUT */}
+        {/* TOAST */}
         {toast && (
           <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 min-w-[460px]
             ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'} text-white`}>
             <span>{toast.message}</span>
-            
-            {toast.link && (
-              <Link href={toast.link} className="underline text-sm ml-2">Voir les guidelines →</Link>
-            )}
-
+            {toast.link && <Link href={toast.link} className="underline text-sm ml-2">Voir les guidelines →</Link>}
             <button onClick={closeToast} className="ml-auto p-1 hover:bg-white/20 rounded-full transition">
               <X size={18} />
             </button>
@@ -170,6 +186,7 @@ export default function CreatorEditPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* APERÇU EN DIRECT */}
           <div className="lg:col-span-5 space-y-8">
+            {/* ... (inchangé) */}
             <div>
               <h2 className="text-xl mb-4">Aperçu en direct</h2>
               <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
@@ -192,16 +209,14 @@ export default function CreatorEditPage() {
                       alt="Avatar" 
                       className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" 
                     />
-                    
                     {frame && <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />}
-                    
                     {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-14 h-14" alt="Badge" />}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Commentaires à valider */}
+            {/* Commentaires à valider (inchangé) */}
             <div>
               <h2 className="text-xl mb-4">Commentaires à valider ({pendingReviews.length})</h2>
               <div className="space-y-4">
@@ -222,8 +237,9 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* COLONNE DROITE */}
+          {/* COLONNE DROITE - NOUVEAUX CHAMPS AJOUTÉS */}
           <div className="lg:col-span-7 space-y-12">
+            {/* Changer les images (inchangé) */}
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
               <div className="grid grid-cols-2 gap-6">
@@ -241,7 +257,47 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Badges et Cadres (auto-save) */}
+            {/* Informations personnelles */}
+            <div>
+              <h2 className="text-xl mb-4">Informations personnelles</h2>
+              <div className="space-y-6 bg-zinc-900 rounded-3xl p-8">
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-2">Bio / Présentation</label>
+                  <textarea
+                    value={bio}
+                    onChange={handleBioChange}
+                    rows={4}
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-white resize-y min-h-[100px] focus:outline-none focus:border-pink-500"
+                    placeholder="Décris-toi en quelques lignes..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm text-zinc-400 mb-2">Pays</label>
+                    <input
+                      type="text"
+                      value={country}
+                      onChange={handleCountryChange}
+                      className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500"
+                      placeholder="France"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-zinc-400 mb-2">Ville</label>
+                    <input
+                      type="text"
+                      value={city}
+                      onChange={handleCityChange}
+                      className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500"
+                      placeholder="Paris"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Badges et Cadres (inchangé) */}
             <div>
               <h2 className="text-xl mb-4">Badges de ventes</h2>
               <div className="flex gap-6 overflow-x-auto pb-6">
