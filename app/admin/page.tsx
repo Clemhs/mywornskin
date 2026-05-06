@@ -17,19 +17,32 @@ export default function AdminPage() {
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [selectedReview, setSelectedReview] = useState<any>(null);
+  const [adminReply, setAdminReply] = useState("");
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 2800);
+    setTimeout(() => setToast(null), 3000);
   };
 
   const loadData = async () => {
     if (activeTab === 'photos') {
       const { data } = await supabase
         .from('profiles')
-        .select(`id, username, full_name, avatar_url, banner_url, avatar_pending_url, banner_pending_url, avatar_status, banner_status`)
+        .select(`
+          id, 
+          username, 
+          full_name,
+          avatar_url,
+          banner_url,
+          avatar_pending_url,
+          banner_pending_url,
+          avatar_status,
+          banner_status
+        `)
         .or('avatar_status.eq.pending,banner_status.eq.pending')
         .order('updated_at', { ascending: false });
+
       setPendingPhotos(data || []);
     }
 
@@ -53,7 +66,10 @@ export default function AdminPage() {
     if (activeTab === 'reports') {
       const { data } = await supabase
         .from('reports')
-        .select(`*, creator:profiles!creator_id (username, full_name)`)
+        .select(`
+          *,
+          creator:profiles!creator_id (username, full_name)
+        `)
         .order('created_at', { ascending: false });
       setReports(data || []);
     }
@@ -83,14 +99,16 @@ export default function AdminPage() {
     const grouped: any = {};
     filteredReports.forEach(report => {
       const key = report.creator_id;
-      if (!grouped[key]) grouped[key] = { creator: report.creator, count: 0, reports: [] };
+      if (!grouped[key]) {
+        grouped[key] = { creator: report.creator, count: 0, reports: [] };
+      }
       grouped[key].count++;
       grouped[key].reports.push(report);
     });
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
   }, [filteredReports]);
 
-  // ACTIONS
+  // ACTIONS SIGNALEMENTS
   const markReportAsReviewed = async (reportId: string) => {
     await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
     showToast("✅ Signalement marqué comme traité");
@@ -107,6 +125,61 @@ export default function AdminPage() {
     if (!confirm("Supprimer définitivement ce signalement ?")) return;
     await supabase.from('reports').delete().eq('id', reportId);
     showToast("Signalement supprimé");
+    loadData();
+  };
+
+  // ==================== FONCTIONS ORIGINALES (inchangées) ====================
+  const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
+    const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
+    const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
+    const statusField = type === 'avatar' ? 'avatar_status' : 'banner_status';
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', profileId)
+      .single();
+
+    if (action === 'approved' && profile?.[pendingField]) {
+      await supabase
+        .from('profiles')
+        .update({
+          [mainField]: profile[pendingField],
+          [pendingField]: null,
+          [statusField]: 'approved'
+        })
+        .eq('id', profileId);
+    } else {
+      await supabase
+        .from('profiles')
+        .update({
+          [pendingField]: null,
+          [statusField]: 'rejected'
+        })
+        .eq('id', profileId);
+    }
+    loadData();
+  };
+
+  const forcePublishReview = async (reviewId: string) => {
+    await supabase.from('reviews').update({ status: 'approved' }).eq('id', reviewId);
+    loadData();
+  };
+
+  const ignoreReview = async (reviewId: string) => {
+    await supabase.from('reviews').update({ status: 'ignored' }).eq('id', reviewId);
+    loadData();
+  };
+
+  const sendAdminMessage = async () => {
+    if (!selectedReview || !adminReply.trim()) return;
+    await supabase.from('admin_messages').insert({
+      review_id: selectedReview.id,
+      creator_id: selectedReview.creator_id,
+      admin_message: adminReply,
+    });
+    setAdminReply("");
+    setSelectedReview(null);
     loadData();
   };
 
@@ -135,18 +208,80 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* ==================== PHOTOS (remets ton code ici) ==================== */}
+        {/* PHOTOS - CODE ORIGINAL */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* ← Colle ici ton code original des photos en attente */}
-            {pendingPhotos.length === 0 && <p className="text-zinc-500 text-xl">Aucune photo en attente de validation.</p>}
+            {pendingPhotos.length === 0 ? (
+              <p className="text-zinc-500 text-xl">Aucune photo en attente de validation.</p>
+            ) : (
+              pendingPhotos.map((p) => (
+                <div key={p.id} className="bg-zinc-900 rounded-3xl p-8">
+                  <h3 className="font-semibold text-xl mb-6">@{p.username}</h3>
+
+                  {p.avatar_pending_url && (
+                    <div className="mb-12">
+                      <p className="text-pink-400 mb-4">Photo de profil</p>
+                      <img src={p.avatar_pending_url} className="w-48 h-48 rounded-2xl object-cover mb-6" />
+                      <div className="flex gap-4">
+                        <button onClick={() => handlePhotoAction(p.id, 'avatar', 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl">✅ Valider</button>
+                        <button onClick={() => handlePhotoAction(p.id, 'avatar', 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-2xl">❌ Refuser</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {p.banner_pending_url && (
+                    <div>
+                      <p className="text-pink-400 mb-4">Photo de couverture</p>
+                      <img src={p.banner_pending_url} className="w-full h-64 object-cover rounded-2xl mb-6" />
+                      <div className="flex gap-4">
+                        <button onClick={() => handlePhotoAction(p.id, 'banner', 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl">✅ Valider</button>
+                        <button onClick={() => handlePhotoAction(p.id, 'banner', 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-2xl">❌ Refuser</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         )}
 
-        {/* ==================== COMMENTAIRES REFUSÉS (remets ton code ici) ==================== */}
+        {/* COMMENTAIRES REFUSÉS - CODE ORIGINAL */}
         {activeTab === 'reviews' && (
           <div className="space-y-6">
-            {/* ← Colle ici ton code original des commentaires refusés */}
+            {refusedReviews.length === 0 ? (
+              <p className="text-zinc-500 text-lg">Aucun commentaire refusé pour le moment.</p>
+            ) : (
+              refusedReviews.map(review => {
+                const refusalCount = refusedReviews.filter(r => r.creator_id === review.creator_id).length;
+                return (
+                  <div key={review.id} className="bg-zinc-900 rounded-3xl p-8">
+                    <div className="flex justify-between items-start mb-6">
+                      <div>
+                        <Link href={`/creators/${review.creator_id}`} className="font-semibold text-xl hover:text-pink-400">
+                          Créatrice
+                        </Link>
+                        <span className="ml-3 bg-orange-500/10 text-orange-400 px-3 py-1 rounded-full text-sm">
+                          {refusalCount} refus
+                        </span>
+                      </div>
+                      <div className="flex gap-3">
+                        <button onClick={() => forcePublishReview(review.id)} className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-2xl text-sm font-medium">
+                          Publier quand même
+                        </button>
+                        <button onClick={() => ignoreReview(review.id)} className="bg-zinc-700 hover:bg-zinc-600 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+                          <Trash2 size={16} /> Ignorer
+                        </button>
+                      </div>
+                    </div>
+                    <p className="italic text-lg mb-4">"{review.comment}"</p>
+                    <p className="text-sm text-zinc-500">- {review.reviewer_name || 'Client anonyme'}</p>
+                    <button onClick={() => setSelectedReview(review)} className="mt-6 text-pink-400 hover:text-pink-300 flex items-center gap-2 font-medium">
+                      <MessageCircle size={20} /> Envoyer un message à la créatrice
+                    </button>
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
 
@@ -155,7 +290,7 @@ export default function AdminPage() {
           <div className="text-zinc-400">Section Messages Admin (en cours)</div>
         )}
 
-        {/* ==================== SIGNALEMENTS ==================== */}
+        {/* SIGNALEMENTS */}
         {activeTab === 'reports' && (
           <div>
             <div className="flex justify-between items-center mb-6">
