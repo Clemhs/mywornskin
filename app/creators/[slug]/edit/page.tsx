@@ -171,7 +171,7 @@ export default function CreatorEditPage() {
           </button>
         </div>
 
-        {/* TOAST - UNE SEULE CROIX */}
+        {/* TOAST - UNE SEULE CROIX À DROITE */}
         {toast && (
           <div className={`mb-8 p-4 rounded-3xl text-center font-medium flex items-center justify-between ${toast.includes('✅') ? 'bg-green-600' : 'bg-red-600'}`}>
             <span>{toast}</span>
@@ -237,7 +237,7 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* Colonne droite */}
+          {/* Colonne droite - inchangée */}
           <div className="lg:col-span-7 space-y-12">
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
@@ -258,7 +258,7 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Badges, Cadres, Boutique... (le reste de ton ancien code) */}
+            {/* Badges, Cadres, Boutique... (le reste de ton ancien code qui marchait) */}
             <div>
               <h2 className="text-xl mb-4">Badges de ventes</h2>
               <div className="flex gap-4 overflow-x-auto pb-4">
