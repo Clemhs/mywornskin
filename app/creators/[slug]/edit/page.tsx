@@ -130,27 +130,27 @@ export default function CreatorEditPage() {
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-12">
       <div className="max-w-6xl mx-auto px-6">
         
-        {/* HEADER AVEC TITRE PARFAITEMENT CENTRÉ */}
-        <div className="flex items-center mb-12">
-          <Link href="/creators/me" className="text-zinc-400 hover:text-white flex items-center gap-2 whitespace-nowrap">
+        {/* HEADER - TITRE PARFAITEMENT CENTRÉ */}
+        <div className="flex items-center justify-between mb-12">
+          <Link href="/creators/me" className="text-zinc-400 hover:text-white flex items-center gap-2">
             ← Retour au profil
           </Link>
 
-          <h1 className="flex-1 text-4xl font-bold text-center">Édition de profil</h1>
+          <h1 className="text-4xl font-bold text-center">Édition de profil</h1>
 
           <button 
             onClick={handleSave}
             disabled={saving}
-            className="bg-pink-600 hover:bg-pink-500 px-10 py-4 rounded-3xl font-semibold flex items-center gap-3 disabled:opacity-70 whitespace-nowrap"
+            className="bg-pink-600 hover:bg-pink-500 px-10 py-4 rounded-3xl font-semibold flex items-center gap-3 disabled:opacity-70"
           >
             <Save className="w-5 h-5" />
             {saving ? "Enregistrement..." : "Enregistrer tout"}
           </button>
         </div>
 
-        {/* Toast propre */}
+        {/* TOAST ROUGE NET - SEULEMENT UNE CROIX À DROITE */}
         {toast && (
-          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 min-w-[420px] ${toastClass}`}>
+          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-8 py-3.5 rounded-2xl text-base shadow-2xl flex items-center gap-4 min-w-[460px] ${toastClass}`}>
             <span>{toast.message}</span>
             
             {toast.link && (
@@ -161,14 +161,14 @@ export default function CreatorEditPage() {
 
             <button 
               onClick={closeToast}
-              className="ml-auto p-1 hover:bg-white/20 rounded-full transition"
+              className="ml-auto p-1.5 hover:bg-white/20 rounded-full transition-colors"
             >
               <X size={18} />
             </button>
           </div>
         )}
 
-        {/* Contenu principal */}
+        {/* Contenu de la page (identique) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div className="lg:col-span-5 space-y-8">
             <div>
