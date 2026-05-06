@@ -49,14 +49,14 @@ export default function AdminPage() {
         .from('reports')
         .select(`
           *,
-          creator:profiles!creator_id (username, full_name),
-          reporter:profiles!reporter_id (username)
+          creator:profiles!creator_id (username, full_name)
         `)
         .order('created_at', { ascending: false });
 
-      if (error) console.error("Erreur reports :", error);
-      else {
-        console.log(`Signalements chargés : ${data?.length}`);
+      if (error) {
+        console.error("Erreur chargement reports :", error);
+      } else {
+        console.log(`✅ ${data?.length || 0} signalements chargés`, data);
         setReports(data || []);
       }
     }
@@ -66,14 +66,14 @@ export default function AdminPage() {
     loadData();
   }, [activeTab]);
 
-  // Auto-refresh des signalements
+  // Auto-refresh signalements
   useEffect(() => {
     if (activeTab !== 'reports') return;
-    const interval = setInterval(loadData, 4000);
+    const interval = setInterval(loadData, 5000);
     return () => clearInterval(interval);
   }, [activeTab]);
 
-  // ... tes autres fonctions (handlePhotoAction, forcePublishReview, etc.) restent inchangées ...
+  // ... Tes autres fonctions (handlePhotoAction, forcePublishReview, etc.) restent inchangées ...
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-8">
@@ -108,24 +108,22 @@ export default function AdminPage() {
                       <p className="text-lg font-semibold">
                         Signalement contre <Link href={`/creators/${report.creator?.username}`} className="text-pink-400 hover:underline">@{report.creator?.username}</Link>
                       </p>
-                      <p className="text-sm text-zinc-500">Par {report.reporter?.username || 'Anonyme'}</p>
+                      <p className="text-sm text-zinc-500 mt-1">
+                        Le {new Date(report.created_at).toLocaleDateString('fr-FR')}
+                      </p>
                     </div>
                     <span className="px-4 py-1 bg-red-500/10 text-red-400 rounded-full text-sm">
                       {report.status}
                     </span>
                   </div>
                   <p className="mt-6 italic text-zinc-300">"{report.reason}"</p>
-                  <p className="text-xs text-zinc-500 mt-4">
-                    {new Date(report.created_at).toLocaleString('fr-FR')}
-                  </p>
                 </div>
               ))
             )}
           </div>
         )}
 
-        {/* Tes autres onglets restent identiques */}
-        {/* ... */}
+        {/* Tes autres onglets restent identiques (photos, reviews, messages) */}
 
       </div>
     </div>
