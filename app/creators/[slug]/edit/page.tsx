@@ -101,13 +101,23 @@ export default function CreatorEditPage() {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    await supabase.from('profiles').update({ 
-      sales_badge: salesBadge, 
-      frame: frame 
-    }).eq('id', user.id);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        sales_badge: salesBadge, 
+        frame: frame 
+      })
+      .eq('id', user.id);
+
     setSaving(false);
-    setToast({ message: "✅ Enregistré avec succès", type: 'success' });
-    setTimeout(() => setToast(null), 2200);
+
+    if (error) {
+      setToast({ message: "❌ Erreur lors de l'enregistrement", type: 'error' });
+    } else {
+      setToast({ message: "✅ Enregistré avec succès", type: 'success' });
+      setTimeout(() => setToast(null), 2200);
+    }
   };
 
   const handleModerateReview = async (reviewId: string, status: 'approved' | 'rejected') => {
@@ -125,7 +135,6 @@ export default function CreatorEditPage() {
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-12">
       <div className="max-w-6xl mx-auto px-6">
 
-        {/* HEADER - TITRE PARFAITEMENT CENTRÉ */}
         <div className="flex items-center justify-between mb-12">
           <Link href="/creators/me" className="text-zinc-400 hover:text-white flex items-center gap-2">
             ← Retour au profil
@@ -143,7 +152,6 @@ export default function CreatorEditPage() {
           </button>
         </div>
 
-        {/* TOAST - UNE SEULE CROIX À DROITE */}
         {toast && (
           <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 min-w-[460px] ${toastClass}`}>
             <span>{toast.message}</span>
