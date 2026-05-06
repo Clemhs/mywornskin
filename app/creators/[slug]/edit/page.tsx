@@ -58,7 +58,7 @@ export default function CreatorEditPage() {
     loadData();
   }, [loadData]);
 
-  // Toast pour refusée ou validée
+  // Toast management (unchanged)
   useEffect(() => {
     if (!profile) return;
 
@@ -83,7 +83,6 @@ export default function CreatorEditPage() {
     }
   }, [profile]);
 
-  // Sauvegarde automatique des champs cosmétiques + infos
   const saveProfile = async (updates: any) => {
     if (!user) return;
     await supabase.from('profiles').update(updates).eq('id', user.id);
@@ -171,7 +170,6 @@ export default function CreatorEditPage() {
           <div className="w-[140px] flex-shrink-0" />
         </div>
 
-        {/* TOAST */}
         {toast && (
           <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 min-w-[460px]
             ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'} text-white`}>
@@ -184,9 +182,8 @@ export default function CreatorEditPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* APERÇU EN DIRECT */}
+          {/* APERÇU EN DIRECT - inchangé */}
           <div className="lg:col-span-5 space-y-8">
-            {/* ... (inchangé) */}
             <div>
               <h2 className="text-xl mb-4">Aperçu en direct</h2>
               <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
@@ -216,7 +213,6 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Commentaires à valider (inchangé) */}
             <div>
               <h2 className="text-xl mb-4">Commentaires à valider ({pendingReviews.length})</h2>
               <div className="space-y-4">
@@ -237,9 +233,8 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* COLONNE DROITE - NOUVEAUX CHAMPS AJOUTÉS */}
+          {/* COLONNE DROITE - Version plus discrète */}
           <div className="lg:col-span-7 space-y-12">
-            {/* Changer les images (inchangé) */}
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
               <div className="grid grid-cols-2 gap-6">
@@ -257,17 +252,17 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Informations personnelles */}
+            {/* Informations personnelles - plus intégré */}
             <div>
               <h2 className="text-xl mb-4">Informations personnelles</h2>
-              <div className="space-y-6 bg-zinc-900 rounded-3xl p-8">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8 space-y-6">
                 <div>
                   <label className="block text-sm text-zinc-400 mb-2">Bio / Présentation</label>
                   <textarea
                     value={bio}
                     onChange={handleBioChange}
-                    rows={4}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-white resize-y min-h-[100px] focus:outline-none focus:border-pink-500"
+                    rows={3}
+                    className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 text-white resize-y focus:outline-none focus:border-pink-500"
                     placeholder="Décris-toi en quelques lignes..."
                   />
                 </div>
@@ -279,7 +274,7 @@ export default function CreatorEditPage() {
                       type="text"
                       value={country}
                       onChange={handleCountryChange}
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500"
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500"
                       placeholder="France"
                     />
                   </div>
@@ -289,7 +284,7 @@ export default function CreatorEditPage() {
                       type="text"
                       value={city}
                       onChange={handleCityChange}
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500"
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500"
                       placeholder="Paris"
                     />
                   </div>
