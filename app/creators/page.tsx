@@ -21,12 +21,15 @@ export default function CreatorsPage() {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city')
-        .eq('role', 'creator')
+        // .eq('role', 'creator')   // ← Commenté temporairement pour debug
         .order('sales_badge', { ascending: false });
 
-      if (error) console.error(error);
-      else setCreators(data || []);
-
+      if (error) {
+        console.error(error);
+      } else {
+        console.log('Créatrices chargées :', data?.length); // Pour debug
+        setCreators(data || []);
+      }
       setLoading(false);
     };
 
@@ -36,13 +39,15 @@ export default function CreatorsPage() {
   const filteredCreators = useMemo(() => {
     return creators.filter(creator => {
       const matchesSearch = 
+        !searchTerm || 
         creator.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         creator.username?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesCountry = !selectedCountry || creator.country === selectedCountry;
       const matchesCity = !selectedCity || creator.city === selectedCity;
-      const matchesFilter = activeFilter === 'all' || 
-                           (activeFilter === 'top' && (creator.sales_badge || 0) >= 10);
+
+      let matchesFilter = true;
+      if (activeFilter === 'top') matchesFilter = (creator.sales_badge || 0) >= 10;
 
       return matchesSearch && matchesCountry && matchesCity && matchesFilter;
     });
@@ -59,7 +64,7 @@ export default function CreatorsPage() {
           Elles partagent leur intimité avec vous • {filteredCreators.length} créatrices
         </p>
 
-        {/* Recherche + Filtres Pays/Ville */}
+        {/* Recherche + Filtres */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
           <input
             type="text"
@@ -118,7 +123,10 @@ export default function CreatorsPage() {
         {loading ? (
           <p className="text-center text-zinc-400 py-20">Chargement des créatrices...</p>
         ) : filteredCreators.length === 0 ? (
-          <p className="text-center text-zinc-400 py-20">Aucune créatrice trouvée avec ces filtres.</p>
+          <p className="text-center text-zinc-400 py-20">
+            Aucune créatrice trouvée avec ces filtres.<br />
+            Essayez d'élargir vos critères.
+          </p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
             {filteredCreators.map((creator) => (
