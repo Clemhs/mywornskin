@@ -16,7 +16,7 @@ export default function CreatorsPage() {
     const fetchCreators = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, full_name, avatar_url, sales_badge, frame, bio, created_at')
+        .select('id, username, full_name, avatar_url, sales_badge, frame, bio')
         .eq('role', 'creator')
         .order('sales_badge', { ascending: false });
 
@@ -29,11 +29,10 @@ export default function CreatorsPage() {
     fetchCreators();
   }, [supabase]);
 
-  // Filtrage
   const filteredCreators = creators.filter(creator => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'top') return (creator.sales_badge || 0) >= 10;
-    if (activeFilter === 'new') return true; // On pourra affiner plus tard
+    if (activeFilter === 'new') return true; // À affiner plus tard
     return true;
   });
 
@@ -45,7 +44,7 @@ export default function CreatorsPage() {
           Elles partagent leur intimité avec vous • {filteredCreators.length} créatrices
         </p>
 
-        {/* Filtres - Style identique à la Boutique */}
+        {/* Filtres style Boutique */}
         <div className="flex justify-center mb-12">
           <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4">
             {[
@@ -78,6 +77,7 @@ export default function CreatorsPage() {
                 href={`/creators/${creator.username}`}
                 className="group bg-zinc-900 rounded-3xl overflow-hidden hover:scale-[1.03] transition-all duration-300 flex flex-col"
               >
+                {/* UNE SEULE PHOTO + BADGE + CADRE */}
                 <div className="relative">
                   <img
                     src={creator.avatar_url || "https://picsum.photos/id/64/300/300"}
@@ -85,44 +85,33 @@ export default function CreatorsPage() {
                     className="w-full aspect-square object-cover"
                   />
 
-                  {/* Avatar avec badge + cadre (petit) */}
-                  <div className="absolute -bottom-6 left-4">
-                    <div className="relative">
-                      <img
-                        src={creator.avatar_url || "https://picsum.photos/id/64/300/300"}
-                        alt={creator.full_name}
-                        className="w-20 h-20 rounded-2xl border-4 border-zinc-950 object-cover"
-                      />
+                  {creator.frame && (
+                    <div className={`absolute inset-0 border-4 shimmer-frame ${creator.frame}`} />
+                  )}
 
-                      {creator.frame && (
-                        <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${creator.frame}`} />
-                      )}
-
-                      {creator.sales_badge && (
-                        <img
-                          src={`/badges/${creator.sales_badge}.png`}
-                          alt={`Badge ${creator.sales_badge}`}
-                          className="absolute -top-2 -right-2 w-10 h-10 drop-shadow-xl"
-                        />
-                      )}
-                    </div>
-                  </div>
+                  {creator.sales_badge && (
+                    <img
+                      src={`/badges/${creator.sales_badge}.png`}
+                      alt={`Badge ${creator.sales_badge}`}
+                      className="absolute -top-3 -right-3 w-12 h-12 drop-shadow-2xl"
+                    />
+                  )}
                 </div>
 
-                <div className="pt-12 pb-6 px-5 flex-1 flex flex-col">
+                <div className="p-5 flex-1 flex flex-col">
                   <h3 className="text-xl font-semibold">{creator.full_name}</h3>
                   <p className="text-rose-400 text-sm">@{creator.username}</p>
 
-                  <p className="text-zinc-400 text-sm mt-3 line-clamp-2 flex-1">
-                    {creator.bio || "Passionnée de moments intimes..."}
+                  <p className="text-zinc-400 text-sm mt-3 line-clamp-3 flex-1">
+                    {creator.bio || "Passionnée de lingerie portée et d'histoires intimes."}
                   </p>
 
-                  <div className="mt-4 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
+                  <div className="mt-auto pt-4 flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      <span className="text-sm font-medium">4.9</span>
+                      <span className="font-medium">4.9</span>
                     </div>
-                    <span className="text-xs text-zinc-500">
+                    <span className="text-zinc-500">
                       {creator.sales_badge ? `${creator.sales_badge} ventes` : 'Nouvelle'}
                     </span>
                   </div>
@@ -130,10 +119,6 @@ export default function CreatorsPage() {
               </Link>
             ))}
           </div>
-        )}
-
-        {filteredCreators.length === 0 && !loading && (
-          <p className="text-center text-zinc-400 py-20">Aucune créatrice trouvée.</p>
         )}
       </div>
     </main>
