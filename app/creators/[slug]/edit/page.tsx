@@ -52,22 +52,31 @@ export default function CreatorEditPage() {
     loadData();
   }, [loadData]);
 
-  // Toast pour refusée ou validée
+  // Toast pour refusée ou validée (corrigé)
   useEffect(() => {
     if (!profile) return;
 
+    // Toast rouge pour refus (prioritaire)
     if (profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') {
       setToast({
         message: "Une de vos photos a été refusée",
         type: 'error',
         link: "/guidelines"
       });
-    } else if (profile.avatar_status === 'approved' || profile.banner_status === 'approved') {
-      // Toast vert pour validation
-      setToast({
-        message: "✅ Une de vos photos a été validée par l'équipe",
-        type: 'success'
-      });
+      return;
+    }
+
+    // Toast vert pour validation → affiché UNE SEULE FOIS
+    if (profile.avatar_status === 'approved' || profile.banner_status === 'approved') {
+      const alreadyShown = sessionStorage.getItem('validatedToastShown');
+      
+      if (!alreadyShown) {
+        setToast({
+          message: "✅ Une de vos photos a été validée par l'équipe",
+          type: 'success'
+        });
+        sessionStorage.setItem('validatedToastShown', 'true');
+      }
     }
   }, [profile]);
 
@@ -111,7 +120,13 @@ export default function CreatorEditPage() {
     loadData();
   };
 
-  const closeToast = () => setToast(null);
+  const closeToast = () => {
+    setToast(null);
+    // Marquer le toast de validation comme vu si on le ferme manuellement
+    if (toast?.type === 'success' && toast.message.includes('validée')) {
+      sessionStorage.setItem('validatedToastShown', 'true');
+    }
+  };
 
   if (!user || !profile) {
     return <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center pt-20">Chargement...</div>;
