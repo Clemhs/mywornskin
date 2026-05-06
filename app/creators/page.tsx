@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Star } from 'lucide-react';
 import CreatorAvatarWithFrame from '@/components/CreatorAvatarWithFrame';
 import { createClient } from '@/lib/supabase/client';
@@ -11,13 +11,16 @@ export default function CreatorsPage() {
 
   const [creators, setCreators] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'top' | 'new'>('all');
 
   useEffect(() => {
     const fetchCreators = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio')
+        .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city')
         .eq('role', 'creator')
         .order('sales_badge', { ascending: false });
 
@@ -30,11 +33,24 @@ export default function CreatorsPage() {
     fetchCreators();
   }, [supabase]);
 
-  const filteredCreators = creators.filter(creator => {
-    if (activeFilter === 'all') return true;
-    if (activeFilter === 'top') return (creator.sales_badge || 0) >= 10;
-    return true;
-  });
+  // Filtres
+  const filteredCreators = useMemo(() => {
+    return creators.filter(creator => {
+      const matchesSearch = creator.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           creator.username.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesCountry = !selectedCountry || creator.country === selectedCountry;
+      const matchesCity = !selectedCity || creator.city === selectedCity;
+      const matchesFilter = activeFilter === 'all' || 
+                           (activeFilter === 'top' && (creator.sales_badge || 0) >= 10);
+
+      return matchesSearch && matchesCountry && matchesCity && matchesFilter;
+    });
+  }, [creators, searchTerm, selectedCountry, selectedCity, activeFilter]);
+
+  // Options pour les selects
+  const countries = [...new Set(creators.map(c => c.country).filter(Boolean))];
+  const cities = [...new Set(creators.map(c => c.city).filter(Boolean))];
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20 pb-20">
@@ -44,7 +60,40 @@ export default function CreatorsPage() {
           Elles partagent leur intimité avec vous • {filteredCreators.length} créatrices
         </p>
 
-        {/* Filtres style Boutique */}
+        {/* Recherche + Filtres */}
+        <div className="flex flex-col md:flex-row gap-4 mb-10">
+          <input
+            type="text"
+            placeholder="Rechercher une créatrice..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-pink-500"
+          />
+
+          <select
+            value={selectedCountry}
+            onChange={(e) => setSelectedCountry(e.target.value)}
+            className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500"
+          >
+            <option value="">Tous les pays</option>
+            {countries.map(country => (
+              <option key={country} value={country}>{country}</option>
+            ))}
+          </select>
+
+          <select
+            value={selectedCity}
+            onChange={(e) => setSelectedCity(e.target.value)}
+            className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500"
+          >
+            <option value="">Toutes les villes</option>
+            {cities.map(city => (
+              <option key={city} value={city}>{city}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Filtres rapides */}
         <div className="flex justify-center mb-12">
           <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4">
             {[
@@ -84,7 +133,7 @@ export default function CreatorsPage() {
                   frame={creator.frame}
                 />
 
-                <div className="p-5 pt-14 flex-1 flex flex-col">   {/* pt-14 pour laisser de la place à l'avatar qui dépasse */}
+                <div className="p-5 pt-14 flex-1 flex flex-col">
                   <h3 className="text-xl font-semibold">{creator.full_name}</h3>
                   <p className="text-rose-400 text-sm">@{creator.username}</p>
 
