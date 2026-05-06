@@ -14,7 +14,7 @@ export default function CreatorAvatarWithFrame({
 }) {
   return (
     <div className={`relative ${className}`}>
-      {/* Photo de couverture réduite */}
+      {/* Photo de couverture */}
       {bannerUrl && (
         <img
           src={bannerUrl}
