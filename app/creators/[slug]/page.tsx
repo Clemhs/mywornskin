@@ -71,20 +71,29 @@ export default function CreatorProfile() {
   }, [slug]);
 
   const sendReport = async () => {
-    if (!reportReason || !creator) return;
-    setSendingReport(true);
+    if (!reportReason || !creator) {
+      alert("Veuillez choisir une raison");
+      return;
+    }
 
-    const { error } = await supabase
+    setSendingReport(true);
+    console.log("Envoi signalement pour creator:", creator.id);
+
+    const { data, error } = await supabase
       .from('reports')
       .insert({
         creator_id: creator.id,
         reason: reportReason,
         status: 'pending'
-      });
+      })
+      .select()
+      .single();
 
     if (error) {
-      alert("Erreur lors de l'envoi du signalement");
+      console.error("Erreur insert report :", error);
+      alert("Erreur : " + error.message);
     } else {
+      console.log("✅ Signalement inséré :", data);
       alert("✅ Signalement envoyé à l'équipe. Merci !");
       setShowReportModal(false);
       setReportReason('');
@@ -109,7 +118,6 @@ export default function CreatorProfile() {
 
       <div className="max-w-5xl mx-auto px-6 -mt-16 relative z-10">
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Avatar avec cadre + badge */}
           <div className="relative -mt-12 md:-mt-20 flex-shrink-0">
             <div className="relative inline-block">
               <img 
@@ -144,7 +152,6 @@ export default function CreatorProfile() {
               </button>
             </div>
 
-            {/* Infos géographiques + tailles */}
             <div className="flex items-center gap-4 mt-3 text-sm text-zinc-400">
               {(creator.country || creator.city) && (
                 <span className="flex items-center gap-1">
@@ -168,12 +175,7 @@ export default function CreatorProfile() {
           {products.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {products.map(p => (
-                <StoryCard 
-                  key={p.id} 
-                  {...p} 
-                  creator={creator.username} 
-                  creatorSlug={slug} 
-                />
+                <StoryCard key={p.id} {...p} creator={creator.username} creatorSlug={slug} />
               ))}
             </div>
           ) : (
