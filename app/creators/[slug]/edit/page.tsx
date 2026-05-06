@@ -130,7 +130,7 @@ export default function CreatorEditPage() {
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-12">
       <div className="max-w-6xl mx-auto px-6">
 
-        {/* HEADER - TITRE CENTRÉ FORCÉ */}
+        {/* HEADER - TITRE PARFAITEMENT CENTRÉ */}
         <div className="flex items-center justify-between mb-12">
           <Link href="/creators/me" className="text-zinc-400 hover:text-white flex items-center gap-2">
             ← Retour au profil
@@ -148,7 +148,7 @@ export default function CreatorEditPage() {
           </button>
         </div>
 
-        {/* TOAST - UNE SEULE CROIX À DROITE + PLUS PETIT */}
+        {/* TOAST - UNE SEULE CROIX À DROITE, PLUS PETIT */}
         {toast && (
           <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 min-w-[460px] ${toastClass}`}>
             <span>{toast.message}</span>
