@@ -23,7 +23,7 @@ export default function CreatorAvatarWithFrame({
         />
       )}
 
-      {/* Avatar + Cadre */}
+      {/* Avatar + Cadre + Badge */}
       <div className="absolute -bottom-8 left-6">
         <div className="relative">
           <img
@@ -32,12 +32,12 @@ export default function CreatorAvatarWithFrame({
             className="w-24 h-24 rounded-2xl border-4 border-zinc-950 object-cover"
           />
 
-          {/* Glow INTERNE */}
+          {/* Glow coloré selon le cadre */}
           {frame && (
             <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />
           )}
 
-          {/* Badge */}
+          {/* Badge réduit */}
           {salesBadge && (
             <img
               src={`/badges/${salesBadge}.png`}
