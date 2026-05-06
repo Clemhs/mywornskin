@@ -23,12 +23,9 @@ export default function CreatorsPage() {
         .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city')
         .order('sales_badge', { ascending: false });
 
-      if (error) {
-        console.error("Erreur Supabase :", error);
-      } else {
-        console.log(`✅ ${data?.length || 0} créatrices chargées`);
-        setCreators(data || []);
-      }
+      if (error) console.error(error);
+      else setCreators(data || []);
+
       setLoading(false);
     };
 
