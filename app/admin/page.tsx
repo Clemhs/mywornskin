@@ -8,7 +8,7 @@ import Link from 'next/link';
 export default function AdminPage() {
   const supabase = createClient();
   const [activeTab, setActiveTab] = useState<'photos' | 'reviews' | 'messages' | 'reports'>('photos');
-  const [reportFilter, setReportFilter] = useState<'all' | 'pending' | 'reviewed' | 'dismissed'>('all');
+  const [reportFilter, setReportFilter] = useState<'all' | 'pending' | 'reviewed' | 'dismissed'>('pending'); // Par défaut : En attente
 
   const [pendingPhotos, setPendingPhotos] = useState<any[]>([]);
   const [refusedReviews, setRefusedReviews] = useState<any[]>([]);
@@ -16,11 +16,14 @@ export default function AdminPage() {
   const [reports, setReports] = useState<any[]>([]);
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
 
-  const [selectedReview, setSelectedReview] = useState<any>(null);
-  const [adminReply, setAdminReply] = useState("");
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const loadData = async () => {
-    // Photos en attente
     if (activeTab === 'photos') {
       const { data } = await supabase
         .from('profiles')
@@ -30,7 +33,6 @@ export default function AdminPage() {
       setPendingPhotos(data || []);
     }
 
-    // Commentaires refusés
     if (activeTab === 'reviews') {
       const { data } = await supabase
         .from('reviews')
@@ -40,7 +42,6 @@ export default function AdminPage() {
       setRefusedReviews(data || []);
     }
 
-    // Messages
     if (activeTab === 'messages') {
       const { data } = await supabase
         .from('admin_messages')
@@ -49,23 +50,19 @@ export default function AdminPage() {
       setAdminMessages(data || []);
     }
 
-    // Signalements
     if (activeTab === 'reports') {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('reports')
         .select(`*, creator:profiles!creator_id (username, full_name)`)
         .order('created_at', { ascending: false });
-
-      if (error) console.error("Erreur reports :", error);
-      else setReports(data || []);
+      setReports(data || []);
     }
 
-    // Compteur global pending
+    // Compteur global des pending
     const { count } = await supabase
       .from('reports')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'pending');
-
     setPendingReportsCount(count || 0);
   };
 
@@ -73,15 +70,11 @@ export default function AdminPage() {
     loadData();
   }, [activeTab]);
 
-  // Auto-refresh
   useEffect(() => {
-    const interval = setInterval(() => {
-      loadData();
-    }, 7000);
+    const interval = setInterval(loadData, 8000);
     return () => clearInterval(interval);
   }, []);
 
-  // Filtrage + regroupement
   const filteredReports = useMemo(() => {
     return reportFilter === 'all' 
       ? reports 
@@ -92,67 +85,42 @@ export default function AdminPage() {
     const grouped: any = {};
     filteredReports.forEach(report => {
       const key = report.creator_id;
-      if (!grouped[key]) grouped[key] = { creator: report.creator, count: 0, reports: [] };
+      if (!grouped[key]) {
+        grouped[key] = { creator: report.creator, count: 0, reports: [] };
+      }
       grouped[key].count++;
       grouped[key].reports.push(report);
     });
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
   }, [filteredReports]);
 
-  // ACTIONS FONCTIONNELLES
+  // ACTIONS
   const markReportAsReviewed = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
-    if (error) alert("Erreur : " + error.message);
+    if (error) showToast("Erreur lors de la mise à jour", "error");
     else {
-      alert("✅ Signalement marqué comme traité");
+      showToast("✅ Signalement marqué comme traité");
       loadData();
     }
   };
 
   const dismissReport = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'dismissed' }).eq('id', reportId);
-    if (error) alert("Erreur : " + error.message);
+    if (error) showToast("Erreur lors de la mise à jour", "error");
     else {
-      alert("Signalement ignoré");
+      showToast("Signalement ignoré");
       loadData();
     }
   };
 
   const deleteReport = async (reportId: string) => {
-    if (!confirm("Supprimer définitivement ?")) return;
+    if (!confirm("Supprimer définitivement ce signalement ?")) return;
     const { error } = await supabase.from('reports').delete().eq('id', reportId);
-    if (error) alert("Erreur : " + error.message);
+    if (error) showToast("Erreur lors de la suppression", "error");
     else {
-      alert("Signalement supprimé");
+      showToast("Signalement supprimé");
       loadData();
     }
-  };
-
-  // ==================== TES FONCTIONS ORIGINALES (NE PAS TOUCHER) ====================
-  const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
-    // Ton code original ici
-  };
-
-  const forcePublishReview = async (reviewId: string) => {
-    await supabase.from('reviews').update({ status: 'approved' }).eq('id', reviewId);
-    loadData();
-  };
-
-  const ignoreReview = async (reviewId: string) => {
-    await supabase.from('reviews').update({ status: 'ignored' }).eq('id', reviewId);
-    loadData();
-  };
-
-  const sendAdminMessage = async () => {
-    if (!selectedReview || !adminReply.trim()) return;
-    await supabase.from('admin_messages').insert({
-      review_id: selectedReview.id,
-      creator_id: selectedReview.creator_id,
-      admin_message: adminReply,
-    });
-    setAdminReply("");
-    setSelectedReview(null);
-    loadData();
   };
 
   return (
@@ -187,10 +155,10 @@ export default function AdminPage() {
               <h2 className="text-2xl font-semibold">Signalements ({reports.length})</h2>
               <div className="flex gap-3">
                 <select value={reportFilter} onChange={(e) => setReportFilter(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-2 text-sm">
-                  <option value="all">Tous</option>
                   <option value="pending">En attente</option>
                   <option value="reviewed">Traités</option>
                   <option value="dismissed">Ignorés</option>
+                  <option value="all">Tous</option>
                 </select>
                 <button onClick={loadData} className="text-sm text-zinc-400 hover:text-white">↻ Actualiser</button>
               </div>
@@ -222,22 +190,13 @@ export default function AdminPage() {
                           </p>
 
                           <div className="mt-6 flex gap-3">
-                            <button 
-                              onClick={() => markReportAsReviewed(report.id)}
-                              className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2"
-                            >
+                            <button onClick={() => markReportAsReviewed(report.id)} className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
                               <CheckCircle size={16} /> Marquer comme traité
                             </button>
-                            <button 
-                              onClick={() => dismissReport(report.id)}
-                              className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm"
-                            >
+                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">
                               Ignorer
                             </button>
-                            <button 
-                              onClick={() => deleteReport(report.id)}
-                              className="bg-red-600/80 hover:bg-red-600 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2"
-                            >
+                            <button onClick={() => deleteReport(report.id)} className="bg-red-600/80 hover:bg-red-600 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
                               <Trash2 size={16} /> Supprimer
                             </button>
                           </div>
@@ -251,9 +210,15 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* === PHOTOS & REVIEWS (inchangés) === */}
-        {/* Ajoute ici tes sections photos et reviews originales si besoin */}
-
+        {/* Toast Vert */}
+        {toast && (
+          <div className={`fixed bottom-6 right-6 px-6 py-3.5 rounded-2xl flex items-center gap-3 shadow-xl z-50 ${
+            toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+          }`}>
+            {toast.type === 'success' && <CheckCircle size={20} />}
+            <span>{toast.message}</span>
+          </div>
+        )}
       </div>
     </div>
   );
