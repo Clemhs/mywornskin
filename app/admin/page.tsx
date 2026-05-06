@@ -14,14 +14,13 @@ export default function AdminPage() {
   const [refusedReviews, setRefusedReviews] = useState<any[]>([]);
   const [adminMessages, setAdminMessages] = useState<any[]>([]);
   const [reports, setReports] = useState<any[]>([]);
-  const [pendingReportsCount, setPendingReportsCount] = useState(0); // ← Nouveau pour le badge
+  const [pendingReportsCount, setPendingReportsCount] = useState(0);
 
   const [selectedReview, setSelectedReview] = useState<any>(null);
   const [adminReply, setAdminReply] = useState("");
 
-  // Chargement des données
   const loadData = async () => {
-    // Photos
+    // Photos en attente
     if (activeTab === 'photos') {
       const { data } = await supabase
         .from('profiles')
@@ -31,7 +30,7 @@ export default function AdminPage() {
       setPendingPhotos(data || []);
     }
 
-    // Reviews refusés
+    // Commentaires refusés
     if (activeTab === 'reviews') {
       const { data } = await supabase
         .from('reviews')
@@ -54,80 +53,82 @@ export default function AdminPage() {
     if (activeTab === 'reports') {
       const { data, error } = await supabase
         .from('reports')
-        .select(`
-          *,
-          creator:profiles!creator_id (username, full_name)
-        `)
+        .select(`*, creator:profiles!creator_id (username, full_name)`)
         .order('created_at', { ascending: false });
 
       if (error) console.error("Erreur reports :", error);
       else setReports(data || []);
     }
 
-    // Toujours charger le compteur des signalements en attente (pour le badge)
-    const { count, error: countError } = await supabase
+    // Compteur global pending
+    const { count } = await supabase
       .from('reports')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'pending');
 
-    if (!countError) setPendingReportsCount(count || 0);
+    setPendingReportsCount(count || 0);
   };
 
   useEffect(() => {
     loadData();
   }, [activeTab]);
 
-  // Auto-refresh signalements + compteur
+  // Auto-refresh
   useEffect(() => {
     const interval = setInterval(() => {
-      if (activeTab === 'reports') loadData();
-      else {
-        // Mise à jour du compteur même sur les autres onglets
-        supabase
-          .from('reports')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'pending')
-          .then(({ count }) => setPendingReportsCount(count || 0));
-      }
-    }, 8000);
-
+      loadData();
+    }, 7000);
     return () => clearInterval(interval);
-  }, [activeTab]);
+  }, []);
 
-  // Filtrage et regroupement
-  const filteredReports = useMemo(() => reports.filter(r => reportFilter === 'all' || r.status === reportFilter), [reports, reportFilter]);
+  // Filtrage + regroupement
+  const filteredReports = useMemo(() => {
+    return reportFilter === 'all' 
+      ? reports 
+      : reports.filter(r => r.status === reportFilter);
+  }, [reports, reportFilter]);
 
   const reportsByCreator = useMemo(() => {
     const grouped: any = {};
     filteredReports.forEach(report => {
       const key = report.creator_id;
-      if (!grouped[key]) {
-        grouped[key] = { creator: report.creator, count: 0, reports: [] };
-      }
+      if (!grouped[key]) grouped[key] = { creator: report.creator, count: 0, reports: [] };
       grouped[key].count++;
       grouped[key].reports.push(report);
     });
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
   }, [filteredReports]);
 
-  // ACTIONS
+  // ACTIONS FONCTIONNELLES
   const markReportAsReviewed = async (reportId: string) => {
-    await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
-    loadData();
+    const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
+    if (error) alert("Erreur : " + error.message);
+    else {
+      alert("✅ Signalement marqué comme traité");
+      loadData();
+    }
   };
 
   const dismissReport = async (reportId: string) => {
-    await supabase.from('reports').update({ status: 'dismissed' }).eq('id', reportId);
-    loadData();
+    const { error } = await supabase.from('reports').update({ status: 'dismissed' }).eq('id', reportId);
+    if (error) alert("Erreur : " + error.message);
+    else {
+      alert("Signalement ignoré");
+      loadData();
+    }
   };
 
   const deleteReport = async (reportId: string) => {
-    if (!confirm("Supprimer définitivement ce signalement ?")) return;
-    await supabase.from('reports').delete().eq('id', reportId);
-    loadData();
+    if (!confirm("Supprimer définitivement ?")) return;
+    const { error } = await supabase.from('reports').delete().eq('id', reportId);
+    if (error) alert("Erreur : " + error.message);
+    else {
+      alert("Signalement supprimé");
+      loadData();
+    }
   };
 
-  // ==================== TES FONCTIONS ORIGINALES (inchangées) ====================
+  // ==================== TES FONCTIONS ORIGINALES (NE PAS TOUCHER) ====================
   const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
     // Ton code original ici
   };
@@ -179,14 +180,14 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* === SIGNALEMENTS === */}
+        {/* SIGNALEMENTS */}
         {activeTab === 'reports' && (
           <div>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold">Signalements ({reports.length})</h2>
               <div className="flex gap-3">
                 <select value={reportFilter} onChange={(e) => setReportFilter(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-2 text-sm">
-                  <option value="all">Tous les statuts</option>
+                  <option value="all">Tous</option>
                   <option value="pending">En attente</option>
                   <option value="reviewed">Traités</option>
                   <option value="dismissed">Ignorés</option>
@@ -221,13 +222,22 @@ export default function AdminPage() {
                           </p>
 
                           <div className="mt-6 flex gap-3">
-                            <button onClick={() => markReportAsReviewed(report.id)} className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
+                            <button 
+                              onClick={() => markReportAsReviewed(report.id)}
+                              className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2"
+                            >
                               <CheckCircle size={16} /> Marquer comme traité
                             </button>
-                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">
+                            <button 
+                              onClick={() => dismissReport(report.id)}
+                              className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm"
+                            >
                               Ignorer
                             </button>
-                            <button onClick={() => deleteReport(report.id)} className="bg-red-600/80 hover:bg-red-600 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
+                            <button 
+                              onClick={() => deleteReport(report.id)}
+                              className="bg-red-600/80 hover:bg-red-600 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2"
+                            >
                               <Trash2 size={16} /> Supprimer
                             </button>
                           </div>
@@ -241,7 +251,9 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* PHOTOS, REVIEWS, MESSAGES restent inchangés */}
+        {/* === PHOTOS & REVIEWS (inchangés) === */}
+        {/* Ajoute ici tes sections photos et reviews originales si besoin */}
+
       </div>
     </div>
   );
