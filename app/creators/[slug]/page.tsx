@@ -203,19 +203,43 @@ export default function CreatorProfile() {
         </div>
       </div>
 
-      {/* Modal Signalement */}
+      {/* Modal Signalement Amélioré */}
       {showReportModal && (
         <div className="fixed inset-0 bg-black/90 z-[200] flex items-center justify-center p-4">
           <div className="bg-zinc-900 rounded-3xl p-8 max-w-md w-full">
             <h3 className="text-2xl font-bold mb-2">Signaler ce profil</h3>
-            <p className="text-zinc-400 mb-6">Pourquoi signalez-vous ce profil ?</p>
+            <p className="text-zinc-400 mb-6">Choisissez la raison du signalement :</p>
 
-            <textarea
-              value={reportReason}
-              onChange={(e) => setReportReason(e.target.value)}
-              placeholder="Décrivez le problème (contenu inapproprié, usurpation d'identité, etc.)"
-              className="w-full h-32 bg-zinc-800 border border-zinc-700 rounded-2xl p-4 mb-6 focus:outline-none focus:border-red-500"
-            />
+            <div className="space-y-2 mb-6">
+              {[
+                "Contenu inapproprié ou explicite",
+                "Usurpation d'identité",
+                "Spam ou publicité abusive",
+                "Harcèlement ou comportement toxique",
+                "Autre"
+              ].map(reason => (
+                <button
+                  key={reason}
+                  onClick={() => setReportReason(reason)}
+                  className={`w-full text-left px-4 py-3 rounded-2xl border transition-all ${
+                    reportReason === reason 
+                      ? 'border-red-500 bg-red-500/10 text-white' 
+                      : 'border-zinc-700 hover:border-zinc-600'
+                  }`}
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+
+            {reportReason === "Autre" && (
+              <textarea
+                value={reportReason === "Autre" ? "" : reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                placeholder="Décrivez le problème..."
+                className="w-full h-24 bg-zinc-800 border border-zinc-700 rounded-2xl p-4 mb-6"
+              />
+            )}
 
             <div className="flex gap-3">
               <button
@@ -226,7 +250,7 @@ export default function CreatorProfile() {
               </button>
               <button
                 onClick={sendReport}
-                disabled={!reportReason.trim() || sendingReport}
+                disabled={!reportReason || sendingReport}
                 className="flex-1 py-3.5 rounded-2xl bg-red-600 hover:bg-red-500 disabled:opacity-50 font-medium"
               >
                 {sendingReport ? "Envoi en cours..." : "Envoyer le signalement"}
