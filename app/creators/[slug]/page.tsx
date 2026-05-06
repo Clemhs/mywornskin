@@ -10,7 +10,7 @@ export default function CreatorProfile() {
   const params = useParams();
   const router = useRouter();
   const rawSlug = params.slug as string;
-  const slug = rawSlug.toLowerCase();   // Force minuscule
+  const slug = rawSlug.toLowerCase();
 
   const supabase = createClient();
 
@@ -20,19 +20,15 @@ export default function CreatorProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Redirection si majuscule
+  // Redirection si majuscule ou "me"
   useEffect(() => {
     if (rawSlug !== slug) {
       router.replace(`/creators/${slug}`);
     }
-  }, [rawSlug, slug, router]);
-
-  // Gestion "me"
-  useEffect(() => {
     if (rawSlug === 'me') {
-      router.replace('/creators/creator_test'); // ou dynamique plus tard
+      router.replace('/creators/creator_test'); // À remplacer par logique utilisateur plus tard
     }
-  }, [rawSlug, router]);
+  }, [rawSlug, slug, router]);
 
   const fetchCreatorData = async () => {
     if (!slug) return;
@@ -83,8 +79,6 @@ export default function CreatorProfile() {
 
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
-      {/* Pas de Header ici */}
-
       {/* Bannière */}
       <div className="h-80 relative">
         <img 
@@ -97,12 +91,29 @@ export default function CreatorProfile() {
 
       <div className="max-w-5xl mx-auto px-6 -mt-16 relative z-10">
         <div className="flex flex-col md:flex-row gap-8">
+          {/* AVATAR AVEC BADGE + CADRE */}
           <div className="relative -mt-12 md:-mt-20 flex-shrink-0">
-            <img 
-              src={creator.avatar_url || "https://picsum.photos/id/64/300/300"} 
-              alt={creator.username} 
-              className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
-            />
+            <div className="relative inline-block">
+              <img 
+                src={creator.avatar_url || "https://picsum.photos/id/64/300/300"} 
+                alt={creator.username} 
+                className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
+              />
+
+              {/* Cadre animé */}
+              {creator.frame && (
+                <div className={`absolute inset-0 rounded-3xl border-4 shimmer-frame ${creator.frame}`} />
+              )}
+
+              {/* Badge de ventes */}
+              {creator.sales_badge && (
+                <img 
+                  src={`/badges/${creator.sales_badge}.png`} 
+                  alt={`Badge ${creator.sales_badge} ventes`}
+                  className="absolute -top-4 -right-4 w-16 h-16 drop-shadow-2xl" 
+                />
+              )}
+            </div>
           </div>
 
           <div className="pt-6 flex-1">
@@ -119,7 +130,14 @@ export default function CreatorProfile() {
           <h2 className="text-3xl font-light mb-8">Sa boutique ({products.length} pièces)</h2>
           {products.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {products.map(p => <StoryCard key={p.id} {...p} creator={creator.username} creatorSlug={slug} />)}
+              {products.map(p => (
+                <StoryCard 
+                  key={p.id} 
+                  {...p} 
+                  creator={creator.username} 
+                  creatorSlug={slug} 
+                />
+              ))}
             </div>
           ) : (
             <p className="text-zinc-500">Aucune pièce mise en ligne pour le moment.</p>
@@ -134,7 +152,9 @@ export default function CreatorProfile() {
               {approvedReviews.map(review => (
                 <div key={review.id} className="bg-zinc-900 rounded-2xl p-6">
                   <div className="flex gap-1 mb-3">
-                    {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />)}
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                    ))}
                   </div>
                   <p className="italic text-zinc-300">"{review.comment}"</p>
                 </div>
@@ -145,6 +165,22 @@ export default function CreatorProfile() {
           )}
         </div>
       </div>
+
+      {/* Styles shimmer */}
+      <style jsx global>{`
+        @keyframes shimmer-frame {
+          0% { background-position: -200% 0; }
+          100% { background-position: 300% 0; }
+        }
+        .shimmer-frame {
+          animation: shimmer-frame 8s linear infinite;
+          background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.9) 50%, transparent 60%);
+          background-size: 200% 100%;
+        }
+        .shimmer-frame.rose { border-color: #f472b6; box-shadow: 0 0 40px #f472b6; }
+        .shimmer-frame.silver { border-color: #e2e8f0; box-shadow: 0 0 40px #e2e8f0; }
+        .shimmer-frame.gold { border-color: #fbbf24; box-shadow: 0 0 45px #fbbf24; }
+      `}</style>
     </div>
   );
 }
