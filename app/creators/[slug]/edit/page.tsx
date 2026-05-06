@@ -54,7 +54,7 @@ export default function CreatorEditPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // Toast (inchangé)
+  // Toast management
   useEffect(() => {
     if (!profile) return;
     if (profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') {
@@ -73,8 +73,21 @@ export default function CreatorEditPage() {
     await supabase.from('profiles').update(updates).eq('id', user.id);
   };
 
-  const toggleSalesBadge = async (level: number) => { /* inchangé */ };
-  const selectFrame = async (id: string) => { /* inchangé */ };
+  const toggleSalesBadge = async (level: number) => {
+    const newBadge = salesBadge === level ? null : level;
+    setSalesBadge(newBadge);
+    await saveProfile({ sales_badge: newBadge });
+    setToast({ message: "✅ Badge mis à jour", type: 'success' });
+    setTimeout(() => setToast(null), 1500);
+  };
+
+  const selectFrame = async (id: string) => {
+    const newFrame = frame === id ? null : id;
+    setFrame(newFrame);
+    await saveProfile({ frame: newFrame });
+    setToast({ message: "✅ Cadre mis à jour", type: 'success' });
+    setTimeout(() => setToast(null), 1500);
+  };
 
   const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setBio(e.target.value);
@@ -153,31 +166,83 @@ export default function CreatorEditPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* APERÇU EN DIRECT - inchangé */}
+          {/* APERÇU EN DIRECT */}
           <div className="lg:col-span-5 space-y-8">
-            {/* Ton code d'aperçu actuel reste identique */}
-            {/* ... */}
+            <div>
+              <h2 className="text-xl mb-4">Aperçu en direct</h2>
+              <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
+                <img 
+                  src={profile.banner_pending_url || profile.banner_url || "https://picsum.photos/id/1015/1200/400"} 
+                  alt="Bannière" 
+                  className="w-full h-full object-cover" 
+                />
+                {isBannerPending && (
+                  <div className="absolute top-4 right-4 bg-amber-500 text-black text-sm px-4 py-1 rounded-full flex items-center gap-2 font-medium">
+                    <Clock size={16} /> En attente de validation
+                  </div>
+                )}
+                <div className="absolute bottom-8 left-8">
+                  <div className="relative">
+                    <img 
+                      src={profile.avatar_pending_url || profile.avatar_url || "https://picsum.photos/id/64/300/300"} 
+                      alt="Avatar" 
+                      className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" 
+                    />
+                    {frame && <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />}
+                    {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-14 h-14" alt="Badge" />}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-xl mb-4">Commentaires à valider ({pendingReviews.length})</h2>
+              <div className="space-y-4">
+                {pendingReviews.length === 0 ? (
+                  <p className="text-zinc-500 italic bg-zinc-900 p-6 rounded-3xl">Aucun commentaire en attente pour le moment.</p>
+                ) : (
+                  pendingReviews.map(r => (
+                    <div key={r.id} className="bg-zinc-900 rounded-3xl p-6">
+                      <p className="italic">"{r.comment}"</p>
+                      <div className="flex gap-3 mt-4">
+                        <button className="flex-1 bg-emerald-600 py-3 rounded-2xl">✅ Valider</button>
+                        <button className="flex-1 bg-red-600 py-3 rounded-2xl">❌ Rejeter</button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* COLONNE DROITE - COMPACTE */}
+          {/* COLONNE DROITE */}
           <div className="lg:col-span-7 space-y-10">
-            {/* Changer les images - inchangé */}
+            {/* Changer les images */}
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
               <div className="grid grid-cols-2 gap-6">
-                {/* ... tes deux labels ... */}
+                <label className="cursor-pointer border border-dashed border-zinc-700 hover:border-pink-500 rounded-3xl p-8 text-center">
+                  <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0], 'banner')} className="hidden" />
+                  <Camera className="mx-auto mb-3 text-pink-400" size={36} />
+                  <p className="text-pink-400 font-medium">Changer la couverture</p>
+                </label>
+
+                <label className="cursor-pointer border border-dashed border-zinc-700 hover:border-pink-500 rounded-3xl p-8 text-center">
+                  <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0], 'avatar')} className="hidden" />
+                  <Camera className="mx-auto mb-3 text-pink-400" size={36} />
+                  <p className="text-pink-400 font-medium">Changer la photo de profil</p>
+                </label>
               </div>
             </div>
 
             {/* Informations personnelles */}
             <div>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl">Informations personnelles</h2>
-                <p className="text-xs text-emerald-500 flex items-center gap-1">
-                  <CheckCircle size={14} /> Enregistrement automatique
+                <p className="text-emerald-500 text-sm flex items-center gap-1.5">
+                  <CheckCircle size={16} /> Enregistrement automatique
                 </p>
               </div>
-
               <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 space-y-5">
                 <div>
                   <label className="block text-sm text-zinc-400 mb-1.5">Bio</label>
@@ -214,9 +279,41 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Badges, Cadres, Boutique (inchangés) */}
-            {/* ... reste de ton code ... */}
+            {/* Badges de ventes */}
+            <div>
+              <h2 className="text-xl mb-4">Badges de ventes</h2>
+              <div className="flex gap-6 overflow-x-auto pb-6">
+                {availableSalesBadges.map(level => (
+                  <button key={level} onClick={() => toggleSalesBadge(level)} 
+                    className={`flex-shrink-0 w-28 h-28 rounded-3xl flex flex-col items-center justify-center border-2 transition-all ${salesBadge === level ? 'border-pink-400 bg-pink-900/30' : 'border-zinc-700 hover:border-pink-400'}`}>
+                    <img src={`/badges/${level}.png`} className="w-16 h-16" alt={`${level}`} />
+                    <span className="text-sm mt-1">{level} ventes</span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
+            {/* Cadres de profil */}
+            <div>
+              <h2 className="text-xl mb-4">Cadres de profil</h2>
+              <div className="flex gap-6 overflow-x-auto pb-6">
+                {availableFrames.map(f => (
+                  <button key={f.id} onClick={() => selectFrame(f.id)}
+                    className={`flex-shrink-0 w-28 h-28 rounded-3xl border-2 overflow-hidden transition-all relative ${frame === f.id ? 'border-pink-400' : 'border-zinc-700 hover:border-pink-400'}`}>
+                    <div className={`shimmer-frame w-full h-full ${f.id}`} />
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs bg-black/70 px-3 py-0.5 rounded-full">{f.name}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Boutique cosmétiques */}
+            <div>
+              <h2 className="text-xl mb-4 flex items-center gap-2">🛍️ Boutique cosmétiques</h2>
+              <div className="bg-zinc-900 rounded-3xl p-8 text-center text-zinc-400">
+                Prochainement disponible...
+              </div>
+            </div>
           </div>
         </div>
       </div>
