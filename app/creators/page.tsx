@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Star, Award } from 'lucide-react';
+import { Star } from 'lucide-react';
+import CreatorAvatarWithFrame from '@/components/CreatorAvatarWithFrame';
 import { createClient } from '@/lib/supabase/client';
 
 export default function CreatorsPage() {
@@ -16,7 +17,7 @@ export default function CreatorsPage() {
     const fetchCreators = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, full_name, avatar_url, sales_badge, frame, bio')
+        .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio')
         .eq('role', 'creator')
         .order('sales_badge', { ascending: false });
 
@@ -32,7 +33,6 @@ export default function CreatorsPage() {
   const filteredCreators = creators.filter(creator => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'top') return (creator.sales_badge || 0) >= 10;
-    if (activeFilter === 'new') return true;
     return true;
   });
 
@@ -44,7 +44,7 @@ export default function CreatorsPage() {
           Elles partagent leur intimité avec vous • {filteredCreators.length} créatrices
         </p>
 
-        {/* Filtres style Boutique */}
+        {/* Filtres */}
         <div className="flex justify-center mb-12">
           <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4">
             {[
@@ -75,30 +75,15 @@ export default function CreatorsPage() {
               <Link
                 key={creator.username}
                 href={`/creators/${creator.username}`}
-                className="group bg-zinc-900 rounded-3xl overflow-hidden hover:scale-[1.03] transition-all duration-300 flex flex-col"
+                className="group bg-zinc-900 rounded-3xl overflow-hidden hover:scale-[1.02] transition-all duration-300 flex flex-col h-full"
               >
-                {/* PHOTO PRINCIPALE + OVERLAYS CORRIGÉS */}
-                <div className="relative">
-                  <img
-                    src={creator.avatar_url || "https://picsum.photos/id/64/300/300"}
-                    alt={creator.full_name}
-                    className="w-full aspect-square object-cover"
-                  />
-
-                  {/* Cadre animé */}
-                  {creator.frame && (
-                    <div className={`absolute inset-0 border-4 shimmer-frame ${creator.frame} rounded-3xl`} />
-                  )}
-
-                  {/* Badge de ventes - position corrigée pour ne plus être tronqué */}
-                  {creator.sales_badge && (
-                    <img
-                      src={`/badges/${creator.sales_badge}.png`}
-                      alt={`Badge ${creator.sales_badge}`}
-                      className="absolute top-3 right-3 w-11 h-11 drop-shadow-2xl z-10"
-                    />
-                  )}
-                </div>
+                <CreatorAvatarWithFrame
+                  avatarUrl={creator.avatar_url}
+                  bannerUrl={creator.banner_url}
+                  salesBadge={creator.sales_badge}
+                  frame={creator.frame}
+                  className="h-64"
+                />
 
                 <div className="p-5 flex-1 flex flex-col">
                   <h3 className="text-xl font-semibold">{creator.full_name}</h3>
