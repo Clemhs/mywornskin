@@ -10,106 +10,132 @@ export default function CreatorsPage() {
 
   const [creators, setCreators] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'top' | 'new'>('all');
 
   useEffect(() => {
     const fetchCreators = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, full_name, avatar_url, sales_badge, frame, bio')
-        .eq('role', 'creator')           // Si tu as une colonne role
+        .select('id, username, full_name, avatar_url, sales_badge, frame, bio, created_at')
+        .eq('role', 'creator')
         .order('sales_badge', { ascending: false });
 
-      if (error) {
-        console.error(error);
-      } else {
-        setCreators(data || []);
-      }
+      if (error) console.error(error);
+      else setCreators(data || []);
+
       setLoading(false);
     };
 
     fetchCreators();
   }, [supabase]);
 
-  if (loading) {
-    return <div className="min-h-screen bg-zinc-950 pt-32 text-center">Chargement des créatrices...</div>;
-  }
+  // Filtrage
+  const filteredCreators = creators.filter(creator => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'top') return (creator.sales_badge || 0) >= 10;
+    if (activeFilter === 'new') return true; // On pourra affiner plus tard
+    return true;
+  });
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white pb-20">
-      <div className="max-w-7xl mx-auto px-6 pt-28">
-        <h1 className="text-5xl font-bold text-center mb-4">Nos Créatrices</h1>
-        <p className="text-center text-zinc-400 text-xl mb-16">
-          Elles partagent leur intimité avec vous
+    <main className="min-h-screen bg-zinc-950 text-white pt-20 pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <h1 className="text-4xl sm:text-5xl font-bold text-center mb-4">Nos Créatrices</h1>
+        <p className="text-center text-zinc-400 text-lg sm:text-xl mb-10">
+          Elles partagent leur intimité avec vous • {filteredCreators.length} créatrices
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {creators.map((creator) => (
-            <Link
-              key={creator.username}
-              href={`/creators/${creator.username}`}
-              className="group bg-zinc-900 rounded-3xl overflow-hidden hover:scale-[1.02] transition-all duration-300"
-            >
-              <div className="relative">
-                <img
-                  src={creator.avatar_url || "https://picsum.photos/id/64/300/300"}
-                  alt={creator.full_name}
-                  className="w-full h-80 object-cover"
-                />
+        {/* Filtres - Style identique à la Boutique */}
+        <div className="flex justify-center mb-12">
+          <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4">
+            {[
+              { label: 'Tout', value: 'all' },
+              { label: 'Top Ventes', value: 'top' },
+              { label: 'Nouvelles', value: 'new' },
+            ].map((filter) => (
+              <button
+                key={filter.value}
+                onClick={() => setActiveFilter(filter.value as any)}
+                className={`flex-shrink-0 px-6 py-3 rounded-2xl text-sm font-medium transition-all whitespace-nowrap ${
+                  activeFilter === filter.value 
+                    ? 'bg-rose-500 text-white' 
+                    : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-                {/* Cadre animé + Badge de ventes */}
-                <div className="absolute bottom-6 left-6">
-                  <div className="relative inline-block">
-                    <img
-                      src={creator.avatar_url || "https://picsum.photos/id/64/300/300"}
-                      alt={creator.full_name}
-                      className="w-24 h-24 rounded-2xl border-4 border-zinc-950 object-cover"
-                    />
+        {loading ? (
+          <p className="text-center text-zinc-400 py-20">Chargement des créatrices...</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
+            {filteredCreators.map((creator) => (
+              <Link
+                key={creator.username}
+                href={`/creators/${creator.username}`}
+                className="group bg-zinc-900 rounded-3xl overflow-hidden hover:scale-[1.03] transition-all duration-300 flex flex-col"
+              >
+                <div className="relative">
+                  <img
+                    src={creator.avatar_url || "https://picsum.photos/id/64/300/300"}
+                    alt={creator.full_name}
+                    className="w-full aspect-square object-cover"
+                  />
 
-                    {creator.frame && (
-                      <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${creator.frame}`} />
-                    )}
-
-                    {creator.sales_badge && (
+                  {/* Avatar avec badge + cadre (petit) */}
+                  <div className="absolute -bottom-6 left-4">
+                    <div className="relative">
                       <img
-                        src={`/badges/${creator.sales_badge}.png`}
-                        alt={`Badge ${creator.sales_badge}`}
-                        className="absolute -top-3 -right-3 w-12 h-12 drop-shadow-xl"
+                        src={creator.avatar_url || "https://picsum.photos/id/64/300/300"}
+                        alt={creator.full_name}
+                        className="w-20 h-20 rounded-2xl border-4 border-zinc-950 object-cover"
                       />
-                    )}
+
+                      {creator.frame && (
+                        <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${creator.frame}`} />
+                      )}
+
+                      {creator.sales_badge && (
+                        <img
+                          src={`/badges/${creator.sales_badge}.png`}
+                          alt={`Badge ${creator.sales_badge}`}
+                          className="absolute -top-2 -right-2 w-10 h-10 drop-shadow-xl"
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="p-8">
-                <h2 className="text-2xl font-semibold">{creator.full_name}</h2>
-                <p className="text-rose-400">@{creator.username}</p>
-                <p className="text-zinc-400 mt-3 line-clamp-2">
-                  {creator.bio || "Passionnée de lingerie portée et d'histoires intimes."}
-                </p>
+                <div className="pt-12 pb-6 px-5 flex-1 flex flex-col">
+                  <h3 className="text-xl font-semibold">{creator.full_name}</h3>
+                  <p className="text-rose-400 text-sm">@{creator.username}</p>
 
-                <div className="flex items-center gap-2 mt-6">
-                  <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
-                  <span className="font-semibold">4.9</span>
-                  <span className="text-zinc-500">
-                    • {creator.sales_badge ? `${creator.sales_badge}+ ventes` : 'Nouvelle'}
-                  </span>
-                </div>
+                  <p className="text-zinc-400 text-sm mt-3 line-clamp-2 flex-1">
+                    {creator.bio || "Passionnée de moments intimes..."}
+                  </p>
 
-                {creator.sales_badge && (
-                  <div className="mt-4">
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-zinc-800 rounded-2xl text-sm">
-                      <Award className="w-4 h-4 text-rose-400" />
-                      Badge {creator.sales_badge} ventes
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                      <span className="text-sm font-medium">4.9</span>
+                    </div>
+                    <span className="text-xs text-zinc-500">
+                      {creator.sales_badge ? `${creator.sales_badge} ventes` : 'Nouvelle'}
                     </span>
                   </div>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
 
-      {/* Styles shimmer (déjà dans globals.css) */}
+        {filteredCreators.length === 0 && !loading && (
+          <p className="text-center text-zinc-400 py-20">Aucune créatrice trouvée.</p>
+        )}
+      </div>
     </main>
   );
 }
