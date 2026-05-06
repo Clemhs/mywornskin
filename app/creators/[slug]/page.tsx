@@ -20,19 +20,13 @@ export default function CreatorProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Redirection si majuscule ou "me"
   useEffect(() => {
-    if (rawSlug !== slug) {
-      router.replace(`/creators/${slug}`);
-    }
-    if (rawSlug === 'me') {
-      router.replace('/creators/creator_test'); // À remplacer par logique utilisateur plus tard
-    }
+    if (rawSlug !== slug) router.replace(`/creators/${slug}`);
+    if (rawSlug === 'me') router.replace('/creators/creator_test');
   }, [rawSlug, slug, router]);
 
   const fetchCreatorData = async () => {
     if (!slug) return;
-
     try {
       const { data: creatorData } = await supabase
         .from('profiles')
@@ -52,7 +46,6 @@ export default function CreatorProfile() {
         .from('products')
         .select('*')
         .eq('creator_id', creatorData.id);
-
       setProducts(productsData || []);
 
       const { data: reviewsData } = await supabase
@@ -61,7 +54,6 @@ export default function CreatorProfile() {
         .eq('creator_id', creatorData.id)
         .eq('status', 'approved')
         .limit(5);
-
       setApprovedReviews(reviewsData || []);
     } catch (err) {
       setError('Erreur de chargement');
@@ -91,7 +83,7 @@ export default function CreatorProfile() {
 
       <div className="max-w-5xl mx-auto px-6 -mt-16 relative z-10">
         <div className="flex flex-col md:flex-row gap-8">
-          {/* AVATAR AVEC BADGE + CADRE */}
+          {/* AVATAR AVEC GLOW INTERNE */}
           <div className="relative -mt-12 md:-mt-20 flex-shrink-0">
             <div className="relative inline-block">
               <img 
@@ -118,14 +110,13 @@ export default function CreatorProfile() {
             <h1 className="text-4xl font-bold">{creator.full_name}</h1>
             <p className="text-rose-400 text-xl">@{creator.username}</p>
 
-            {/* Infos géo + tailles */}
             <div className="flex items-center gap-4 mt-3 text-sm text-zinc-400">
-              {creator.country && (
+              {(creator.country || creator.city) && (
                 <span className="flex items-center gap-1">
-                  <MapPin size={16} /> {creator.country}
+                  <MapPin size={16} />
+                  {creator.country} {creator.city && `• ${creator.city}`}
                 </span>
               )}
-              {creator.city && <span>{creator.city}</span>}
               {creator.size && <span>• Taille {creator.size}</span>}
               {creator.shoe_size && <span>• Pointure {creator.shoe_size}</span>}
             </div>
@@ -142,12 +133,7 @@ export default function CreatorProfile() {
           {products.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {products.map(p => (
-                <StoryCard 
-                  key={p.id} 
-                  {...p} 
-                  creator={creator.username} 
-                  creatorSlug={slug} 
-                />
+                <StoryCard key={p.id} {...p} creator={creator.username} creatorSlug={slug} />
               ))}
             </div>
           ) : (
@@ -177,7 +163,7 @@ export default function CreatorProfile() {
         </div>
       </div>
 
-      {/* Styles shimmer */}
+      {/* Styles shimmer globaux */}
       <style jsx global>{`
         @keyframes shimmer-frame {
           0% { background-position: -200% 0; }
@@ -185,12 +171,13 @@ export default function CreatorProfile() {
         }
         .shimmer-frame {
           animation: shimmer-frame 8s linear infinite;
-          background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.9) 50%, transparent 60%);
+          background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.9) 50%, transparent 75%);
           background-size: 200% 100%;
+          border: 4px solid;
         }
-        .shimmer-frame.rose { border-color: #f472b6; box-shadow: 0 0 40px #f472b6; }
-        .shimmer-frame.silver { border-color: #e2e8f0; box-shadow: 0 0 40px #e2e8f0; }
-        .shimmer-frame.gold { border-color: #fbbf24; box-shadow: 0 0 45px #fbbf24; }
+        .shimmer-frame.rose { border-color: #f472b6; box-shadow: inset 0 0 35px #f472b6; }
+        .shimmer-frame.silver { border-color: #e2e8f0; box-shadow: inset 0 0 35px #e2e8f0; }
+        .shimmer-frame.gold { border-color: #fbbf24; box-shadow: inset 0 0 35px #fbbf24; }
       `}</style>
     </div>
   );
