@@ -21,13 +21,12 @@ export default function CreatorsPage() {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city')
-        // .eq('role', 'creator')   // ← Commenté temporairement pour debug
         .order('sales_badge', { ascending: false });
 
       if (error) {
-        console.error(error);
+        console.error("Erreur Supabase :", error);
       } else {
-        console.log('Créatrices chargées :', data?.length); // Pour debug
+        console.log(`✅ ${data?.length || 0} créatrices chargées`);
         setCreators(data || []);
       }
       setLoading(false);
@@ -40,8 +39,8 @@ export default function CreatorsPage() {
     return creators.filter(creator => {
       const matchesSearch = 
         !searchTerm || 
-        creator.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        creator.username?.toLowerCase().includes(searchTerm.toLowerCase());
+        (creator.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         creator.username?.toLowerCase().includes(searchTerm.toLowerCase()));
 
       const matchesCountry = !selectedCountry || creator.country === selectedCountry;
       const matchesCity = !selectedCity || creator.city === selectedCity;
