@@ -130,13 +130,13 @@ export default function CreatorEditPage() {
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-12">
       <div className="max-w-6xl mx-auto px-6">
 
-        {/* Header avec titre parfaitement centré */}
+        {/* HEADER - TITRE CENTRÉ FORCÉ */}
         <div className="flex items-center justify-between mb-12">
           <Link href="/creators/me" className="text-zinc-400 hover:text-white flex items-center gap-2">
             ← Retour au profil
           </Link>
 
-          <h1 className="text-4xl font-bold text-center flex-1">Édition de profil</h1>
+          <h1 className="text-4xl font-bold text-center flex-1 px-4">Édition de profil</h1>
 
           <button 
             onClick={handleSave}
@@ -148,9 +148,9 @@ export default function CreatorEditPage() {
           </button>
         </div>
 
-        {/* Toast rouge propre - une seule croix à droite */}
+        {/* TOAST - UNE SEULE CROIX À DROITE + PLUS PETIT */}
         {toast && (
-          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-7 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 min-w-[460px] ${toastClass}`}>
+          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-2.5 rounded-2xl text-sm shadow-2xl flex items-center gap-3 min-w-[440px] ${toastClass}`}>
             <span>{toast.message}</span>
             
             {toast.link && (
@@ -163,7 +163,7 @@ export default function CreatorEditPage() {
               onClick={closeToast}
               className="ml-auto p-1 hover:bg-white/20 rounded-full transition"
             >
-              <X size={18} />
+              <X size={17} />
             </button>
           </div>
         )}
