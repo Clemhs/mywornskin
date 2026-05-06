@@ -44,7 +44,7 @@ export default function CreatorsPage() {
           Elles partagent leur intimité avec vous • {filteredCreators.length} créatrices
         </p>
 
-        {/* Filtres */}
+        {/* Filtres style Boutique */}
         <div className="flex justify-center mb-12">
           <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4">
             {[
@@ -75,17 +75,16 @@ export default function CreatorsPage() {
               <Link
                 key={creator.username}
                 href={`/creators/${creator.username}`}
-                className="group bg-zinc-900 rounded-3xl overflow-hidden hover:scale-[1.02] transition-all duration-300 flex flex-col h-full"
+                className="group bg-zinc-900 rounded-3xl overflow-hidden hover:scale-[1.02] transition-all duration-300 flex flex-col"
               >
                 <CreatorAvatarWithFrame
                   avatarUrl={creator.avatar_url}
                   bannerUrl={creator.banner_url}
                   salesBadge={creator.sales_badge}
                   frame={creator.frame}
-                  className="h-64"
                 />
 
-                <div className="p-5 flex-1 flex flex-col">
+                <div className="p-5 pt-14 flex-1 flex flex-col">   {/* pt-14 pour laisser de la place à l'avatar qui dépasse */}
                   <h3 className="text-xl font-semibold">{creator.full_name}</h3>
                   <p className="text-rose-400 text-sm">@{creator.username}</p>
 
