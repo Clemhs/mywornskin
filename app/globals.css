@@ -7,3 +7,30 @@
     @apply bg-[#0a0a0a] text-zinc-200 antialiased;
   }
 }
+
+/* ==================== SHIMMER FRAME - BADGES & CADRES ==================== */
+@keyframes shimmer-frame {
+  0% { background-position: -200% 0; }
+  100% { background-position: 300% 0; }
+}
+
+.shimmer-frame {
+  animation: shimmer-frame 8s linear infinite;
+  background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.9) 50%, transparent 60%);
+  background-size: 200% 100%;
+}
+
+.shimmer-frame.rose {
+  border-color: #f472b6;
+  box-shadow: 0 0 40px #f472b6;
+}
+
+.shimmer-frame.silver {
+  border-color: #e2e8f0;
+  box-shadow: 0 0 40px #e2e8f0;
+}
+
+.shimmer-frame.gold {
+  border-color: #fbbf24;
+  box-shadow: 0 0 45px #fbbf24;
+}
