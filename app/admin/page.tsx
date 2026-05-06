@@ -55,7 +55,10 @@ export default function AdminPage() {
         .order('created_at', { ascending: false });
 
       if (error) console.error("Erreur reports :", error);
-      else setReports(data || []);
+      else {
+        console.log(`Signalements chargés : ${data?.length}`);
+        setReports(data || []);
+      }
     }
   };
 
@@ -63,14 +66,14 @@ export default function AdminPage() {
     loadData();
   }, [activeTab]);
 
-  // Rafraîchissement automatique des signalements toutes les 5 secondes quand on est sur l'onglet
+  // Auto-refresh des signalements
   useEffect(() => {
     if (activeTab !== 'reports') return;
-    const interval = setInterval(loadData, 5000);
+    const interval = setInterval(loadData, 4000);
     return () => clearInterval(interval);
   }, [activeTab]);
 
-  // ... tout le reste de tes fonctions (handlePhotoAction, forcePublishReview, etc.) reste inchangé ...
+  // ... tes autres fonctions (handlePhotoAction, forcePublishReview, etc.) restent inchangées ...
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-8">
@@ -92,7 +95,7 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* === SIGNALEMENTS === */}
+        {/* SIGNALEMENTS */}
         {activeTab === 'reports' && (
           <div className="space-y-6">
             {reports.length === 0 ? (
@@ -100,7 +103,7 @@ export default function AdminPage() {
             ) : (
               reports.map(report => (
                 <div key={report.id} className="bg-zinc-900 rounded-3xl p-8">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-start">
                     <div>
                       <p className="text-lg font-semibold">
                         Signalement contre <Link href={`/creators/${report.creator?.username}`} className="text-pink-400 hover:underline">@{report.creator?.username}</Link>
@@ -121,7 +124,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Le reste de tes onglets (photos, reviews, messages) restent inchangés */}
+        {/* Tes autres onglets restent identiques */}
         {/* ... */}
 
       </div>
