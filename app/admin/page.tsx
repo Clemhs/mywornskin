@@ -63,14 +63,13 @@ export default function AdminPage() {
     loadData();
   }, [activeTab]);
 
-  // Auto-refresh sur les signalements
+  // Auto-refresh signalements
   useEffect(() => {
     if (activeTab !== 'reports') return;
     const interval = setInterval(loadData, 5000);
     return () => clearInterval(interval);
   }, [activeTab]);
 
-  // Filtrage des signalements
   const filteredReports = useMemo(() => {
     let filtered = reports;
     if (reportFilter !== 'all') {
@@ -79,7 +78,6 @@ export default function AdminPage() {
     return filtered;
   }, [reports, reportFilter]);
 
-  // Regroupement par créatrice
   const reportsByCreator = useMemo(() => {
     const grouped: any = {};
     filteredReports.forEach(report => {
@@ -97,7 +95,22 @@ export default function AdminPage() {
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
   }, [filteredReports]);
 
-  // ... Tes autres fonctions (handlePhotoAction, forcePublishReview, etc.) restent inchangées ...
+  // === ACTIONS SUR SIGNALEMENTS ===
+  const markReportAsReviewed = async (reportId: string) => {
+    await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
+    loadData();
+  };
+
+  const dismissReport = async (reportId: string) => {
+    await supabase.from('reports').update({ status: 'dismissed' }).eq('id', reportId);
+    loadData();
+  };
+
+  const deleteReport = async (reportId: string) => {
+    if (!confirm("Supprimer définitivement ce signalement ?")) return;
+    await supabase.from('reports').delete().eq('id', reportId);
+    loadData();
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-8">
@@ -117,14 +130,14 @@ export default function AdminPage() {
           <button onClick={() => setActiveTab('reports')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap relative ${activeTab === 'reports' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <Flag size={22} /> Signalements
             {reports.length > 0 && (
-              <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+              <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
                 {reports.length}
               </span>
             )}
           </button>
         </div>
 
-        {/* === SIGNALEMENTS - VERSION COMPLÈTE === */}
+        {/* SIGNALEMENTS - VERSION COMPLÈTE AVEC ACTIONS */}
         {activeTab === 'reports' && (
           <div>
             <div className="flex justify-between items-center mb-6">
@@ -168,6 +181,27 @@ export default function AdminPage() {
                           <p className="text-xs text-zinc-500 mt-3">
                             {new Date(report.created_at).toLocaleString('fr-FR')}
                           </p>
+
+                          <div className="mt-6 flex gap-3">
+                            <button 
+                              onClick={() => markReportAsReviewed(report.id)}
+                              className="bg-green-600 hover:bg-green-500 px-5 py-2 rounded-2xl text-sm flex items-center gap-2"
+                            >
+                              <CheckCircle size={16} /> Traité
+                            </button>
+                            <button 
+                              onClick={() => dismissReport(report.id)}
+                              className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2 rounded-2xl text-sm"
+                            >
+                              Ignorer
+                            </button>
+                            <button 
+                              onClick={() => deleteReport(report.id)}
+                              className="bg-red-600/80 hover:bg-red-600 px-5 py-2 rounded-2xl text-sm flex items-center gap-2"
+                            >
+                              <Trash2 size={16} /> Supprimer
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -178,8 +212,8 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Tes autres onglets restent inchangés (photos, reviews, messages) */}
-        {/* ... */}
+        {/* === TES AUTRES ONGLETS (inchangés) === */}
+        {/* Photos, Reviews, Messages restent exactement comme avant */}
 
       </div>
     </div>
