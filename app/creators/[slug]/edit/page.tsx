@@ -136,7 +136,7 @@ export default function CreatorEditPage() {
             ← Retour au profil
           </Link>
 
-          <h1 className="text-4xl font-bold text-center flex-1 px-4">Édition de profil</h1>
+          <h1 className="text-4xl font-bold text-center flex-1">Édition de profil</h1>
 
           <button 
             onClick={handleSave}
@@ -150,7 +150,7 @@ export default function CreatorEditPage() {
 
         {/* TOAST - UNE SEULE CROIX À DROITE + PLUS PETIT */}
         {toast && (
-          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-2.5 rounded-2xl text-sm shadow-2xl flex items-center gap-3 min-w-[440px] ${toastClass}`}>
+          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 min-w-[460px] ${toastClass}`}>
             <span>{toast.message}</span>
             
             {toast.link && (
@@ -163,7 +163,7 @@ export default function CreatorEditPage() {
               onClick={closeToast}
               className="ml-auto p-1 hover:bg-white/20 rounded-full transition"
             >
-              <X size={17} />
+              <X size={18} />
             </button>
           </div>
         )}
