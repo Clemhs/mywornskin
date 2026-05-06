@@ -1,24 +1,20 @@
 // components/CreatorAvatarWithFrame.tsx
-import Image from 'next/image';
-
-type Props = {
-  avatarUrl?: string;
-  bannerUrl?: string;
-  salesBadge?: number | null;
-  frame?: string | null;
-  className?: string;
-};
-
 export default function CreatorAvatarWithFrame({
   avatarUrl,
   bannerUrl,
   salesBadge,
   frame,
   className = "",
-}: Props) {
+}: {
+  avatarUrl?: string;
+  bannerUrl?: string;
+  salesBadge?: number | null;
+  frame?: string | null;
+  className?: string;
+}) {
   return (
     <div className={`relative ${className}`}>
-      {/* Photo de couverture (plus petite hauteur) */}
+      {/* Photo de couverture réduite */}
       {bannerUrl && (
         <img
           src={bannerUrl}
@@ -27,7 +23,7 @@ export default function CreatorAvatarWithFrame({
         />
       )}
 
-      {/* Avatar plus grand + cadre avec glow interne */}
+      {/* Avatar + Cadre + Badge */}
       <div className="absolute -bottom-8 left-6">
         <div className="relative">
           <img
@@ -36,12 +32,12 @@ export default function CreatorAvatarWithFrame({
             className="w-24 h-24 rounded-2xl border-4 border-zinc-950 object-cover"
           />
 
-          {/* Cadre avec glow INTERNE */}
+          {/* Glow INTERNE sur la photo de profil */}
           {frame && (
             <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />
           )}
 
-          {/* Badge plus petit */}
+          {/* Badge réduit */}
           {salesBadge && (
             <img
               src={`/badges/${salesBadge}.png`}
