@@ -54,14 +54,6 @@ export default function CreatorEditPage() {
       setBannerPendingUrl(profile.banner_pending_url || "");
       setAvatarStatus(profile.avatar_status || 'approved');
       setBannerStatus(profile.banner_status || 'approved');
-
-      if (profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') {
-        setToast({ 
-          message: "❌ Une de vos photos a été refusée", 
-          type: 'error', 
-          link: "/guidelines" 
-        });
-      }
     }
 
     const { data: reviews } = await supabase
@@ -109,7 +101,10 @@ export default function CreatorEditPage() {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    await supabase.from('profiles').update({ sales_badge: salesBadge, frame }).eq('id', user.id);
+    await supabase.from('profiles').update({ 
+      sales_badge: salesBadge, 
+      frame: frame 
+    }).eq('id', user.id);
     setSaving(false);
     setToast({ message: "✅ Enregistré avec succès", type: 'success' });
     setTimeout(() => setToast(null), 2200);
@@ -148,7 +143,7 @@ export default function CreatorEditPage() {
           </button>
         </div>
 
-        {/* TOAST - UNE SEULE CROIX À DROITE, PLUS PETIT */}
+        {/* TOAST - UNE SEULE CROIX À DROITE */}
         {toast && (
           <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 min-w-[460px] ${toastClass}`}>
             <span>{toast.message}</span>
