@@ -8,7 +8,7 @@
   }
 }
 
-/* ==================== SHIMMER FRAME - GLOW INTERNE ==================== */
+/* ==================== SHIMMER FRAME - GLOW INTERNE FORT ==================== */
 @keyframes shimmer-frame {
   0% { background-position: -200% 0; }
   100% { background-position: 300% 0; }
@@ -17,12 +17,12 @@
 .shimmer-frame {
   animation: shimmer-frame 8s linear infinite;
   background: linear-gradient(90deg, 
-    transparent 30%, 
-    rgba(255,255,255,0.75) 50%, 
-    transparent 70%);
+    transparent 25%, 
+    rgba(255, 255, 255, 0.9) 50%, 
+    transparent 75%);
   background-size: 200% 100%;
   border: 4px solid;
-  box-shadow: inset 0 0 30px rgba(255,255,255,0.65); /* Glow interne renforcé */
+  box-shadow: inset 0 0 35px rgba(255,255,255,0.85);
 }
 
 .shimmer-frame.rose { border-color: #f472b6; }
