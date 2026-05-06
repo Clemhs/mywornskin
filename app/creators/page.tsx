@@ -33,11 +33,11 @@ export default function CreatorsPage() {
     fetchCreators();
   }, [supabase]);
 
-  // Filtres
   const filteredCreators = useMemo(() => {
     return creators.filter(creator => {
-      const matchesSearch = creator.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           creator.username.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = 
+        creator.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        creator.username?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesCountry = !selectedCountry || creator.country === selectedCountry;
       const matchesCity = !selectedCity || creator.city === selectedCity;
@@ -48,7 +48,6 @@ export default function CreatorsPage() {
     });
   }, [creators, searchTerm, selectedCountry, selectedCity, activeFilter]);
 
-  // Options pour les selects
   const countries = [...new Set(creators.map(c => c.country).filter(Boolean))];
   const cities = [...new Set(creators.map(c => c.city).filter(Boolean))];
 
@@ -60,7 +59,7 @@ export default function CreatorsPage() {
           Elles partagent leur intimité avec vous • {filteredCreators.length} créatrices
         </p>
 
-        {/* Recherche + Filtres */}
+        {/* Recherche + Filtres Pays/Ville */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
           <input
             type="text"
@@ -73,7 +72,7 @@ export default function CreatorsPage() {
           <select
             value={selectedCountry}
             onChange={(e) => setSelectedCountry(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500"
+            className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500 min-w-[180px]"
           >
             <option value="">Tous les pays</option>
             {countries.map(country => (
@@ -84,7 +83,7 @@ export default function CreatorsPage() {
           <select
             value={selectedCity}
             onChange={(e) => setSelectedCity(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500"
+            className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500 min-w-[180px]"
           >
             <option value="">Toutes les villes</option>
             {cities.map(city => (
@@ -118,6 +117,8 @@ export default function CreatorsPage() {
 
         {loading ? (
           <p className="text-center text-zinc-400 py-20">Chargement des créatrices...</p>
+        ) : filteredCreators.length === 0 ? (
+          <p className="text-center text-zinc-400 py-20">Aucune créatrice trouvée avec ces filtres.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
             {filteredCreators.map((creator) => (
