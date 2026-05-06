@@ -32,7 +32,7 @@ export default function CreatorsPage() {
   const filteredCreators = creators.filter(creator => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'top') return (creator.sales_badge || 0) >= 10;
-    if (activeFilter === 'new') return true; // À affiner plus tard
+    if (activeFilter === 'new') return true;
     return true;
   });
 
@@ -77,7 +77,7 @@ export default function CreatorsPage() {
                 href={`/creators/${creator.username}`}
                 className="group bg-zinc-900 rounded-3xl overflow-hidden hover:scale-[1.03] transition-all duration-300 flex flex-col"
               >
-                {/* UNE SEULE PHOTO + BADGE + CADRE */}
+                {/* PHOTO PRINCIPALE + OVERLAYS CORRIGÉS */}
                 <div className="relative">
                   <img
                     src={creator.avatar_url || "https://picsum.photos/id/64/300/300"}
@@ -85,15 +85,17 @@ export default function CreatorsPage() {
                     className="w-full aspect-square object-cover"
                   />
 
+                  {/* Cadre animé */}
                   {creator.frame && (
-                    <div className={`absolute inset-0 border-4 shimmer-frame ${creator.frame}`} />
+                    <div className={`absolute inset-0 border-4 shimmer-frame ${creator.frame} rounded-3xl`} />
                   )}
 
+                  {/* Badge de ventes - position corrigée pour ne plus être tronqué */}
                   {creator.sales_badge && (
                     <img
                       src={`/badges/${creator.sales_badge}.png`}
                       alt={`Badge ${creator.sales_badge}`}
-                      className="absolute -top-3 -right-3 w-12 h-12 drop-shadow-2xl"
+                      className="absolute top-3 right-3 w-11 h-11 drop-shadow-2xl z-10"
                     />
                   )}
                 </div>
