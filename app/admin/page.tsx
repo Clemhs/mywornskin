@@ -44,14 +44,6 @@ export default function AdminPage() {
       setRefusedReviews(data || []);
     }
 
-    if (activeTab === 'messages') {
-      const { data } = await supabase
-        .from('admin_messages')
-        .select('*')
-        .order('created_at', { ascending: false });
-      setAdminMessages(data || []);
-    }
-
     if (activeTab === 'reports') {
       const { data } = await supabase
         .from('reports')
@@ -93,7 +85,7 @@ export default function AdminPage() {
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
   }, [filteredReports]);
 
-  // ==================== ACTIONS SIGNALEMENTS ====================
+  // ACTIONS
   const markReportAsReviewed = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
     if (error) showToast("Erreur", "error");
@@ -120,61 +112,6 @@ export default function AdminPage() {
       showToast("Signalement supprimé");
       loadData();
     }
-  };
-
-  // ==================== FONCTIONS ORIGINALES ====================
-  const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
-    const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
-    const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
-    const statusField = type === 'avatar' ? 'avatar_status' : 'banner_status';
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', profileId)
-      .single();
-
-    if (action === 'approved' && profile?.[pendingField]) {
-      await supabase
-        .from('profiles')
-        .update({
-          [mainField]: profile[pendingField],
-          [pendingField]: null,
-          [statusField]: 'approved'
-        })
-        .eq('id', profileId);
-    } else {
-      await supabase
-        .from('profiles')
-        .update({
-          [pendingField]: null,
-          [statusField]: 'rejected'
-        })
-        .eq('id', profileId);
-    }
-    loadData();
-  };
-
-  const forcePublishReview = async (reviewId: string) => {
-    await supabase.from('reviews').update({ status: 'approved' }).eq('id', reviewId);
-    loadData();
-  };
-
-  const ignoreReview = async (reviewId: string) => {
-    await supabase.from('reviews').update({ status: 'ignored' }).eq('id', reviewId);
-    loadData();
-  };
-
-  const sendAdminMessage = async () => {
-    if (!selectedReview || !adminReply.trim()) return;
-    await supabase.from('admin_messages').insert({
-      review_id: selectedReview.id,
-      creator_id: selectedReview.creator_id,
-      admin_message: adminReply,
-    });
-    setAdminReply("");
-    setSelectedReview(null);
-    loadData();
   };
 
   return (
