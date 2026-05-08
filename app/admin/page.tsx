@@ -9,6 +9,7 @@ export default function AdminPage() {
   const supabase = createClient();
   const [activeTab, setActiveTab] = useState<'photos' | 'reviews' | 'messages' | 'reports'>('photos');
   const [reportFilter, setReportFilter] = useState<'pending' | 'reviewed' | 'dismissed' | 'all'>('pending');
+  const [refreshKey, setRefreshKey] = useState(0); // Pour forcer le re-rendu
 
   const [pendingPhotos, setPendingPhotos] = useState<any[]>([]);
   const [refusedReviews, setRefusedReviews] = useState<any[]>([]);
@@ -61,10 +62,10 @@ export default function AdminPage() {
 
   useEffect(() => {
     loadData();
-  }, [activeTab]);
+  }, [activeTab, refreshKey]);
 
   useEffect(() => {
-    const interval = setInterval(loadData, 7000);
+    const interval = setInterval(() => loadData(), 8000);
     return () => clearInterval(interval);
   }, []);
 
@@ -85,13 +86,13 @@ export default function AdminPage() {
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
   }, [filteredReports]);
 
-  // ACTIONS SIGNALEMENTS
+  // ACTIONS
   const markReportAsReviewed = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
     if (error) showToast("Erreur", "error");
     else {
       showToast("✅ Signalement marqué comme traité");
-      loadData();
+      setRefreshKey(prev => prev + 1); // Force refresh
     }
   };
 
@@ -100,7 +101,7 @@ export default function AdminPage() {
     if (error) showToast("Erreur", "error");
     else {
       showToast("Signalement ignoré");
-      loadData();
+      setRefreshKey(prev => prev + 1);
     }
   };
 
@@ -110,7 +111,7 @@ export default function AdminPage() {
     if (error) showToast("Erreur", "error");
     else {
       showToast("Signalement supprimé");
-      loadData();
+      setRefreshKey(prev => prev + 1);
     }
   };
 
@@ -120,29 +121,19 @@ export default function AdminPage() {
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
     const statusField = type === 'avatar' ? 'avatar_status' : 'banner_status';
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', profileId)
-      .single();
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', profileId).single();
 
     if (action === 'approved' && profile?.[pendingField]) {
-      await supabase
-        .from('profiles')
-        .update({
-          [mainField]: profile[pendingField],
-          [pendingField]: null,
-          [statusField]: 'approved'
-        })
-        .eq('id', profileId);
+      await supabase.from('profiles').update({
+        [mainField]: profile[pendingField],
+        [pendingField]: null,
+        [statusField]: 'approved'
+      }).eq('id', profileId);
     } else {
-      await supabase
-        .from('profiles')
-        .update({
-          [pendingField]: null,
-          [statusField]: 'rejected'
-        })
-        .eq('id', profileId);
+      await supabase.from('profiles').update({
+        [pendingField]: null,
+        [statusField]: 'rejected'
+      }).eq('id', profileId);
     }
     loadData();
   };
