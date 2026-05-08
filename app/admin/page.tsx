@@ -9,7 +9,6 @@ export default function AdminPage() {
   const supabase = createClient();
   const [activeTab, setActiveTab] = useState<'photos' | 'reviews' | 'messages' | 'reports'>('photos');
   const [reportFilter, setReportFilter] = useState<'pending' | 'reviewed' | 'dismissed' | 'all'>('pending');
-  const [refreshKey, setRefreshKey] = useState(0); // Pour forcer le re-rendu
 
   const [pendingPhotos, setPendingPhotos] = useState<any[]>([]);
   const [refusedReviews, setRefusedReviews] = useState<any[]>([]);
@@ -62,10 +61,10 @@ export default function AdminPage() {
 
   useEffect(() => {
     loadData();
-  }, [activeTab, refreshKey]);
+  }, [activeTab]);
 
   useEffect(() => {
-    const interval = setInterval(() => loadData(), 8000);
+    const interval = setInterval(loadData, 8000);
     return () => clearInterval(interval);
   }, []);
 
@@ -92,7 +91,7 @@ export default function AdminPage() {
     if (error) showToast("Erreur", "error");
     else {
       showToast("✅ Signalement marqué comme traité");
-      setRefreshKey(prev => prev + 1); // Force refresh
+      loadData(); // Refresh immédiat
     }
   };
 
@@ -101,7 +100,7 @@ export default function AdminPage() {
     if (error) showToast("Erreur", "error");
     else {
       showToast("Signalement ignoré");
-      setRefreshKey(prev => prev + 1);
+      loadData();
     }
   };
 
@@ -111,11 +110,11 @@ export default function AdminPage() {
     if (error) showToast("Erreur", "error");
     else {
       showToast("Signalement supprimé");
-      setRefreshKey(prev => prev + 1);
+      loadData();
     }
   };
 
-  // FONCTIONS ORIGINALES
+  // FONCTIONS ORIGINALES (PHOTOS + REVIEWS)
   const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
     const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
