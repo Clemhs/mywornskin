@@ -9,6 +9,7 @@ export default function AdminPage() {
   const supabase = createClient();
   const [activeTab, setActiveTab] = useState<'photos' | 'reviews' | 'messages' | 'reports'>('photos');
   const [reportFilter, setReportFilter] = useState<'pending' | 'reviewed' | 'dismissed' | 'all'>('pending');
+  const [refreshKey, setRefreshKey] = useState(0); // Force refresh
 
   const [pendingPhotos, setPendingPhotos] = useState<any[]>([]);
   const [refusedReviews, setRefusedReviews] = useState<any[]>([]);
@@ -61,16 +62,16 @@ export default function AdminPage() {
 
   useEffect(() => {
     loadData();
-  }, [activeTab]);
+  }, [activeTab, refreshKey]);
 
   useEffect(() => {
     const interval = setInterval(loadData, 8000);
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshKey]);
 
   const filteredReports = useMemo(() => {
     return reportFilter === 'all' ? reports : reports.filter(r => r.status === reportFilter);
-  }, [reports, reportFilter]);
+  }, [reports, reportFilter, refreshKey]);
 
   const reportsByCreator = useMemo(() => {
     const grouped: any = {};
@@ -85,13 +86,13 @@ export default function AdminPage() {
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
   }, [filteredReports]);
 
-  // ACTIONS (avec refresh forcé)
+  // ACTIONS
   const markReportAsReviewed = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
     if (error) showToast("Erreur", "error");
     else {
       showToast("✅ Signalement marqué comme traité");
-      loadData(); // Refresh immédiat
+      setRefreshKey(prev => prev + 1); // Force refresh
     }
   };
 
@@ -100,7 +101,7 @@ export default function AdminPage() {
     if (error) showToast("Erreur", "error");
     else {
       showToast("Signalement ignoré");
-      loadData();
+      setRefreshKey(prev => prev + 1);
     }
   };
 
@@ -110,7 +111,7 @@ export default function AdminPage() {
     if (error) showToast("Erreur", "error");
     else {
       showToast("Signalement supprimé");
-      loadData();
+      setRefreshKey(prev => prev + 1);
     }
   };
 
