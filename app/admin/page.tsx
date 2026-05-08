@@ -44,14 +44,6 @@ export default function AdminPage() {
       setRefusedReviews(data || []);
     }
 
-    if (activeTab === 'messages') {
-      const { data } = await supabase
-        .from('admin_messages')
-        .select('*')
-        .order('created_at', { ascending: false });
-      setAdminMessages(data || []);
-    }
-
     if (activeTab === 'reports') {
       const { data } = await supabase
         .from('reports')
@@ -71,33 +63,12 @@ export default function AdminPage() {
     loadData();
   }, [activeTab]);
 
-  useEffect(() => {
-    const interval = setInterval(loadData, 7000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const filteredReports = useMemo(() => {
-    return reportFilter === 'all' ? reports : reports.filter(r => r.status === reportFilter);
-  }, [reports, reportFilter]);
-
-  const reportsByCreator = useMemo(() => {
-    const grouped: any = {};
-    filteredReports.forEach(report => {
-      const key = report.creator_id;
-      if (!grouped[key]) {
-        grouped[key] = { creator: report.creator, count: 0, reports: [] };
-      }
-      grouped[key].count++;
-      grouped[key].reports.push(report);
-    });
-    return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
-  }, [filteredReports]);
-
   // ACTIONS
   const markReportAsReviewed = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
-    if (error) showToast("Erreur lors de la mise à jour", "error");
-    else {
+    if (error) {
+      showToast("Erreur lors de la mise à jour", "error");
+    } else {
       showToast("✅ Signalement marqué comme traité");
       await loadData(); // Refresh complet
     }
@@ -128,29 +99,19 @@ export default function AdminPage() {
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
     const statusField = type === 'avatar' ? 'avatar_status' : 'banner_status';
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', profileId)
-      .single();
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', profileId).single();
 
     if (action === 'approved' && profile?.[pendingField]) {
-      await supabase
-        .from('profiles')
-        .update({
-          [mainField]: profile[pendingField],
-          [pendingField]: null,
-          [statusField]: 'approved'
-        })
-        .eq('id', profileId);
+      await supabase.from('profiles').update({
+        [mainField]: profile[pendingField],
+        [pendingField]: null,
+        [statusField]: 'approved'
+      }).eq('id', profileId);
     } else {
-      await supabase
-        .from('profiles')
-        .update({
-          [pendingField]: null,
-          [statusField]: 'rejected'
-        })
-        .eq('id', profileId);
+      await supabase.from('profiles').update({
+        [pendingField]: null,
+        [statusField]: 'rejected'
+      }).eq('id', profileId);
     }
     loadData();
   };
