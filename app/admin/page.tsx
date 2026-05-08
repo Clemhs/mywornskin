@@ -29,20 +29,9 @@ export default function AdminPage() {
     if (activeTab === 'photos') {
       const { data } = await supabase
         .from('profiles')
-        .select(`
-          id, 
-          username, 
-          full_name,
-          avatar_url,
-          banner_url,
-          avatar_pending_url,
-          banner_pending_url,
-          avatar_status,
-          banner_status
-        `)
+        .select(`id, username, full_name, avatar_url, banner_url, avatar_pending_url, banner_pending_url, avatar_status, banner_status`)
         .or('avatar_status.eq.pending,banner_status.eq.pending')
         .order('updated_at', { ascending: false });
-
       setPendingPhotos(data || []);
     }
 
@@ -66,10 +55,7 @@ export default function AdminPage() {
     if (activeTab === 'reports') {
       const { data } = await supabase
         .from('reports')
-        .select(`
-          *,
-          creator:profiles!creator_id (username, full_name)
-        `)
+        .select(`*, creator:profiles!creator_id (username, full_name)`)
         .order('created_at', { ascending: false });
       setReports(data || []);
     }
@@ -107,13 +93,13 @@ export default function AdminPage() {
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
   }, [filteredReports]);
 
-  // ACTIONS SIGNALEMENTS
+  // ACTIONS
   const markReportAsReviewed = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
-    if (error) showToast("Erreur", "error");
+    if (error) showToast("Erreur lors de la mise à jour", "error");
     else {
       showToast("✅ Signalement marqué comme traité");
-      loadData();
+      await loadData(); // Refresh complet
     }
   };
 
@@ -122,7 +108,7 @@ export default function AdminPage() {
     if (error) showToast("Erreur", "error");
     else {
       showToast("Signalement ignoré");
-      loadData();
+      await loadData();
     }
   };
 
@@ -132,7 +118,7 @@ export default function AdminPage() {
     if (error) showToast("Erreur", "error");
     else {
       showToast("Signalement supprimé");
-      loadData();
+      await loadData();
     }
   };
 
