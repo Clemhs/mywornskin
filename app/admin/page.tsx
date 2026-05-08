@@ -29,9 +29,20 @@ export default function AdminPage() {
     if (activeTab === 'photos') {
       const { data } = await supabase
         .from('profiles')
-        .select(`id, username, full_name, avatar_url, banner_url, avatar_pending_url, banner_pending_url, avatar_status, banner_status`)
+        .select(`
+          id, 
+          username, 
+          full_name,
+          avatar_url,
+          banner_url,
+          avatar_pending_url,
+          banner_pending_url,
+          avatar_status,
+          banner_status
+        `)
         .or('avatar_status.eq.pending,banner_status.eq.pending')
         .order('updated_at', { ascending: false });
+
       setPendingPhotos(data || []);
     }
 
@@ -44,10 +55,21 @@ export default function AdminPage() {
       setRefusedReviews(data || []);
     }
 
+    if (activeTab === 'messages') {
+      const { data } = await supabase
+        .from('admin_messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+      setAdminMessages(data || []);
+    }
+
     if (activeTab === 'reports') {
       const { data } = await supabase
         .from('reports')
-        .select(`*, creator:profiles!creator_id (username, full_name)`)
+        .select(`
+          *,
+          creator:profiles!creator_id (username, full_name)
+        `)
         .order('created_at', { ascending: false });
       setReports(data || []);
     }
@@ -65,7 +87,7 @@ export default function AdminPage() {
   }, [activeTab]);
 
   useEffect(() => {
-    const interval = setInterval(loadData, 6000);
+    const interval = setInterval(loadData, 7000);
     return () => clearInterval(interval);
   }, []);
 
@@ -77,20 +99,22 @@ export default function AdminPage() {
     const grouped: any = {};
     filteredReports.forEach(report => {
       const key = report.creator_id;
-      if (!grouped[key]) grouped[key] = { creator: report.creator, count: 0, reports: [] };
+      if (!grouped[key]) {
+        grouped[key] = { creator: report.creator, count: 0, reports: [] };
+      }
       grouped[key].count++;
       grouped[key].reports.push(report);
     });
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
   }, [filteredReports]);
 
-  // ACTIONS (avec refresh forcé)
+  // ACTIONS SIGNALEMENTS (rafraîchissement forcé)
   const markReportAsReviewed = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
     if (error) showToast("Erreur", "error");
     else {
       showToast("✅ Signalement marqué comme traité");
-      await loadData();   // Refresh forcé
+      await loadData(); // refresh immédiat
     }
   };
 
@@ -111,51 +135,6 @@ export default function AdminPage() {
       showToast("Signalement supprimé");
       await loadData();
     }
-  };
-
-  // ==================== FONCTIONS ORIGINALES ====================
-  const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
-    const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
-    const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
-    const statusField = type === 'avatar' ? 'avatar_status' : 'banner_status';
-
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', profileId).single();
-
-    if (action === 'approved' && profile?.[pendingField]) {
-      await supabase.from('profiles').update({
-        [mainField]: profile[pendingField],
-        [pendingField]: null,
-        [statusField]: 'approved'
-      }).eq('id', profileId);
-    } else {
-      await supabase.from('profiles').update({
-        [pendingField]: null,
-        [statusField]: 'rejected'
-      }).eq('id', profileId);
-    }
-    loadData();
-  };
-
-  const forcePublishReview = async (reviewId: string) => {
-    await supabase.from('reviews').update({ status: 'approved' }).eq('id', reviewId);
-    loadData();
-  };
-
-  const ignoreReview = async (reviewId: string) => {
-    await supabase.from('reviews').update({ status: 'ignored' }).eq('id', reviewId);
-    loadData();
-  };
-
-  const sendAdminMessage = async () => {
-    if (!selectedReview || !adminReply.trim()) return;
-    await supabase.from('admin_messages').insert({
-      review_id: selectedReview.id,
-      creator_id: selectedReview.creator_id,
-      admin_message: adminReply,
-    });
-    setAdminReply("");
-    setSelectedReview(null);
-    loadData();
   };
 
   return (
@@ -183,7 +162,7 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* PHOTOS */}
+        {/* PHOTOS - CODE ORIGINAL */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
@@ -220,7 +199,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* COMMENTAIRES REFUSÉS */}
+        {/* COMMENTAIRES REFUSÉS - CODE ORIGINAL */}
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             {refusedReviews.length === 0 ? (
@@ -287,49 +266,4 @@ export default function AdminPage() {
                         <Link href={`/creators/${group.creator.username}`} className="text-xl font-semibold hover:text-pink-400">
                           @{group.creator.username}
                         </Link>
-                        <span className="ml-3 bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-sm">
-                          {group.count} signalement{group.count > 1 ? 's' : ''}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      {group.reports.map((report: any) => (
-                        <div key={report.id} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
-                          <p className="italic text-zinc-300">"{report.reason}"</p>
-                          <p className="text-xs text-zinc-500 mt-3">
-                            {new Date(report.created_at).toLocaleString('fr-FR')}
-                          </p>
-
-                          <div className="mt-6 flex gap-3">
-                            <button onClick={() => markReportAsReviewed(report.id)} className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
-                              <CheckCircle size={16} /> Marquer comme traité
-                            </button>
-                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">
-                              Ignorer
-                            </button>
-                            <button onClick={() => deleteReport(report.id)} className="bg-red-600/80 hover:bg-red-600 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
-                              <Trash2 size={16} /> Supprimer
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* TOAST */}
-        {toast && (
-          <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
-            {toast.type === 'success' && <CheckCircle size={22} />}
-            <span className="font-medium">{toast.message}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+                        <span className="
