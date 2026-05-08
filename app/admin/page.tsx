@@ -9,7 +9,7 @@ export default function AdminPage() {
   const supabase = createClient();
   const [activeTab, setActiveTab] = useState<'photos' | 'reviews' | 'messages' | 'reports'>('photos');
   const [reportFilter, setReportFilter] = useState<'pending' | 'reviewed' | 'dismissed' | 'all'>('pending');
-  const [refreshKey, setRefreshKey] = useState(0); // Force refresh
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const [pendingPhotos, setPendingPhotos] = useState<any[]>([]);
   const [refusedReviews, setRefusedReviews] = useState<any[]>([]);
@@ -63,28 +63,6 @@ export default function AdminPage() {
   useEffect(() => {
     loadData();
   }, [activeTab, refreshKey]);
-
-  useEffect(() => {
-    const interval = setInterval(loadData, 8000);
-    return () => clearInterval(interval);
-  }, [refreshKey]);
-
-  const filteredReports = useMemo(() => {
-    return reportFilter === 'all' ? reports : reports.filter(r => r.status === reportFilter);
-  }, [reports, reportFilter, refreshKey]);
-
-  const reportsByCreator = useMemo(() => {
-    const grouped: any = {};
-    filteredReports.forEach(report => {
-      const key = report.creator_id;
-      if (!grouped[key]) {
-        grouped[key] = { creator: report.creator, count: 0, reports: [] };
-      }
-      grouped[key].count++;
-      grouped[key].reports.push(report);
-    });
-    return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
-  }, [filteredReports]);
 
   // ACTIONS
   const markReportAsReviewed = async (reportId: string) => {
@@ -264,7 +242,7 @@ export default function AdminPage() {
 
         {/* SIGNALEMENTS */}
         {activeTab === 'reports' && (
-          <div>
+          <div key={refreshKey}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold">Signalements ({reports.length})</h2>
               <div className="flex gap-3">
