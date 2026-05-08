@@ -74,7 +74,6 @@ export default function AdminPage() {
       setReports(data || []);
     }
 
-    // Compteur
     const { count } = await supabase
       .from('reports')
       .select('*', { count: 'exact', head: true })
@@ -108,13 +107,12 @@ export default function AdminPage() {
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
   }, [filteredReports]);
 
-  // ACTIONS SIGNALEMENTS (rafraîchissement forcé)
   const markReportAsReviewed = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
     if (error) showToast("Erreur", "error");
     else {
       showToast("✅ Signalement marqué comme traité");
-      await loadData(); // refresh immédiat
+      loadData();
     }
   };
 
@@ -123,7 +121,7 @@ export default function AdminPage() {
     if (error) showToast("Erreur", "error");
     else {
       showToast("Signalement ignoré");
-      await loadData();
+      loadData();
     }
   };
 
@@ -133,7 +131,7 @@ export default function AdminPage() {
     if (error) showToast("Erreur", "error");
     else {
       showToast("Signalement supprimé");
-      await loadData();
+      loadData();
     }
   };
 
@@ -162,7 +160,7 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* PHOTOS - CODE ORIGINAL */}
+        {/* PHOTOS */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
@@ -199,7 +197,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* COMMENTAIRES REFUSÉS - CODE ORIGINAL */}
+        {/* COMMENTAIRES REFUSÉS */}
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             {refusedReviews.length === 0 ? (
@@ -266,4 +264,49 @@ export default function AdminPage() {
                         <Link href={`/creators/${group.creator.username}`} className="text-xl font-semibold hover:text-pink-400">
                           @{group.creator.username}
                         </Link>
-                        <span className="
+                        <span className="ml-3 bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-sm">
+                          {group.count} signalement{group.count > 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      {group.reports.map((report: any) => (
+                        <div key={report.id} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
+                          <p className="italic text-zinc-300">"{report.reason}"</p>
+                          <p className="text-xs text-zinc-500 mt-3">
+                            {new Date(report.created_at).toLocaleString('fr-FR')}
+                          </p>
+
+                          <div className="mt-6 flex gap-3">
+                            <button onClick={() => markReportAsReviewed(report.id)} className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
+                              <CheckCircle size={16} /> Marquer comme traité
+                            </button>
+                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">
+                              Ignorer
+                            </button>
+                            <button onClick={() => deleteReport(report.id)} className="bg-red-600/80 hover:bg-red-600 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
+                              <Trash2 size={16} /> Supprimer
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TOAST */}
+        {toast && (
+          <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+            {toast.type === 'success' && <CheckCircle size={22} />}
+            <span className="font-medium">{toast.message}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
