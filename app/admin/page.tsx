@@ -64,13 +64,35 @@ export default function AdminPage() {
     loadData();
   }, [activeTab, refreshKey]);
 
+  useEffect(() => {
+    const interval = setInterval(loadData, 8000);
+    return () => clearInterval(interval);
+  }, [refreshKey]);
+
+  const filteredReports = useMemo(() => {
+    return reportFilter === 'all' ? reports : reports.filter(r => r.status === reportFilter);
+  }, [reports, reportFilter, refreshKey]);
+
+  const reportsByCreator = useMemo(() => {
+    const grouped: any = {};
+    filteredReports.forEach(report => {
+      const key = report.creator_id;
+      if (!grouped[key]) {
+        grouped[key] = { creator: report.creator, count: 0, reports: [] };
+      }
+      grouped[key].count++;
+      grouped[key].reports.push(report);
+    });
+    return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
+  }, [filteredReports]);
+
   // ACTIONS
   const markReportAsReviewed = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
     if (error) showToast("Erreur", "error");
     else {
       showToast("✅ Signalement marqué comme traité");
-      setRefreshKey(prev => prev + 1); // Force refresh
+      setRefreshKey(prev => prev + 1);
     }
   };
 
