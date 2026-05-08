@@ -22,27 +22,16 @@ export default function AdminPage() {
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), 2800);
   };
 
   const loadData = async () => {
     if (activeTab === 'photos') {
       const { data } = await supabase
         .from('profiles')
-        .select(`
-          id, 
-          username, 
-          full_name,
-          avatar_url,
-          banner_url,
-          avatar_pending_url,
-          banner_pending_url,
-          avatar_status,
-          banner_status
-        `)
+        .select(`id, username, full_name, avatar_url, banner_url, avatar_pending_url, banner_pending_url, avatar_status, banner_status`)
         .or('avatar_status.eq.pending,banner_status.eq.pending')
         .order('updated_at', { ascending: false });
-
       setPendingPhotos(data || []);
     }
 
@@ -55,26 +44,15 @@ export default function AdminPage() {
       setRefusedReviews(data || []);
     }
 
-    if (activeTab === 'messages') {
-      const { data } = await supabase
-        .from('admin_messages')
-        .select('*')
-        .order('created_at', { ascending: false });
-      setAdminMessages(data || []);
-    }
-
     if (activeTab === 'reports') {
       const { data } = await supabase
         .from('reports')
-        .select(`
-          *,
-          creator:profiles!creator_id (username, full_name)
-        `)
+        .select(`*, creator:profiles!creator_id (username, full_name)`)
         .order('created_at', { ascending: false });
       setReports(data || []);
     }
 
-    // Compteur pending
+    // Compteur
     const { count } = await supabase
       .from('reports')
       .select('*', { count: 'exact', head: true })
@@ -87,7 +65,7 @@ export default function AdminPage() {
   }, [activeTab]);
 
   useEffect(() => {
-    const interval = setInterval(loadData, 7000);
+    const interval = setInterval(loadData, 6000);
     return () => clearInterval(interval);
   }, []);
 
@@ -99,41 +77,39 @@ export default function AdminPage() {
     const grouped: any = {};
     filteredReports.forEach(report => {
       const key = report.creator_id;
-      if (!grouped[key]) {
-        grouped[key] = { creator: report.creator, count: 0, reports: [] };
-      }
+      if (!grouped[key]) grouped[key] = { creator: report.creator, count: 0, reports: [] };
       grouped[key].count++;
       grouped[key].reports.push(report);
     });
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
   }, [filteredReports]);
 
-  // ACTIONS SIGNALEMENTS
+  // ACTIONS (avec refresh forcé)
   const markReportAsReviewed = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
-    if (error) showToast("Erreur lors de la mise à jour", "error");
+    if (error) showToast("Erreur", "error");
     else {
       showToast("✅ Signalement marqué comme traité");
-      loadData();
+      await loadData();   // Refresh forcé
     }
   };
 
   const dismissReport = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'dismissed' }).eq('id', reportId);
-    if (error) showToast("Erreur lors de la mise à jour", "error");
+    if (error) showToast("Erreur", "error");
     else {
       showToast("Signalement ignoré");
-      loadData();
+      await loadData();
     }
   };
 
   const deleteReport = async (reportId: string) => {
     if (!confirm("Supprimer définitivement ce signalement ?")) return;
     const { error } = await supabase.from('reports').delete().eq('id', reportId);
-    if (error) showToast("Erreur lors de la suppression", "error");
+    if (error) showToast("Erreur", "error");
     else {
       showToast("Signalement supprimé");
-      loadData();
+      await loadData();
     }
   };
 
@@ -143,29 +119,19 @@ export default function AdminPage() {
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
     const statusField = type === 'avatar' ? 'avatar_status' : 'banner_status';
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', profileId)
-      .single();
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', profileId).single();
 
     if (action === 'approved' && profile?.[pendingField]) {
-      await supabase
-        .from('profiles')
-        .update({
-          [mainField]: profile[pendingField],
-          [pendingField]: null,
-          [statusField]: 'approved'
-        })
-        .eq('id', profileId);
+      await supabase.from('profiles').update({
+        [mainField]: profile[pendingField],
+        [pendingField]: null,
+        [statusField]: 'approved'
+      }).eq('id', profileId);
     } else {
-      await supabase
-        .from('profiles')
-        .update({
-          [pendingField]: null,
-          [statusField]: 'rejected'
-        })
-        .eq('id', profileId);
+      await supabase.from('profiles').update({
+        [pendingField]: null,
+        [statusField]: 'rejected'
+      }).eq('id', profileId);
     }
     loadData();
   };
