@@ -76,7 +76,7 @@ export default function AdminPage() {
     loadData();
   }, [activeTab, refreshKey]);
 
-  // Pour les commentaires
+  // Pour les commentaires refusés
   const creatorRefusalCounts = useMemo(() => {
     const counts: { [key: string]: number } = {};
     refusedReviews.forEach(r => {
@@ -85,7 +85,7 @@ export default function AdminPage() {
     return counts;
   }, [refusedReviews]);
 
-  // Pour les signalements
+  // Pour les signalements (recherche + tri)
   const filteredAndSortedReports = useMemo(() => {
     let result = [...reports];
 
@@ -107,9 +107,7 @@ export default function AdminPage() {
       result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     } else if (sortBy === 'most') {
       const countMap: { [key: string]: number } = {};
-      result.forEach(r => {
-        countMap[r.creator_id] = (countMap[r.creator_id] || 0) + 1;
-      });
+      result.forEach(r => countMap[r.creator_id] = (countMap[r.creator_id] || 0) + 1);
       result.sort((a, b) => (countMap[b.creator_id] || 0) - (countMap[a.creator_id] || 0));
     }
 
@@ -150,7 +148,7 @@ export default function AdminPage() {
     showToast("Signalement supprimé");
   };
 
-  // === TES FONCTIONS ORIGINALES (Photos + Commentaires) ===
+  // === FONCTIONS ORIGINALES ===
   const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
     const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
