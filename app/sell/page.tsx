@@ -25,7 +25,7 @@ export default function SellPage() {
   const [story, setStory] = useState('');
   const [voiceRecording, setVoiceRecording] = useState<string>('');
 
-  // Tarification
+  // Tarification élégante
   const [price1Day, setPrice1Day] = useState('');
   const [offer2Days, setOffer2Days] = useState(false);
   const [price2Days, setPrice2Days] = useState('');
@@ -37,7 +37,7 @@ export default function SellPage() {
   const categories = [
     "Culotte", "String", "Soutien-gorge", "Bas / Collants",
     "Robe", "Chemise / Haut", "Short / Jupe",
-    "Chaussures", "Semelles", "Autre"
+    "Chaussures", "Talons", "Semelles", "Autre"
   ];
 
   const handlePublicPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,7 +85,6 @@ export default function SellPage() {
     setIsSubmitting(true);
 
     try {
-      // Uploads et insertion (identique à avant)
       const publicImageUrls: string[] = [];
       for (let i = 0; i < publicPhotos.length; i++) {
         const response = await fetch(publicPhotos[i]);
@@ -171,7 +170,7 @@ export default function SellPage() {
             {/* Titre */}
             <div>
               <label className="block text-sm text-zinc-400 mb-1.5">Titre de la pièce *</label>
-              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5" placeholder="Culotte en dentelle noire portée 2 jours" />
+              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5" placeholder="Culotte en dentelle noire" />
             </div>
 
             {/* Photos + Vidéo */}
@@ -225,30 +224,62 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Nouvelle section Tarification */}
-            <div className="bg-zinc-900 rounded-3xl p-6">
-              <h3 className="font-semibold mb-5">Tarification</h3>
-              <div className="space-y-5">
-                <div className="flex items-center gap-4 bg-zinc-800 rounded-2xl px-5 py-4">
-                  <input type="number" value={price1Day} onChange={(e) => setPrice1Day(e.target.value)} className="flex-1 bg-transparent text-2xl font-semibold focus:outline-none" placeholder="45" />
+            {/* === NOUVELLE SECTION TARIFICATION ÉLÉGANTE === */}
+            <div className="bg-zinc-900 rounded-3xl p-7">
+              <h3 className="font-semibold text-lg mb-6">Tarification</h3>
+              <div className="space-y-6">
+                {/* 1 journée - toujours actif */}
+                <div className="flex items-center gap-4 bg-zinc-800 rounded-2xl px-5 py-5">
+                  <div className="w-6 h-6 bg-rose-500 text-white rounded-xl flex items-center justify-center text-xs font-bold">1</div>
+                  <input 
+                    type="number" 
+                    value={price1Day} 
+                    onChange={(e) => setPrice1Day(e.target.value)} 
+                    className="flex-1 bg-transparent text-2xl font-semibold focus:outline-none"
+                    placeholder="45"
+                  />
                   <span className="text-zinc-400">€ pour 1 journée</span>
                 </div>
 
+                {/* 2 journées */}
                 <div className="flex items-center gap-4">
                   <input type="checkbox" checked={offer2Days} onChange={(e) => setOffer2Days(e.target.checked)} className="w-5 h-5 accent-rose-500" />
-                  <input type="number" value={price2Days} onChange={(e) => setPrice2Days(e.target.value)} disabled={!offer2Days} className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-xl" placeholder="75" />
+                  <input 
+                    type="number" 
+                    value={price2Days} 
+                    onChange={(e) => setPrice2Days(e.target.value)} 
+                    disabled={!offer2Days}
+                    className={`flex-1 bg-zinc-800 border ${offer2Days ? 'border-zinc-700' : 'border-transparent'} rounded-2xl px-5 py-5 text-xl transition-all ${!offer2Days ? 'opacity-40' : ''}`}
+                    placeholder="75"
+                  />
                   <span className="text-zinc-400 whitespace-nowrap">€ pour 2 journées</span>
                 </div>
 
+                {/* 3 journées */}
                 <div className="flex items-center gap-4">
                   <input type="checkbox" checked={offer3Days} onChange={(e) => setOffer3Days(e.target.checked)} className="w-5 h-5 accent-rose-500" />
-                  <input type="number" value={price3Days} onChange={(e) => setPrice3Days(e.target.value)} disabled={!offer3Days} className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-xl" placeholder="100" />
+                  <input 
+                    type="number" 
+                    value={price3Days} 
+                    onChange={(e) => setPrice3Days(e.target.value)} 
+                    disabled={!offer3Days}
+                    className={`flex-1 bg-zinc-800 border ${offer3Days ? 'border-zinc-700' : 'border-transparent'} rounded-2xl px-5 py-5 text-xl transition-all ${!offer3Days ? 'opacity-40' : ''}`}
+                    placeholder="100"
+                  />
                   <span className="text-zinc-400 whitespace-nowrap">€ pour 3 journées</span>
                 </div>
 
+                {/* Journée supplémentaire */}
                 <div className="flex items-center gap-4">
                   <input type="checkbox" checked={offerExtraDay} onChange={(e) => setOfferExtraDay(e.target.checked)} className="w-5 h-5 accent-rose-500" />
-                  <input type="number" value={extraDayPrice} onChange={(e) => setExtraDayPrice(e.target.value)} disabled={!offerExtraDay} className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-xl" placeholder="25" />
+                  <input 
+                    type="number" 
+                    value={extraDayPrice} 
+                    onChange={(e) => setExtraDayPrice(e.target.value)} 
+                    disabled={!offerExtraDay}
+                    className={`flex-1 bg-zinc-800 border ${offerExtraDay ? 'border-zinc-700' : 'border-transparent'} rounded-2xl px-5 py-5 text-xl transition-all ${!offerExtraDay ? 'opacity-40' : ''}`}
+                    placeholder="25"
+                  />
                   <span className="text-zinc-400 whitespace-nowrap">€ par journée supp.</span>
                 </div>
               </div>
@@ -260,7 +291,7 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* Step 2 et Step 3 restent identiques (je peux te les renvoyer si besoin) */}
+        {/* Step 2 et Step 3 restent identiques (si tu veux que je te les renvoie, dis-le) */}
       </main>
     </div>
   );
