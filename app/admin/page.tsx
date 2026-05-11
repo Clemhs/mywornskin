@@ -18,6 +18,8 @@ export default function AdminPage() {
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [selectedReview, setSelectedReview] = useState<any>(null);
+  const [adminReply, setAdminReply] = useState("");
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -25,6 +27,24 @@ export default function AdminPage() {
   };
 
   const loadData = async () => {
+    if (activeTab === 'photos') {
+      const { data } = await supabase
+        .from('profiles')
+        .select(`id, username, full_name, avatar_url, banner_url, avatar_pending_url, banner_pending_url, avatar_status, banner_status`)
+        .or('avatar_status.eq.pending,banner_status.eq.pending')
+        .order('updated_at', { ascending: false });
+      setPendingPhotos(data || []);
+    }
+
+    if (activeTab === 'reviews') {
+      const { data } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('status', 'rejected')
+        .order('created_at', { ascending: false });
+      setRefusedReviews(data || []);
+    }
+
     if (activeTab === 'reports') {
       const { data } = await supabase
         .from('reports')
@@ -44,14 +64,9 @@ export default function AdminPage() {
     loadData();
   }, [activeTab, refreshKey]);
 
-  const filteredReports = useMemo(() => {
-    if (reportFilter === 'all') return reports;
-    return reports.filter(r => r.status === reportFilter);
-  }, [reports, reportFilter]);
-
   const reportsByCreator = useMemo(() => {
     const grouped: any = {};
-    filteredReports.forEach(report => {
+    reports.forEach(report => {
       const key = report.creator_id;
       if (!grouped[key]) {
         grouped[key] = { creator: report.creator, count: 0, reports: [] };
@@ -60,7 +75,7 @@ export default function AdminPage() {
       grouped[key].reports.push(report);
     });
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
-  }, [filteredReports]);
+  }, [reports]);
 
   const markReportAsReviewed = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
@@ -69,8 +84,8 @@ export default function AdminPage() {
       showToast("Erreur lors de la mise à jour", "error");
     } else {
       showToast("✅ Signalement marqué comme traité");
-      setRefreshKey(k => k + 1);   // Force reload complet
     }
+    setRefreshKey(k => k + 1);
   };
 
   const dismissReport = async (reportId: string) => {
@@ -80,39 +95,87 @@ export default function AdminPage() {
   };
 
   const deleteReport = async (reportId: string) => {
-    if (!confirm("Supprimer définitivement ?")) return;
+    if (!confirm("Supprimer définitivement ce signalement ?")) return;
     await supabase.from('reports').delete().eq('id', reportId);
     setRefreshKey(k => k + 1);
     showToast("Signalement supprimé");
   };
 
-  // === Tes autres fonctions (photos, reviews...) restent identiques ===
-  const handlePhotoAction = async (...) => { /* ton code original */ };
-  const forcePublishReview = async (...) => { /* ton code original */ };
-  const ignoreReview = async (...) => { /* ton code original */ };
-  const sendAdminMessage = async (...) => { /* ton code original */ };
+  const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
+    const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
+    const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
+    const statusField = type === 'avatar' ? 'avatar_status' : 'banner_status';
+
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', profileId).single();
+
+    if (action === 'approved' && profile?.[pendingField]) {
+      await supabase.from('profiles').update({
+        [mainField]: profile[pendingField],
+        [pendingField]: null,
+        [statusField]: 'approved'
+      }).eq('id', profileId);
+    } else {
+      await supabase.from('profiles').update({
+        [pendingField]: null,
+        [statusField]: 'rejected'
+      }).eq('id', profileId);
+    }
+    loadData();
+  };
+
+  const forcePublishReview = async (reviewId: string) => {
+    await supabase.from('reviews').update({ status: 'approved' }).eq('id', reviewId);
+    loadData();
+  };
+
+  const ignoreReview = async (reviewId: string) => {
+    await supabase.from('reviews').update({ status: 'ignored' }).eq('id', reviewId);
+    loadData();
+  };
+
+  const sendAdminMessage = async () => {
+    if (!selectedReview || !adminReply.trim()) return;
+    await supabase.from('admin_messages').insert({
+      review_id: selectedReview.id,
+      creator_id: selectedReview.creator_id,
+      admin_message: adminReply,
+    });
+    setAdminReply("");
+    setSelectedReview(null);
+    loadData();
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-8">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold mb-10">Administration MyWornSkin</h1>
 
-        {/* Tabs */}
         <div className="flex border-b border-zinc-800 mb-10 overflow-x-auto">
-          {/* ... tes 4 boutons tabs (photos, commentaires, messages, signalements) ... */}
+          <button onClick={() => setActiveTab('photos')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'photos' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+            <ImageIcon size={22} /> Photos en attente
+          </button>
+          <button onClick={() => setActiveTab('reviews')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'reviews' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+            <AlertTriangle size={22} /> Commentaires refusés
+          </button>
+          <button onClick={() => setActiveTab('messages')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'messages' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+            <MessageCircle size={22} /> Messages
+          </button>
+          <button onClick={() => setActiveTab('reports')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap relative ${activeTab === 'reports' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+            <Flag size={22} /> Signalements
+            {pendingReportsCount > 0 && (
+              <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                {pendingReportsCount}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* SIGNALEMENTS */}
         {activeTab === 'reports' && (
           <div key={refreshKey}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold">Signalements ({reports.length})</h2>
               <div className="flex gap-3">
-                <select 
-                  value={reportFilter} 
-                  onChange={(e) => setReportFilter(e.target.value as any)} 
-                  className="bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-2 text-sm"
-                >
+                <select value={reportFilter} onChange={(e) => setReportFilter(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-2 text-sm">
                   <option value="pending">En attente</option>
                   <option value="reviewed">Traités</option>
                   <option value="dismissed">Ignorés</option>
@@ -123,7 +186,7 @@ export default function AdminPage() {
             </div>
 
             {reports.length === 0 ? (
-              <p className="text-zinc-500 text-xl">Aucun signalement.</p>
+              <p className="text-zinc-500 text-xl">Aucun signalement pour le moment.</p>
             ) : (
               <div className="space-y-8">
                 {reportsByCreator.map((group: any) => (
@@ -148,7 +211,9 @@ export default function AdminPage() {
                             <button onClick={() => markReportAsReviewed(report.id)} className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
                               <CheckCircle size={16} /> Marquer comme traité
                             </button>
-                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">Ignorer</button>
+                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">
+                              Ignorer
+                            </button>
                             <button onClick={() => deleteReport(report.id)} className="bg-red-600 hover:bg-red-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
                               <Trash2 size={16} /> Supprimer
                             </button>
@@ -163,7 +228,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* TOAST */}
         {toast && (
           <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
             {toast.type === 'success' && <CheckCircle size={22} />}
