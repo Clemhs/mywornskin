@@ -10,9 +10,6 @@ export default function AdminPage() {
 
   const [activeTab, setActiveTab] = useState<'products' | 'photos' | 'reviews' | 'reports'>('products');
   const [pendingProducts, setPendingProducts] = useState<any[]>([]);
-  const [pendingPhotos, setPendingPhotos] = useState<any[]>([]);
-  const [pendingReviews, setPendingReviews] = useState<any[]>([]);
-  const [reports, setReports] = useState<any[]>([]);
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -21,66 +18,50 @@ export default function AdminPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const loadData = async () => {
-    if (activeTab === 'products') {
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          id,
-          title,
-          description,
-          price_1day,
-          images,
-          status,
-          created_at,
-          creator_id,
-          profiles:creator_id (
-            username,
-            full_name
-          )
-        `)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
+  const loadProducts = async () => {
+    const { data, error } = await supabase
+      .from('products')
+      .select(`
+        id,
+        title,
+        description,
+        price_1day,
+        images,
+        status,
+        created_at,
+        creator_id
+      `)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error("Erreur produits:", error);
-        showToast("Erreur lors du chargement des produits", "error");
-      } else {
-        console.log("Produits chargés :", data?.length, data);
-        setPendingProducts(data || []);
-      }
+    if (error) {
+      console.error("Erreur chargement produits:", error);
+      showToast("Erreur lors du chargement des produits", "error");
+    } else {
+      console.log("Produits chargés :", data?.length, data);
+      setPendingProducts(data || []);
     }
-
-    // Tu peux ajouter les autres loads ici si tu veux
   };
 
   useEffect(() => {
-    loadData();
+    if (activeTab === 'products') loadProducts();
   }, [activeTab]);
 
   const approveProduct = async (id: string) => {
-    const { error } = await supabase
-      .from('products')
-      .update({ status: 'approved' })
-      .eq('id', id);
-
+    const { error } = await supabase.from('products').update({ status: 'approved' }).eq('id', id);
     if (error) showToast("Erreur approbation", "error");
     else {
       showToast("✅ Produit approuvé");
-      loadData();
+      loadProducts();
     }
   };
 
   const rejectProduct = async (id: string) => {
-    const { error } = await supabase
-      .from('products')
-      .update({ status: 'rejected' })
-      .eq('id', id);
-
+    const { error } = await supabase.from('products').update({ status: 'rejected' }).eq('id', id);
     if (error) showToast("Erreur refus", "error");
     else {
       showToast("❌ Produit refusé");
-      loadData();
+      loadProducts();
     }
   };
 
@@ -109,7 +90,6 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* ==================== PRODUITS EN ATTENTE ==================== */}
         {activeTab === 'products' && (
           <div>
             <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
@@ -131,7 +111,7 @@ export default function AdminPage() {
                       )}
                       <div className="flex-1">
                         <h3 className="font-semibold">{p.title}</h3>
-                        <p className="text-rose-400 text-sm">@{p.profiles?.username || 'Inconnu'}</p>
+                        <p className="text-rose-400 text-sm">Créateur ID: {p.creator_id}</p>
                         <p className="text-sm text-zinc-500 mt-2 line-clamp-3">{p.description}</p>
                         <p className="mt-3 text-rose-400 font-medium">{p.price_1day} €</p>
                       </div>
