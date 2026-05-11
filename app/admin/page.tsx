@@ -33,7 +33,8 @@ export default function AdminPage() {
           images,
           status,
           created_at,
-          profiles (
+          creator_id,
+          profiles:creator_id (
             username,
             full_name
           )
@@ -45,22 +46,18 @@ export default function AdminPage() {
         console.error("Erreur produits:", error);
         showToast("Erreur lors du chargement des produits", "error");
       } else {
-        console.log("Produits chargés :", data?.length || 0, data);
+        console.log("Produits chargés :", data?.length, data);
         setPendingProducts(data || []);
       }
     }
 
-    // Autres onglets (tu peux compléter si besoin)
-    if (activeTab === 'photos') {
-      // Ton code existant pour photos...
-    }
+    // Tu peux ajouter les autres loads ici si tu veux
   };
 
   useEffect(() => {
     loadData();
   }, [activeTab]);
 
-  // Actions Produits
   const approveProduct = async (id: string) => {
     const { error } = await supabase
       .from('products')
@@ -69,7 +66,7 @@ export default function AdminPage() {
 
     if (error) showToast("Erreur approbation", "error");
     else {
-      showToast("Produit approuvé ✅");
+      showToast("✅ Produit approuvé");
       loadData();
     }
   };
@@ -82,7 +79,7 @@ export default function AdminPage() {
 
     if (error) showToast("Erreur refus", "error");
     else {
-      showToast("Produit refusé ❌");
+      showToast("❌ Produit refusé");
       loadData();
     }
   };
@@ -92,7 +89,6 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold mb-10">Administration MyWornSkin</h1>
 
-        {/* Tabs */}
         <div className="flex border-b border-zinc-800 mb-8">
           {[
             { id: 'products', label: `Produits en attente (${pendingProducts.length})`, icon: ShieldCheck },
@@ -104,9 +100,7 @@ export default function AdminPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`px-8 py-4 flex items-center gap-3 border-b-2 transition-all ${
-                activeTab === tab.id 
-                  ? 'border-rose-500 text-white' 
-                  : 'border-transparent text-zinc-400 hover:text-white'
+                activeTab === tab.id ? 'border-rose-500 text-white' : 'border-transparent text-zinc-400 hover:text-white'
               }`}
             >
               <tab.icon className="w-5 h-5" />
@@ -115,7 +109,7 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* ====================== PRODUITS EN ATTENTE ====================== */}
+        {/* ==================== PRODUITS EN ATTENTE ==================== */}
         {activeTab === 'products' && (
           <div>
             <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
@@ -133,15 +127,11 @@ export default function AdminPage() {
                   <div key={p.id} className="bg-zinc-900 rounded-3xl p-6 border border-zinc-800">
                     <div className="flex gap-5">
                       {p.images?.[0] && (
-                        <img 
-                          src={p.images[0]} 
-                          alt={p.title} 
-                          className="w-28 h-28 object-cover rounded-2xl" 
-                        />
+                        <img src={p.images[0]} className="w-28 h-28 object-cover rounded-2xl" />
                       )}
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{p.title}</h3>
-                        <p className="text-rose-400 text-sm">@{p.profiles?.username}</p>
+                        <h3 className="font-semibold">{p.title}</h3>
+                        <p className="text-rose-400 text-sm">@{p.profiles?.username || 'Inconnu'}</p>
                         <p className="text-sm text-zinc-500 mt-2 line-clamp-3">{p.description}</p>
                         <p className="mt-3 text-rose-400 font-medium">{p.price_1day} €</p>
                       </div>
@@ -168,12 +158,11 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Toast */}
         {toast && (
           <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-50 flex items-center gap-3 ${
             toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
           }`}>
-            <span>{toast.message}</span>
+            {toast.message}
           </div>
         )}
       </div>
