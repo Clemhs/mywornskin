@@ -148,10 +148,9 @@ export default function SellPage() {
 
         {step === 1 && (
           <div className="space-y-8">
-            {/* Type d'article, Titre, Photos, Description, Histoire, Vocal (inchangés) */}
-            {/* ... (garde la partie du haut telle quelle) */}
+            {/* Type d'article, Titre, Photos, Description, Histoire, Vocal restent identiques */}
 
-            {/* TARIFICATION CORRIGÉE ET COMPACTE */}
+            {/* TARIFICATION PROPRE */}
             <div className="bg-zinc-900 rounded-3xl p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="font-semibold">Tarification</h3>
@@ -160,34 +159,54 @@ export default function SellPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* 1 journée */}
-                <div className="bg-zinc-800 rounded-2xl p-5 text-center">
+                <div className="bg-zinc-800 rounded-2xl p-5">
                   <div className="text-rose-400 text-sm mb-2">1 journée</div>
-                  <div className="flex items-center justify-center bg-zinc-900 rounded-xl px-5 py-4">
-                    <input type="number" value={price1Day} onChange={(e) => setPrice1Day(e.target.value)} className="w-20 bg-transparent text-center text-2xl font-semibold focus:outline-none" placeholder="45" />
+                  <div className="flex items-center bg-zinc-900 rounded-xl px-5 py-4">
+                    <input 
+                      type="number" 
+                      value={price1Day} 
+                      onChange={(e) => setPrice1Day(e.target.value)} 
+                      className="flex-1 bg-transparent text-2xl font-semibold focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                      placeholder="45" 
+                    />
                     <span className="text-zinc-400 ml-2">€</span>
                   </div>
                 </div>
 
                 {/* 2 journées */}
-                <div className="bg-zinc-800 rounded-2xl p-5 text-center">
-                  <label className="flex items-center justify-center gap-2 mb-2 cursor-pointer">
+                <div className="bg-zinc-800 rounded-2xl p-5">
+                  <label className="flex items-center gap-2 mb-2 cursor-pointer">
                     <input type="checkbox" checked={offer2Days} onChange={(e) => setOffer2Days(e.target.checked)} className="w-5 h-5 accent-rose-500" />
                     <span className={`text-sm ${offer2Days ? 'text-rose-400' : 'text-zinc-400'}`}>2 journées</span>
                   </label>
-                  <div className="flex items-center justify-center bg-zinc-900 rounded-xl px-5 py-4">
-                    <input type="number" value={price2Days} onChange={(e) => setPrice2Days(e.target.value)} disabled={!offer2Days} className={`w-20 bg-transparent text-center text-2xl font-semibold focus:outline-none ${!offer2Days ? 'opacity-40' : ''}`} placeholder="75" />
+                  <div className="flex items-center bg-zinc-900 rounded-xl px-5 py-4">
+                    <input 
+                      type="number" 
+                      value={price2Days} 
+                      onChange={(e) => setPrice2Days(e.target.value)} 
+                      disabled={!offer2Days}
+                      className={`flex-1 bg-transparent text-2xl font-semibold focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!offer2Days ? 'opacity-40' : ''}`} 
+                      placeholder="75" 
+                    />
                     <span className="text-zinc-400 ml-2">€</span>
                   </div>
                 </div>
 
                 {/* Jour supplémentaire */}
-                <div className="bg-zinc-800 rounded-2xl p-5 text-center">
-                  <label className="flex items-center justify-center gap-2 mb-2 cursor-pointer">
+                <div className="bg-zinc-800 rounded-2xl p-5">
+                  <label className="flex items-center gap-2 mb-2 cursor-pointer">
                     <input type="checkbox" checked={offerExtraDay} onChange={(e) => setOfferExtraDay(e.target.checked)} className="w-5 h-5 accent-rose-500" />
                     <span className={`text-sm ${offerExtraDay ? 'text-rose-400' : 'text-zinc-400'}`}>Jour supp.</span>
                   </label>
-                  <div className="flex items-center justify-center bg-zinc-900 rounded-xl px-5 py-4">
-                    <input type="number" value={extraDayPrice} onChange={(e) => setExtraDayPrice(e.target.value)} disabled={!offerExtraDay} className={`w-20 bg-transparent text-center text-2xl font-semibold focus:outline-none ${!offerExtraDay ? 'opacity-40' : ''}`} placeholder="25" />
+                  <div className="flex items-center bg-zinc-900 rounded-xl px-5 py-4">
+                    <input 
+                      type="number" 
+                      value={extraDayPrice} 
+                      onChange={(e) => setExtraDayPrice(e.target.value)} 
+                      disabled={!offerExtraDay}
+                      className={`flex-1 bg-transparent text-2xl font-semibold focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!offerExtraDay ? 'opacity-40' : ''}`} 
+                      placeholder="25" 
+                    />
                     <span className="text-zinc-400 ml-2">€ / jour</span>
                   </div>
                 </div>
@@ -200,7 +219,7 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* Step 2 et Step 3 restent identiques à la version précédente */}
+        {/* Step 2 et Step 3 (identiques à avant) */}
       </main>
     </div>
   );
