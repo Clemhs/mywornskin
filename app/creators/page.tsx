@@ -14,13 +14,15 @@ export default function CreatorsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');        // ← nouveau
+  const [selectedShoeSize, setSelectedShoeSize] = useState(''); // ← nouveau
   const [activeFilter, setActiveFilter] = useState<'all' | 'top' | 'new'>('all');
 
   useEffect(() => {
     const fetchCreators = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city')
+        .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size') // ← ajouté size + shoe_size
         .order('sales_badge', { ascending: false });
 
       if (error) console.error(error);
@@ -41,16 +43,20 @@ export default function CreatorsPage() {
 
       const matchesCountry = !selectedCountry || creator.country === selectedCountry;
       const matchesCity = !selectedCity || creator.city === selectedCity;
+      const matchesSize = !selectedSize || creator.size === selectedSize;           // ← nouveau
+      const matchesShoeSize = !selectedShoeSize || creator.shoe_size === selectedShoeSize; // ← nouveau
 
       let matchesFilter = true;
       if (activeFilter === 'top') matchesFilter = (creator.sales_badge || 0) >= 10;
 
-      return matchesSearch && matchesCountry && matchesCity && matchesFilter;
+      return matchesSearch && matchesCountry && matchesCity && matchesSize && matchesShoeSize && matchesFilter;
     });
-  }, [creators, searchTerm, selectedCountry, selectedCity, activeFilter]);
+  }, [creators, searchTerm, selectedCountry, selectedCity, selectedSize, selectedShoeSize, activeFilter]);
 
   const countries = [...new Set(creators.map(c => c.country).filter(Boolean))];
   const cities = [...new Set(creators.map(c => c.city).filter(Boolean))];
+  const sizes = [...new Set(creators.map(c => c.size).filter(Boolean))];           // ← nouveau
+  const shoeSizes = [...new Set(creators.map(c => c.shoe_size).filter(Boolean))]; // ← nouveau
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20 pb-20">
@@ -89,6 +95,29 @@ export default function CreatorsPage() {
             <option value="">Toutes les villes</option>
             {cities.map(city => (
               <option key={city} value={city}>{city}</option>
+            ))}
+          </select>
+
+          {/* Nouveaux filtres Taille & Pointure */}
+          <select
+            value={selectedSize}
+            onChange={(e) => setSelectedSize(e.target.value)}
+            className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500 min-w-[140px]"
+          >
+            <option value="">Toutes tailles</option>
+            {sizes.map(size => (
+              <option key={size} value={size}>{size}</option>
+            ))}
+          </select>
+
+          <select
+            value={selectedShoeSize}
+            onChange={(e) => setSelectedShoeSize(e.target.value)}
+            className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500 min-w-[140px]"
+          >
+            <option value="">Toutes pointures</option>
+            {shoeSizes.map(shoe => (
+              <option key={shoe} value={shoe}>{shoe}</option>
             ))}
           </select>
         </div>
