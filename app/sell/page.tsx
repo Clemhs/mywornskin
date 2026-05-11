@@ -72,12 +72,11 @@ export default function SellPage() {
 
   const handleSubmit = async () => {
     if (!user || !title || publicPhotos.length === 0) {
-      alert("Titre et au moins une photo publique sont obligatoires");
+      alert("Titre et photos publiques sont obligatoires");
       return;
     }
 
     try {
-      // Upload public photos
       const imageUrls: string[] = [];
       for (const base64 of publicPhotos) {
         const res = await fetch(base64);
@@ -88,7 +87,6 @@ export default function SellPage() {
         imageUrls.push(data.publicUrl);
       }
 
-      // Upload verification photos
       const verifUrls: string[] = [];
       for (const base64 of verificationPhotos) {
         const res = await fetch(base64);
@@ -116,10 +114,11 @@ export default function SellPage() {
       });
 
       if (error) throw error;
+
       setStep(3);
     } catch (err: any) {
       console.error(err);
-      alert("Erreur : " + err.message);
+      alert("Erreur lors de l'envoi : " + err.message);
     }
   };
 
@@ -141,7 +140,6 @@ export default function SellPage() {
 
         {step === 1 && (
           <div className="space-y-8">
-            {/* Catégorie + Titre */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Type d'article</label>
@@ -156,7 +154,6 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Photos + Vidéo */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-2 block">Photos publiques (min. 3)</label>
@@ -183,7 +180,6 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Description + Histoire */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Description</label>
@@ -195,7 +191,6 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Message vocal */}
             <div>
               <label className="text-xs text-zinc-400 mb-1.5 block">Message vocal (optionnel)</label>
               <label className="border border-dashed border-zinc-700 rounded-3xl p-6 flex flex-col items-center cursor-pointer hover:border-rose-500">
@@ -205,14 +200,12 @@ export default function SellPage() {
               </label>
             </div>
 
-            {/* Tarification */}
             <div className="bg-zinc-900 rounded-3xl p-6">
               <div className="flex justify-between items-center mb-5">
                 <h3 className="font-semibold">Tarification</h3>
                 <p className="text-xs text-zinc-400">(en fonction du nombre de jours portés)</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* 1 journée, 2 journées, Jour supp. (code identique à avant) */}
                 <div className="bg-zinc-800 rounded-2xl p-5 text-center">
                   <div className="text-rose-400 text-xs mb-2">1 journée</div>
                   <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-4">
@@ -220,7 +213,26 @@ export default function SellPage() {
                     <span className="text-4xl font-bold text-zinc-300 ml-1">€</span>
                   </div>
                 </div>
-                {/* ... (les deux autres cases identiques) */}
+                <div className="bg-zinc-800 rounded-2xl p-5 text-center">
+                  <label className="flex justify-center gap-2 mb-2 cursor-pointer">
+                    <input type="checkbox" checked={offer2Days} onChange={e => setOffer2Days(e.target.checked)} className="accent-rose-500" />
+                    <span className={`text-xs ${offer2Days ? 'text-rose-400' : 'text-zinc-400'}`}>2 journées</span>
+                  </label>
+                  <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-4">
+                    <input type="number" value={price2Days} onChange={e => setPrice2Days(e.target.value)} disabled={!offer2Days} className={`bg-transparent text-4xl font-bold w-20 text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!offer2Days ? 'opacity-40' : ''}`} />
+                    <span className="text-4xl font-bold text-zinc-300 ml-1">€</span>
+                  </div>
+                </div>
+                <div className="bg-zinc-800 rounded-2xl p-5 text-center">
+                  <label className="flex justify-center gap-2 mb-2 cursor-pointer">
+                    <input type="checkbox" checked={offerExtraDay} onChange={e => setOfferExtraDay(e.target.checked)} className="accent-rose-500" />
+                    <span className={`text-xs ${offerExtraDay ? 'text-rose-400' : 'text-zinc-400'}`}>Jour supp.</span>
+                  </label>
+                  <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-4">
+                    <input type="number" value={extraDayPrice} onChange={e => setExtraDayPrice(e.target.value)} disabled={!offerExtraDay} className={`bg-transparent text-4xl font-bold w-20 text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!offerExtraDay ? 'opacity-40' : ''}`} />
+                    <span className="text-4xl font-bold text-zinc-300 ml-1">€</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -230,7 +242,6 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* STEP 2 */}
         {step === 2 && (
           <div className="space-y-10">
             <h2 className="text-2xl font-semibold">2. Vérification Real Worn (privée)</h2>
@@ -244,7 +255,7 @@ export default function SellPage() {
 
               {noFace && (
                 <div className="mb-10 p-6 bg-zinc-800 border border-amber-400/30 rounded-2xl">
-                  <p className="font-medium mb-4">Pour valider sans visage :</p>
+                  <p className="font-medium mb-4">Pour valider sans visage, merci de fournir :</p>
                   <ul className="list-disc list-inside space-y-2 text-sm text-zinc-300">
                     <li>Plusieurs angles du vêtement porté</li>
                     <li>Une marque distinctive visible</li>
@@ -270,13 +281,12 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* STEP 3 */}
         {step === 3 && (
           <div className="text-center py-20">
             <CheckCircle className="w-28 h-28 text-green-400 mx-auto mb-10" />
             <h2 className="text-4xl font-bold mb-4">Merci ! Votre pièce est en cours de validation</h2>
             <p className="text-zinc-400 max-w-md mx-auto">
-              Notre équipe vérifie les photos Real Worn.<br /><br />
+              Notre équipe vérifie les photos Real Worn pour garantir la qualité et l’authenticité.<br /><br />
               Vous serez notifié dès que l’annonce sera publiée.
             </p>
             <Link href="/shop" className="mt-12 inline-block px-12 py-5 bg-white text-black rounded-3xl font-semibold text-lg">
