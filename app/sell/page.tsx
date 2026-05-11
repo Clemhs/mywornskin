@@ -18,19 +18,16 @@ export default function SellPage() {
   const [verificationPhotos, setVerificationPhotos] = useState<string[]>([]);
   const [publicVideo, setPublicVideo] = useState<string>('');
 
-  // Champs
   const [category, setCategory] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [story, setStory] = useState('');
   const [voiceRecording, setVoiceRecording] = useState<string>('');
 
-  // Tarification élégante
+  // Tarification
   const [price1Day, setPrice1Day] = useState('');
   const [offer2Days, setOffer2Days] = useState(false);
   const [price2Days, setPrice2Days] = useState('');
-  const [offer3Days, setOffer3Days] = useState(false);
-  const [price3Days, setPrice3Days] = useState('');
   const [offerExtraDay, setOfferExtraDay] = useState(false);
   const [extraDayPrice, setExtraDayPrice] = useState('');
 
@@ -85,6 +82,7 @@ export default function SellPage() {
     setIsSubmitting(true);
 
     try {
+      // Upload + insert (identique)
       const publicImageUrls: string[] = [];
       for (let i = 0; i < publicPhotos.length; i++) {
         const response = await fetch(publicPhotos[i]);
@@ -113,7 +111,6 @@ export default function SellPage() {
         story: story || null,
         price_1day: parseInt(price1Day),
         price_2days: offer2Days && price2Days ? parseInt(price2Days) : null,
-        price_3days: offer3Days && price3Days ? parseInt(price3Days) : null,
         extra_day_price: offerExtraDay && extraDayPrice ? parseInt(extraDayPrice) : null,
         images: publicImageUrls,
         verification_images: verifImageUrls,
@@ -155,15 +152,9 @@ export default function SellPage() {
             {/* Type d'article */}
             <div>
               <label className="block text-sm text-zinc-400 mb-1.5">Type d'article</label>
-              <select 
-                value={category} 
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5 text-white"
-              >
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5">
                 <option value="">Choisir un type...</option>
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
+                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
             </div>
 
@@ -193,24 +184,20 @@ export default function SellPage() {
 
             {publicPhotos.length > 0 && (
               <div className="grid grid-cols-5 gap-3">
-                {publicPhotos.map((img, i) => (
-                  <img key={i} src={img} className="rounded-2xl aspect-square object-cover border border-zinc-700" />
-                ))}
+                {publicPhotos.map((img, i) => <img key={i} src={img} className="rounded-2xl aspect-square object-cover border border-zinc-700" />)}
               </div>
             )}
 
-            {/* Description + Histoire + Vocal */}
+            {/* Description, Histoire, Vocal (identiques) */}
             <div className="space-y-6">
               <div>
                 <label className="block text-sm text-zinc-400 mb-1.5">Description</label>
                 <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3" placeholder="Portée 2 jours..." />
               </div>
-
               <div>
                 <label className="block text-sm text-zinc-400 mb-1.5">Histoire intime</label>
-                <textarea value={story} onChange={(e) => setStory(e.target.value)} rows={4} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3" placeholder="Raconte l'histoire de cette pièce..." />
+                <textarea value={story} onChange={(e) => setStory(e.target.value)} rows={4} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3" placeholder="Raconte l'histoire..." />
               </div>
-
               <div>
                 <label className="block text-sm text-zinc-400 mb-1.5">Message vocal (optionnel)</label>
                 <div className="border-2 border-dashed border-zinc-700 hover:border-rose-400 rounded-3xl p-6 text-center">
@@ -224,63 +211,49 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* === NOUVELLE SECTION TARIFICATION ÉLÉGANTE === */}
-            <div className="bg-zinc-900 rounded-3xl p-7">
-              <h3 className="font-semibold text-lg mb-6">Tarification</h3>
-              <div className="space-y-6">
-                {/* 1 journée - toujours actif */}
-                <div className="flex items-center gap-4 bg-zinc-800 rounded-2xl px-5 py-5">
-                  <div className="w-6 h-6 bg-rose-500 text-white rounded-xl flex items-center justify-center text-xs font-bold">1</div>
+            {/* === TARIFICATION COMPACTE & ÉLÉGANTE === */}
+            <div className="bg-zinc-900 rounded-3xl p-6">
+              <h3 className="font-semibold mb-5">Tarification</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 1 journée */}
+                <div className="bg-zinc-800 rounded-2xl p-5 flex items-center gap-4">
+                  <div className="text-rose-400 font-bold">1j</div>
                   <input 
                     type="number" 
                     value={price1Day} 
                     onChange={(e) => setPrice1Day(e.target.value)} 
-                    className="flex-1 bg-transparent text-2xl font-semibold focus:outline-none"
-                    placeholder="45"
+                    className="flex-1 bg-transparent text-2xl font-semibold focus:outline-none" 
+                    placeholder="45" 
                   />
-                  <span className="text-zinc-400">€ pour 1 journée</span>
+                  <span className="text-zinc-400">€</span>
                 </div>
 
                 {/* 2 journées */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 bg-zinc-800 rounded-2xl p-5">
                   <input type="checkbox" checked={offer2Days} onChange={(e) => setOffer2Days(e.target.checked)} className="w-5 h-5 accent-rose-500" />
                   <input 
                     type="number" 
                     value={price2Days} 
                     onChange={(e) => setPrice2Days(e.target.value)} 
                     disabled={!offer2Days}
-                    className={`flex-1 bg-zinc-800 border ${offer2Days ? 'border-zinc-700' : 'border-transparent'} rounded-2xl px-5 py-5 text-xl transition-all ${!offer2Days ? 'opacity-40' : ''}`}
-                    placeholder="75"
+                    className={`flex-1 bg-transparent text-xl ${offer2Days ? '' : 'opacity-40'}`} 
+                    placeholder="75" 
                   />
-                  <span className="text-zinc-400 whitespace-nowrap">€ pour 2 journées</span>
-                </div>
-
-                {/* 3 journées */}
-                <div className="flex items-center gap-4">
-                  <input type="checkbox" checked={offer3Days} onChange={(e) => setOffer3Days(e.target.checked)} className="w-5 h-5 accent-rose-500" />
-                  <input 
-                    type="number" 
-                    value={price3Days} 
-                    onChange={(e) => setPrice3Days(e.target.value)} 
-                    disabled={!offer3Days}
-                    className={`flex-1 bg-zinc-800 border ${offer3Days ? 'border-zinc-700' : 'border-transparent'} rounded-2xl px-5 py-5 text-xl transition-all ${!offer3Days ? 'opacity-40' : ''}`}
-                    placeholder="100"
-                  />
-                  <span className="text-zinc-400 whitespace-nowrap">€ pour 3 journées</span>
+                  <span className="text-zinc-400 whitespace-nowrap">€ pour 2j</span>
                 </div>
 
                 {/* Journée supplémentaire */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 bg-zinc-800 rounded-2xl p-5 md:col-span-2">
                   <input type="checkbox" checked={offerExtraDay} onChange={(e) => setOfferExtraDay(e.target.checked)} className="w-5 h-5 accent-rose-500" />
                   <input 
                     type="number" 
                     value={extraDayPrice} 
                     onChange={(e) => setExtraDayPrice(e.target.value)} 
                     disabled={!offerExtraDay}
-                    className={`flex-1 bg-zinc-800 border ${offerExtraDay ? 'border-zinc-700' : 'border-transparent'} rounded-2xl px-5 py-5 text-xl transition-all ${!offerExtraDay ? 'opacity-40' : ''}`}
-                    placeholder="25"
+                    className={`flex-1 bg-transparent text-xl ${offerExtraDay ? '' : 'opacity-40'}`} 
+                    placeholder="25" 
                   />
-                  <span className="text-zinc-400 whitespace-nowrap">€ par journée supp.</span>
+                  <span className="text-zinc-400">€ par journée supplémentaire</span>
                 </div>
               </div>
             </div>
@@ -291,7 +264,7 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* Step 2 et Step 3 restent identiques (si tu veux que je te les renvoie, dis-le) */}
+        {/* Step 2 et 3 identiques à avant */}
       </main>
     </div>
   );
