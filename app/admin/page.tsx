@@ -35,7 +35,6 @@ export default function AdminPage() {
   };
 
   const loadData = async () => {
-    // Produits en attente
     if (activeTab === 'products') {
       const { data, error } = await supabase
         .from('products')
@@ -47,7 +46,6 @@ export default function AdminPage() {
       else setPendingProducts(data || []);
     }
 
-    // Photos en attente
     if (activeTab === 'photos') {
       const { data } = await supabase
         .from('profiles')
@@ -62,7 +60,6 @@ export default function AdminPage() {
       setPendingPhotos(data || []);
     }
 
-    // Reviews refusés
     if (activeTab === 'reviews') {
       const { data } = await supabase
         .from('reviews')
@@ -72,7 +69,6 @@ export default function AdminPage() {
       setRefusedReviews(data || []);
     }
 
-    // Signalements
     if (activeTab === 'reports') {
       const { data } = await supabase
         .from('reports')
@@ -81,7 +77,6 @@ export default function AdminPage() {
       setReports(data || []);
     }
 
-    // Messages
     if (activeTab === 'messages') {
       const { data } = await supabase
         .from('messages')
@@ -152,7 +147,7 @@ export default function AdminPage() {
     return Object.values(grouped);
   }, [filteredAndSortedReports]);
 
-  // ACTIONS PRODUITS
+  // ACTIONS
   const approveProduct = async (productId: string) => {
     const { error } = await supabase.from('products').update({ status: 'approved' }).eq('id', productId);
     if (error) showToast("Erreur approbation", "error");
@@ -171,7 +166,6 @@ export default function AdminPage() {
     }
   };
 
-  // ACTIONS EXISTANTES
   const markReportAsReviewed = async (reportId: string) => {
     await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
     showToast("✅ Signalement marqué comme traité");
@@ -308,7 +302,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* PHOTOS EN ATTENTE */}
+        {/* PHOTOS */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
@@ -343,9 +337,171 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* COMMENTAIRES REFUSÉS */}
+        {/* COMMENTAIRES */}
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             {refusedReviews.length === 0 ? (
               <p className="text-zinc-500 text-lg">Aucun commentaire refusé pour le moment.</p>
-           
+            ) : (
+              refusedReviews.map(review => {
+                const refusalCount = creatorRefusalCounts[review.creator_id] || 0;
+                return (
+                  <div key={review.id} className="bg-zinc-900 rounded-3xl p-8">
+                    <div className="flex justify-between items-start mb-6">
+                      <div>
+                        <Link href={`/creators/${review.creator_id}`} className="font-semibold text-xl hover:text-pink-400">
+                          Créatrice
+                        </Link>
+                        <span className="ml-3 bg-orange-500/10 text-orange-400 px-3 py-1 rounded-full text-sm">
+                          {refusalCount} refus
+                        </span>
+                      </div>
+                      <div className="flex gap-3">
+                        <button onClick={() => forcePublishReview(review.id)} className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-2xl text-sm font-medium">
+                          Publier quand même
+                        </button>
+                        <button onClick={() => ignoreReview(review.id)} className="bg-zinc-700 hover:bg-zinc-600 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+                          <Trash2 size={16} /> Ignorer
+                        </button>
+                      </div>
+                    </div>
+                    <p className="italic text-lg mb-4">"{review.comment}"</p>
+                    <p className="text-sm text-zinc-500">- {review.reviewer_name || 'Client anonyme'}</p>
+                    <button onClick={() => setSelectedReview(review)} className="mt-6 text-pink-400 hover:text-pink-300 flex items-center gap-2 font-medium">
+                      <MessageCircle size={20} /> Envoyer un message à la créatrice
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {/* MESSAGES */}
+        {activeTab === 'messages' && (
+          <div className="space-y-6">
+            {adminMessages.length === 0 ? (
+              <p className="text-zinc-500 text-xl py-12">Aucun message reçu pour le moment.</p>
+            ) : (
+              adminMessages.map((msg) => (
+                <div key={msg.id} className="bg-zinc-900 rounded-3xl p-8">
+                  <div className="flex justify-between mb-4">
+                    <Link href={`/creators/${msg.sender?.username}`} className="font-semibold text-lg hover:text-pink-400">
+                      @{msg.sender?.username || 'Créatrice'}
+                    </Link>
+                    <span className="text-xs text-zinc-500">
+                      {new Date(msg.created_at).toLocaleString('fr-FR')}
+                    </span>
+                  </div>
+                  <p className="text-zinc-300 leading-relaxed">{msg.content}</p>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* SIGNALEMENTS */}
+        {activeTab === 'reports' && (
+          <div>
+            <div className="flex flex-col md:flex-row gap-4 mb-8">
+              <div className="flex-1 relative">
+                <Search className="absolute left-4 top-3.5 text-zinc-500" size={20} />
+                <input
+                  type="text"
+                  placeholder="Rechercher raison ou créatrice..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-700 pl-11 py-3.5 rounded-2xl focus:outline-none focus:border-pink-500"
+                />
+              </div>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5">
+                <option value="newest">Plus récents</option>
+                <option value="oldest">Plus anciens</option>
+                <option value="most">Plus de signalements</option>
+              </select>
+              <select value={reportFilter} onChange={(e) => setReportFilter(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5">
+                <option value="pending">En attente</option>
+                <option value="reviewed">Traités</option>
+                <option value="dismissed">Ignorés</option>
+                <option value="all">Tous</option>
+              </select>
+            </div>
+
+            {reports.length === 0 ? (
+              <p className="text-zinc-500 text-xl py-12">Aucun signalement pour le moment.</p>
+            ) : (
+              <div className="space-y-8">
+                {reportsByCreator.map((group: any) => (
+                  <div key={group.creator.id} className="bg-zinc-900 rounded-3xl p-8">
+                    <div className="flex justify-between mb-6">
+                      <Link href={`/creators/${group.creator.username}`} className="text-xl font-semibold hover:text-pink-400">
+                        @{group.creator.username}
+                      </Link>
+                      <span className="bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-sm font-medium">
+                        {group.count} signalement{group.count > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <div className="space-y-4">
+                      {group.reports.map((report: any) => (
+                        <div key={report.id} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
+                          <p className="italic text-zinc-300">"{report.reason}"</p>
+                          <p className="text-xs text-zinc-500 mt-3">
+                            {new Date(report.created_at).toLocaleString('fr-FR')}
+                          </p>
+                          <div className="mt-6 flex gap-3">
+                            <button onClick={() => markReportAsReviewed(report.id)} className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
+                              <CheckCircle size={16} /> Marquer comme traité
+                            </button>
+                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">Ignorer</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* MODAL */}
+        {selectedReview && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200]">
+            <div className="bg-zinc-900 rounded-3xl w-full max-w-lg p-8">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold">Envoyer un message</h3>
+                <button onClick={() => { setSelectedReview(null); setAdminReply(""); }} className="text-zinc-400 hover:text-white">
+                  <X size={24} />
+                </button>
+              </div>
+              <p className="text-zinc-400 mb-2">Commentaire concerné :</p>
+              <p className="italic mb-6">"{selectedReview.comment}"</p>
+              <textarea
+                value={adminReply}
+                onChange={(e) => setAdminReply(e.target.value)}
+                placeholder="Écris ton message ici..."
+                className="w-full h-40 bg-zinc-950 border border-zinc-700 rounded-2xl p-4 focus:outline-none focus:border-pink-500 resize-y"
+              />
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => { setSelectedReview(null); setAdminReply(""); }} className="flex-1 py-4 rounded-2xl border border-zinc-700 hover:bg-zinc-800">
+                  Annuler
+                </button>
+                <button onClick={sendAdminMessage} disabled={!adminReply.trim()} className="flex-1 py-4 rounded-2xl bg-pink-600 hover:bg-pink-500 disabled:opacity-50 font-medium flex items-center justify-center gap-2">
+                  <Send size={18} /> Envoyer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TOAST */}
+        {toast && (
+          <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+            {toast.type === 'success' && <CheckCircle size={22} />}
+            <span className="font-medium">{toast.message}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
