@@ -27,6 +27,24 @@ export default function AdminPage() {
   };
 
   const loadData = async () => {
+    if (activeTab === 'photos') {
+      const { data } = await supabase
+        .from('profiles')
+        .select(`id, username, full_name, avatar_url, banner_url, avatar_pending_url, banner_pending_url, avatar_status, banner_status`)
+        .or('avatar_status.eq.pending,banner_status.eq.pending')
+        .order('updated_at', { ascending: false });
+      setPendingPhotos(data || []);
+    }
+
+    if (activeTab === 'reviews') {
+      const { data } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('status', 'rejected')
+        .order('created_at', { ascending: false });
+      setRefusedReviews(data || []);
+    }
+
     if (activeTab === 'reports') {
       const { data } = await supabase
         .from('reports')
@@ -46,15 +64,9 @@ export default function AdminPage() {
     loadData();
   }, [activeTab, refreshKey]);
 
-  const filteredReports = useMemo(() => {
-    return reportFilter === 'all' 
-      ? reports 
-      : reports.filter(r => r.status === reportFilter);
-  }, [reports, reportFilter, refreshKey]);
-
   const reportsByCreator = useMemo(() => {
     const grouped: any = {};
-    filteredReports.forEach(report => {
+    reports.forEach(report => {
       const key = report.creator_id;
       if (!grouped[key]) {
         grouped[key] = { creator: report.creator, count: 0, reports: [] };
@@ -63,16 +75,13 @@ export default function AdminPage() {
       grouped[key].reports.push(report);
     });
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
-  }, [filteredReports]);
+  }, [reports]);
 
+  // ACTIONS SIGNALEMENTS
   const markReportAsReviewed = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
-
-    if (error) {
-      showToast("Erreur lors de la mise à jour", "error");
-    } else {
-      showToast("✅ Signalement marqué comme traité");
-    }
+    if (error) showToast("Erreur", "error");
+    else showToast("✅ Signalement marqué comme traité");
     setRefreshKey(k => k + 1);
   };
 
@@ -83,13 +92,13 @@ export default function AdminPage() {
   };
 
   const deleteReport = async (reportId: string) => {
-    if (!confirm("Supprimer définitivement ?")) return;
+    if (!confirm("Supprimer définitivement ce signalement ?")) return;
     await supabase.from('reports').delete().eq('id', reportId);
     setRefreshKey(k => k + 1);
     showToast("Signalement supprimé");
   };
 
-  // === FONCTIONS ORIGINALES ===
+  // FONCTIONS ORIGINALES - PHOTOS
   const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
     const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
@@ -112,6 +121,7 @@ export default function AdminPage() {
     loadData();
   };
 
+  // FONCTIONS ORIGINALES - COMMENTAIRES
   const forcePublishReview = async (reviewId: string) => {
     await supabase.from('reviews').update({ status: 'approved' }).eq('id', reviewId);
     loadData();
@@ -159,6 +169,84 @@ export default function AdminPage() {
           </button>
         </div>
 
+        {/* PHOTOS */}
+        {activeTab === 'photos' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {pendingPhotos.length === 0 ? (
+              <p className="text-zinc-500 text-xl">Aucune photo en attente de validation.</p>
+            ) : (
+              pendingPhotos.map((p) => (
+                <div key={p.id} className="bg-zinc-900 rounded-3xl p-8">
+                  <h3 className="font-semibold text-xl mb-6">@{p.username}</h3>
+
+                  {p.avatar_pending_url && (
+                    <div className="mb-12">
+                      <p className="text-pink-400 mb-4">Photo de profil</p>
+                      <img src={p.avatar_pending_url} className="w-48 h-48 rounded-2xl object-cover mb-6" />
+                      <div className="flex gap-4">
+                        <button onClick={() => handlePhotoAction(p.id, 'avatar', 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl">✅ Valider</button>
+                        <button onClick={() => handlePhotoAction(p.id, 'avatar', 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-2xl">❌ Refuser</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {p.banner_pending_url && (
+                    <div>
+                      <p className="text-pink-400 mb-4">Photo de couverture</p>
+                      <img src={p.banner_pending_url} className="w-full h-64 object-cover rounded-2xl mb-6" />
+                      <div className="flex gap-4">
+                        <button onClick={() => handlePhotoAction(p.id, 'banner', 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl">✅ Valider</button>
+                        <button onClick={() => handlePhotoAction(p.id, 'banner', 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-2xl">❌ Refuser</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* COMMENTAIRES REFUSÉS */}
+        {activeTab === 'reviews' && (
+          <div className="space-y-6">
+            {refusedReviews.length === 0 ? (
+              <p className="text-zinc-500 text-lg">Aucun commentaire refusé pour le moment.</p>
+            ) : (
+              refusedReviews.map(review => {
+                const refusalCount = refusedReviews.filter(r => r.creator_id === review.creator_id).length;
+                return (
+                  <div key={review.id} className="bg-zinc-900 rounded-3xl p-8">
+                    <div className="flex justify-between items-start mb-6">
+                      <div>
+                        <Link href={`/creators/${review.creator_id}`} className="font-semibold text-xl hover:text-pink-400">
+                          Créatrice
+                        </Link>
+                        <span className="ml-3 bg-orange-500/10 text-orange-400 px-3 py-1 rounded-full text-sm">
+                          {refusalCount} refus
+                        </span>
+                      </div>
+                      <div className="flex gap-3">
+                        <button onClick={() => forcePublishReview(review.id)} className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-2xl text-sm font-medium">
+                          Publier quand même
+                        </button>
+                        <button onClick={() => ignoreReview(review.id)} className="bg-zinc-700 hover:bg-zinc-600 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+                          <Trash2 size={16} /> Ignorer
+                        </button>
+                      </div>
+                    </div>
+                    <p className="italic text-lg mb-4">"{review.comment}"</p>
+                    <p className="text-sm text-zinc-500">- {review.reviewer_name || 'Client anonyme'}</p>
+                    <button onClick={() => setSelectedReview(review)} className="mt-6 text-pink-400 hover:text-pink-300 flex items-center gap-2 font-medium">
+                      <MessageCircle size={20} /> Envoyer un message à la créatrice
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {/* SIGNALEMENTS */}
         {activeTab === 'reports' && (
           <div key={refreshKey}>
             <div className="flex justify-between items-center mb-6">
@@ -200,7 +288,9 @@ export default function AdminPage() {
                             <button onClick={() => markReportAsReviewed(report.id)} className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
                               <CheckCircle size={16} /> Marquer comme traité
                             </button>
-                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">Ignorer</button>
+                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">
+                              Ignorer
+                            </button>
                             <button onClick={() => deleteReport(report.id)} className="bg-red-600 hover:bg-red-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
                               <Trash2 size={16} /> Supprimer
                             </button>
@@ -215,6 +305,7 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* TOAST */}
         {toast && (
           <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
             {toast.type === 'success' && <CheckCircle size={22} />}
