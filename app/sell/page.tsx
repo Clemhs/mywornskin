@@ -166,7 +166,7 @@ export default function SellPage() {
                       type="number" 
                       value={price1Day} 
                       onChange={(e) => setPrice1Day(e.target.value)} 
-                      className="flex-1 bg-transparent text-2xl font-semibold focus:outline-none text-center" 
+                      className="flex-1 bg-transparent text-2xl font-semibold focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                       placeholder="45" 
                     />
                     <span className="text-zinc-400 ml-2">€</span>
@@ -185,7 +185,7 @@ export default function SellPage() {
                       value={price2Days} 
                       onChange={(e) => setPrice2Days(e.target.value)} 
                       disabled={!offer2Days}
-                      className={`flex-1 bg-transparent text-2xl font-semibold focus:outline-none text-center ${!offer2Days ? 'opacity-40' : ''}`} 
+                      className={`flex-1 bg-transparent text-2xl font-semibold focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!offer2Days ? 'opacity-40' : ''}`} 
                       placeholder="75" 
                     />
                     <span className="text-zinc-400 ml-2">€</span>
@@ -204,10 +204,10 @@ export default function SellPage() {
                       value={extraDayPrice} 
                       onChange={(e) => setExtraDayPrice(e.target.value)} 
                       disabled={!offerExtraDay}
-                      className={`flex-1 bg-transparent text-2xl font-semibold focus:outline-none text-center ${!offerExtraDay ? 'opacity-40' : ''}`} 
+                      className={`flex-1 bg-transparent text-2xl font-semibold focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!offerExtraDay ? 'opacity-40' : ''}`} 
                       placeholder="25" 
                     />
-                    <span className="text-zinc-400 ml-2">€</span>
+                    <span className="text-zinc-400 ml-2">€ / jour</span>
                   </div>
                 </div>
               </div>
