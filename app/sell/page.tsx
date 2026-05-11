@@ -148,66 +148,108 @@ export default function SellPage() {
 
         {step === 1 && (
           <div className="space-y-8">
-            {/* Type d'article, Titre, Photos, Description, Histoire, Vocal restent identiques */}
+            {/* Type d'article */}
+            <div>
+              <label className="block text-sm text-zinc-400 mb-1.5">Type d'article</label>
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5 text-white">
+                <option value="">Choisir un type...</option>
+                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+            </div>
 
-            {/* === TARIFICATION HORIZONTALE === */}
+            {/* Titre */}
+            <div>
+              <label className="block text-sm text-zinc-400 mb-1.5">Titre de la pièce *</label>
+              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5" placeholder="Culotte en dentelle noire" />
+            </div>
+
+            {/* Photos + Vidéo */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="border-2 border-dashed border-zinc-700 hover:border-rose-400 rounded-3xl p-8 text-center cursor-pointer">
+                <input type="file" multiple accept="image/*" onChange={handlePublicPhotos} className="hidden" id="public" />
+                <label htmlFor="public" className="cursor-pointer">
+                  <Camera className="w-10 h-10 mx-auto mb-2 text-zinc-400" />
+                  <p className="text-base font-medium">Photos</p>
+                </label>
+              </div>
+              <div className="border-2 border-dashed border-zinc-700 hover:border-rose-400 rounded-3xl p-8 text-center cursor-pointer">
+                <input type="file" accept="video/*" onChange={handleVideo} className="hidden" id="video" />
+                <label htmlFor="video" className="cursor-pointer">
+                  <Video className="w-10 h-10 mx-auto mb-2 text-zinc-400" />
+                  <p className="text-base font-medium">Vidéo</p>
+                </label>
+              </div>
+            </div>
+
+            {publicPhotos.length > 0 && (
+              <div className="grid grid-cols-5 gap-3">
+                {publicPhotos.map((img, i) => <img key={i} src={img} className="rounded-2xl aspect-square object-cover border border-zinc-700" />)}
+              </div>
+            )}
+
+            {/* Description + Histoire + Vocal */}
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1.5">Description</label>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3" placeholder="Portée 2 jours..." />
+              </div>
+
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1.5">Histoire intime</label>
+                <textarea value={story} onChange={(e) => setStory(e.target.value)} rows={4} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3" placeholder="Raconte l'histoire de cette pièce..." />
+              </div>
+
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1.5">Message vocal (optionnel)</label>
+                <div className="border-2 border-dashed border-zinc-700 hover:border-rose-400 rounded-3xl p-6 text-center">
+                  <input type="file" accept="audio/*" onChange={handleVoiceRecording} className="hidden" id="voice" />
+                  <label htmlFor="voice" className="cursor-pointer">
+                    <Mic className="w-9 h-9 mx-auto mb-2 text-zinc-400" />
+                    <p className="text-sm">Ajouter un message vocal</p>
+                  </label>
+                </div>
+                {voiceRecording && <p className="text-emerald-400 text-center text-sm mt-2">✅ Vocal ajouté</p>}
+              </div>
+            </div>
+
+            {/* TARIFICATION COMPACTE */}
             <div className="bg-zinc-900 rounded-3xl p-6">
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex justify-between items-center mb-5">
                 <h3 className="font-semibold">Tarification</h3>
                 <p className="text-sm text-zinc-400">(en fonction du nombre de jours portés)</p>
               </div>
 
-              <div className="flex flex-wrap gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* 1 journée */}
-                <div className="flex-1 min-w-[220px] bg-zinc-800 rounded-2xl p-5">
+                <div className="bg-zinc-800 rounded-2xl p-5">
                   <div className="text-rose-400 text-sm mb-1">1 journée</div>
                   <div className="flex items-center">
-                    <input 
-                      type="number" 
-                      value={price1Day} 
-                      onChange={(e) => setPrice1Day(e.target.value)} 
-                      className="flex-1 bg-transparent text-3xl font-semibold focus:outline-none" 
-                      placeholder="45" 
-                    />
-                    <span className="text-2xl text-zinc-400 ml-1">€</span>
+                    <input type="number" value={price1Day} onChange={(e) => setPrice1Day(e.target.value)} className="flex-1 bg-transparent text-2xl font-semibold focus:outline-none" placeholder="45" />
+                    <span className="text-zinc-400 ml-2">€</span>
                   </div>
                 </div>
 
                 {/* 2 journées */}
-                <div className="flex-1 min-w-[220px] bg-zinc-800 rounded-2xl p-5">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={offer2Days} onChange={(e) => setOffer2Days(e.target.checked)} className="w-5 h-5 accent-rose-500" />
+                <div className="bg-zinc-800 rounded-2xl p-5">
+                  <label className="flex items-center gap-2 mb-1 cursor-pointer">
+                    <input type="checkbox" checked={offer2Days} onChange={(e) => setOffer2Days(e.target.checked)} className="w-4 h-4 accent-rose-500" />
                     <span className="text-sm text-zinc-400">2 journées</span>
                   </label>
-                  <div className="flex items-center mt-3">
-                    <input 
-                      type="number" 
-                      value={price2Days} 
-                      onChange={(e) => setPrice2Days(e.target.value)} 
-                      disabled={!offer2Days}
-                      className={`flex-1 bg-transparent text-3xl font-semibold focus:outline-none ${!offer2Days ? 'opacity-40' : ''}`} 
-                      placeholder="75" 
-                    />
-                    <span className="text-2xl text-zinc-400 ml-1">€</span>
+                  <div className="flex items-center">
+                    <input type="number" value={price2Days} onChange={(e) => setPrice2Days(e.target.value)} disabled={!offer2Days} className={`flex-1 bg-transparent text-2xl font-semibold focus:outline-none ${!offer2Days ? 'opacity-40' : ''}`} placeholder="75" />
+                    <span className="text-zinc-400 ml-2">€</span>
                   </div>
                 </div>
 
                 {/* Jour supplémentaire */}
-                <div className="flex-1 min-w-[220px] bg-zinc-800 rounded-2xl p-5">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={offerExtraDay} onChange={(e) => setOfferExtraDay(e.target.checked)} className="w-5 h-5 accent-rose-500" />
+                <div className="bg-zinc-800 rounded-2xl p-5">
+                  <label className="flex items-center gap-2 mb-1 cursor-pointer">
+                    <input type="checkbox" checked={offerExtraDay} onChange={(e) => setOfferExtraDay(e.target.checked)} className="w-4 h-4 accent-rose-500" />
                     <span className="text-sm text-zinc-400">Jour supp.</span>
                   </label>
-                  <div className="flex items-center mt-3">
-                    <input 
-                      type="number" 
-                      value={extraDayPrice} 
-                      onChange={(e) => setExtraDayPrice(e.target.value)} 
-                      disabled={!offerExtraDay}
-                      className={`flex-1 bg-transparent text-3xl font-semibold focus:outline-none ${!offerExtraDay ? 'opacity-40' : ''}`} 
-                      placeholder="25" 
-                    />
-                    <span className="text-2xl text-zinc-400 ml-1">€ / jour</span>
+                  <div className="flex items-center">
+                    <input type="number" value={extraDayPrice} onChange={(e) => setExtraDayPrice(e.target.value)} disabled={!offerExtraDay} className={`flex-1 bg-transparent text-2xl font-semibold focus:outline-none ${!offerExtraDay ? 'opacity-40' : ''}`} placeholder="25" />
+                    <span className="text-zinc-400 ml-2">€ / jour</span>
                   </div>
                 </div>
               </div>
@@ -219,7 +261,7 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* Step 2 et Step 3 restent identiques */}
+        {/* Step 2 et Step 3 identiques à avant (tu peux les garder de la version précédente) */}
       </main>
     </div>
   );
