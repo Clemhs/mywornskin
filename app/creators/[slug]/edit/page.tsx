@@ -31,7 +31,11 @@ export default function CreatorEditPage() {
   const loadData = useCallback(async () => {
     if (!user) return;
 
-    const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    const { data: prof } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
 
     if (prof) {
       setProfile(prof);
@@ -40,8 +44,8 @@ export default function CreatorEditPage() {
       setBio(prof.bio || '');
       setCountry(prof.country || '');
       setCity(prof.city || '');
-      setSize(prof.size || '');
-      setShoeSize(prof.shoe_size || '');
+      setSize(prof.size || '');           // Important
+      setShoeSize(prof.shoe_size || '');  // Important
     }
 
     const { data: reviews } = await supabase
@@ -57,10 +61,9 @@ export default function CreatorEditPage() {
     loadData();
   }, [loadData]);
 
-  // Toast photo refusée - ne réapparaît plus après fermeture
+  // Toast photo refusée - ne réapparaît plus
   useEffect(() => {
     if (!profile) return;
-
     const dismissedKey = `dismissed_rejected_toast_${user?.id}`;
 
     if ((profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') 
@@ -75,23 +78,6 @@ export default function CreatorEditPage() {
       localStorage.setItem(dismissedKey, 'true');
     }
     setToast(null);
-  };
-
-  const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
-    const { error } = await supabase
-      .from('reviews')
-      .update({ status })
-      .eq('id', reviewId);
-
-    if (error) {
-      setToast({ message: "Erreur lors de la validation", type: 'error' });
-    } else {
-      setToast({ 
-        message: status === 'approved' ? "✅ Commentaire validé" : "❌ Commentaire rejeté", 
-        type: 'success' 
-      });
-      loadData();
-    }
   };
 
   const saveProfile = async (updates: any) => {
@@ -131,13 +117,15 @@ export default function CreatorEditPage() {
   };
 
   const handleSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSize(e.target.value);
-    saveProfile({ size: e.target.value });
+    const value = e.target.value;
+    setSize(value);
+    saveProfile({ size: value });
   };
 
   const handleShoeSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setShoeSize(e.target.value);
-    saveProfile({ shoe_size: e.target.value });
+    const value = e.target.value;
+    setShoeSize(value);
+    saveProfile({ shoe_size: value });
   };
 
   const uploadImage = async (file: File, type: 'avatar' | 'banner') => {
