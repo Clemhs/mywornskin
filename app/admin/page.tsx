@@ -5,6 +5,8 @@ import { MessageCircle, AlertTriangle, Image as ImageIcon, Send, Trash2, Flag, C
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
+const ADMIN_ID = 'bc985ee6-d9dc-43e0-8069-b34deeea9e24';
+
 export default function AdminPage() {
   const supabase = createClient();
 
@@ -17,6 +19,7 @@ export default function AdminPage() {
   const [pendingPhotos, setPendingPhotos] = useState<any[]>([]);
   const [refusedReviews, setRefusedReviews] = useState<any[]>([]);
   const [reports, setReports] = useState<any[]>([]);
+  const [adminMessages, setAdminMessages] = useState<any[]>([]); // Messages reçus des créatrices
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -58,6 +61,18 @@ export default function AdminPage() {
         .select(`*, creator:profiles!creator_id (username, full_name)`)
         .order('created_at', { ascending: false });
       setReports(data || []);
+    }
+
+    if (activeTab === 'messages') {
+      const { data } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          sender:profiles!sender_id (username)
+        `)
+        .eq('receiver_id', ADMIN_ID)
+        .order('created_at', { ascending: false });
+      setAdminMessages(data || []);
     }
 
     const { count } = await supabase
@@ -179,8 +194,7 @@ export default function AdminPage() {
     });
 
     if (error) {
-      console.error(error);
-      showToast("Erreur lors de l'envoi (vérifie les policies RLS)", "error");
+      showToast("Erreur lors de l'envoi", "error");
     } else {
       showToast("✅ Message envoyé à la créatrice");
       setAdminReply("");
@@ -201,7 +215,7 @@ export default function AdminPage() {
             <AlertTriangle size={22} /> Commentaires refusés
           </button>
           <button onClick={() => setActiveTab('messages')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'messages' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
-            <MessageCircle size={22} /> Messages
+            <MessageCircle size={22} /> Messages reçus
           </button>
           <button onClick={() => setActiveTab('reports')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap relative ${activeTab === 'reports' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <Flag size={22} /> Signalements
@@ -217,7 +231,7 @@ export default function AdminPage() {
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
-              <p className="text-zinc-500 text-xl">Aucune photo en attente.</p>
+              <p className="text-zinc-500 text-xl">Aucune photo en attente de validation.</p>
             ) : (
               pendingPhotos.map((p) => (
                 <div key={p.id} className="bg-zinc-900 rounded-3xl p-8">
@@ -288,13 +302,42 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* MESSAGES REÇUS */}
+        {activeTab === 'messages' && (
+          <div className="space-y-6">
+            {adminMessages.length === 0 ? (
+              <p className="text-zinc-500 text-xl py-12">Aucun message reçu pour le moment.</p>
+            ) : (
+              adminMessages.map((msg) => (
+                <div key={msg.id} className="bg-zinc-900 rounded-3xl p-8">
+                  <div className="flex justify-between mb-4">
+                    <Link href={`/creators/${msg.sender?.username}`} className="font-semibold text-lg hover:text-pink-400">
+                      @{msg.sender?.username || 'Créatrice'}
+                    </Link>
+                    <span className="text-xs text-zinc-500">
+                      {new Date(msg.created_at).toLocaleString('fr-FR')}
+                    </span>
+                  </div>
+                  <p className="text-zinc-300 leading-relaxed">{msg.content}</p>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
         {/* SIGNALEMENTS */}
         {activeTab === 'reports' && (
           <div>
             <div className="flex flex-col md:flex-row gap-4 mb-8">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-3.5 text-zinc-500" size={20} />
-                <input type="text" placeholder="Rechercher raison ou créatrice..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 pl-11 py-3.5 rounded-2xl focus:outline-none focus:border-pink-500" />
+                <input
+                  type="text"
+                  placeholder="Rechercher raison ou créatrice..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-700 pl-11 py-3.5 rounded-2xl focus:outline-none focus:border-pink-500"
+                />
               </div>
               <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5">
                 <option value="newest">Plus récents</option>
@@ -346,7 +389,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MODAL MESSAGE */}
+        {/* MODAL ENVOYER MESSAGE */}
         {selectedReview && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200]">
             <div className="bg-zinc-900 rounded-3xl w-full max-w-lg p-8">
