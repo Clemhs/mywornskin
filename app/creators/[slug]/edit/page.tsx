@@ -58,19 +58,14 @@ export default function CreatorEditPage() {
     loadData();
   }, [loadData]);
 
-  // ==================== GESTION TOAST PHOTO REFUSÉE ====================
+  // Toast photo refusée (ne réapparaît plus après fermeture)
   useEffect(() => {
     if (!profile) return;
-
-    const hasRejectedPhoto = profile.avatar_status === 'rejected' || profile.banner_status === 'rejected';
     const dismissedKey = `dismissed_rejected_toast_${user?.id}`;
 
-    if (hasRejectedPhoto && !localStorage.getItem(dismissedKey)) {
-      setToast({ 
-        message: "Une de vos photos a été refusée", 
-        type: 'error', 
-        link: "/guidelines" 
-      });
+    if ((profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') 
+        && !localStorage.getItem(dismissedKey)) {
+      setToast({ message: "Une de vos photos a été refusée", type: 'error', link: "/guidelines" });
     }
   }, [profile, user]);
 
@@ -257,7 +252,7 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* COLONNE DROITE - Tout le reste identique à ton code original */}
+          {/* COLONNE DROITE */}
           <div className="lg:col-span-7 space-y-10">
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
