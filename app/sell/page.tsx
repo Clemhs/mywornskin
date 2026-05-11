@@ -148,9 +148,9 @@ export default function SellPage() {
 
         {step === 1 && (
           <div className="space-y-8">
-            {/* Type d'article, Titre, Photos, Description, Histoire, Vocal (inchangés) */}
+            {/* Type, Titre, Photos, Description, Histoire, Vocal (inchangés) */}
 
-            {/* TARIFICATION FINALE ET ÉQUILIBRÉE */}
+            {/* TARIFICATION FINALE */}
             <div className="bg-zinc-900 rounded-3xl p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="font-semibold">Tarification</h3>
@@ -219,7 +219,7 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* Step 2 et Step 3 (identiques) */}
+        {/* Step 2 et Step 3 (identiques à la version précédente) */}
       </main>
     </div>
   );
