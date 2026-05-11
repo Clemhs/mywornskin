@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/client';
 
 export default function Header() {
   const pathname = usePathname();
-  const { user, logout, isLoggedIn } = useAuth(); // isLoggedIn si tu l'as dans le context
+  const { user, logout, isLoggedIn } = useAuth();
   const supabase = createClient();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -69,9 +69,20 @@ export default function Header() {
                 )}
               </Link>
 
-              <Link href="/cart" className="relative p-2 hover:bg-zinc-900 rounded-xl transition-colors">
-                <ShoppingCart className="w-5 h-5" />
-              </Link>
+              {/* === Bouton conditionnel : Créatrice vs Client === */}
+              {isCreator ? (
+                <Link 
+                  href="/sell"
+                  className="flex items-center gap-2 bg-rose-600 hover:bg-rose-500 text-white px-5 py-2.5 rounded-2xl font-medium transition-all"
+                >
+                  <Plus size={18} />
+                  Nouvelle pièce
+                </Link>
+              ) : (
+                <Link href="/cart" className="relative p-2 hover:bg-zinc-900 rounded-xl transition-colors">
+                  <ShoppingCart className="w-5 h-5" />
+                </Link>
+              )}
 
               <div className="relative">
                 <button 
