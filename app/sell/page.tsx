@@ -156,16 +156,30 @@ export default function SellPage() {
                 <span>Je ne souhaite pas montrer mon visage</span>
               </label>
 
+              {/* Texte important quand on coche "pas de visage" */}
+              {noFace && (
+                <div className="mb-10 p-6 bg-zinc-800 border border-amber-400/30 rounded-2xl">
+                  <p className="font-medium mb-4">Pour valider votre pièce sans visage, merci de fournir :</p>
+                  <ul className="list-disc list-inside space-y-2 text-sm text-zinc-300">
+                    <li>Plusieurs angles du vêtement porté (face, dos, côtés, détails)</li>
+                    <li>Une marque distinctive visible (tatouage, bijou, vernis à ongles, piercing, cicatrice…)</li>
+                    <li>Une photo avec un papier indiquant clairement la date du jour</li>
+                  </ul>
+                  <p className="mt-6 text-amber-400 text-sm">
+                    La vérification pourra prendre un peu plus de temps sans photo du visage, mais reste tout à fait possible.
+                  </p>
+                </div>
+              )}
+
               <div className="border-2 border-dashed border-emerald-500/40 rounded-3xl p-12 text-center hover:border-emerald-400 transition-colors cursor-pointer mb-8">
                 <input type="file" multiple accept="image/*" onChange={handleVerificationPhotos} className="hidden" id="verif" />
                 <label htmlFor="verif" className="cursor-pointer">
                   <ShieldCheck className="w-14 h-14 mx-auto mb-4 text-emerald-400" />
                   <p className="text-lg font-medium">Ajouter les photos de vérification</p>
-                  <p className="text-sm text-zinc-400 mt-2">Vous portant le vêtement (strictement confidentiel)</p>
+                  <p className="text-sm text-zinc-400 mt-2">Vous portant le vêtement visage visible (strictement confidentiel)</p>
                 </label>
               </div>
 
-              {/* === APERÇU DES PHOTOS DE VÉRIFICATION === */}
               {verificationPhotos.length > 0 && (
                 <div className="mt-6">
                   <p className="text-emerald-400 text-sm mb-3">Photos de vérification ajoutées ({verificationPhotos.length}) :</p>
