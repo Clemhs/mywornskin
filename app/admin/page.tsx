@@ -30,7 +30,17 @@ export default function AdminPage() {
     if (activeTab === 'photos') {
       const { data } = await supabase
         .from('profiles')
-        .select(`id, username, full_name, avatar_url, banner_url, avatar_pending_url, banner_pending_url, avatar_status, banner_status`)
+        .select(`
+          id, 
+          username, 
+          full_name,
+          avatar_url,
+          banner_url,
+          avatar_pending_url,
+          banner_pending_url,
+          avatar_status,
+          banner_status
+        `)
         .or('avatar_status.eq.pending,banner_status.eq.pending')
         .order('updated_at', { ascending: false });
       setPendingPhotos(data || []);
@@ -64,6 +74,16 @@ export default function AdminPage() {
     loadData();
   }, [activeTab, refreshKey]);
 
+  // Memo pour les refus par créatrice
+  const creatorRefusalCounts = useMemo(() => {
+    const counts: { [key: string]: number } = {};
+    refusedReviews.forEach(r => {
+      counts[r.creator_id] = (counts[r.creator_id] || 0) + 1;
+    });
+    return counts;
+  }, [refusedReviews]);
+
+  // Memo pour les signalements groupés
   const reportsByCreator = useMemo(() => {
     const grouped: any = {};
     reports.forEach(report => {
@@ -98,7 +118,7 @@ export default function AdminPage() {
     showToast("Signalement supprimé");
   };
 
-  // FONCTIONS ORIGINALES - PHOTOS
+  // FONCTIONS ORIGINALES QUE TU AVAIS
   const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
     const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
@@ -121,7 +141,6 @@ export default function AdminPage() {
     loadData();
   };
 
-  // FONCTIONS ORIGINALES - COMMENTAIRES
   const forcePublishReview = async (reviewId: string) => {
     await supabase.from('reviews').update({ status: 'approved' }).eq('id', reviewId);
     loadData();
@@ -169,7 +188,7 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* PHOTOS */}
+        {/* PHOTOS - TON CODE ORIGINAL */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
@@ -206,14 +225,14 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* COMMENTAIRES REFUSÉS */}
+        {/* COMMENTAIRES REFUSÉS - TON CODE ORIGINAL */}
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             {refusedReviews.length === 0 ? (
               <p className="text-zinc-500 text-lg">Aucun commentaire refusé pour le moment.</p>
             ) : (
               refusedReviews.map(review => {
-                const refusalCount = refusedReviews.filter(r => r.creator_id === review.creator_id).length;
+                const refusalCount = creatorRefusalCounts[review.creator_id] || 0;
                 return (
                   <div key={review.id} className="bg-zinc-900 rounded-3xl p-8">
                     <div className="flex justify-between items-start mb-6">
@@ -288,9 +307,7 @@ export default function AdminPage() {
                             <button onClick={() => markReportAsReviewed(report.id)} className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
                               <CheckCircle size={16} /> Marquer comme traité
                             </button>
-                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">
-                              Ignorer
-                            </button>
+                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">Ignorer</button>
                             <button onClick={() => deleteReport(report.id)} className="bg-red-600 hover:bg-red-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
                               <Trash2 size={16} /> Supprimer
                             </button>
