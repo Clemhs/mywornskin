@@ -12,9 +12,8 @@ export default function SellPage() {
 
   const [step, setStep] = useState(1);
   const [noFace, setNoFace] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Step 1
+  // Step 1 states
   const [publicPhotos, setPublicPhotos] = useState<string[]>([]);
   const [verificationPhotos, setVerificationPhotos] = useState<string[]>([]);
   const [publicVideo, setPublicVideo] = useState<string>('');
@@ -73,11 +72,6 @@ export default function SellPage() {
     }
   };
 
-  const handleSubmit = async () => {
-    // ... (logique d'envoi Supabase inchangée, tu peux la remettre si besoin)
-    setStep(3);
-  };
-
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20">
       <main className="max-w-4xl mx-auto px-6 pb-12">
@@ -88,7 +82,7 @@ export default function SellPage() {
         <h1 className="text-4xl font-bold text-center mb-1">Nouvelle pièce en vente</h1>
         <p className="text-center text-zinc-400 mb-10">Vous garderez <span className="font-semibold text-rose-400">75%</span> du prix</p>
 
-        {/* Progress Bar */}
+        {/* Progress */}
         <div className="flex gap-2 mb-10">
           {[1, 2, 3].map((s) => (
             <div key={s} className={`h-1 flex-1 rounded-full ${step >= s ? 'bg-rose-500' : 'bg-zinc-800'}`} />
@@ -115,29 +109,35 @@ export default function SellPage() {
                 className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 text-lg" />
             </div>
 
-            {/* Photos publiques */}
-            <div>
-              <label className="block text-sm text-zinc-400 mb-3">Photos publiques (minimum 3 recommandées)</label>
-              <div className="grid grid-cols-5 gap-3">
-                {publicPhotos.map((photo, i) => (
-                  <img key={i} src={photo} className="aspect-square object-cover rounded-2xl" />
-                ))}
-                <label className="aspect-square border-2 border-dashed border-zinc-700 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-rose-500 transition">
-                  <Camera className="w-8 h-8 mb-2" />
-                  <span className="text-xs">Ajouter</span>
-                  <input type="file" multiple accept="image/*" onChange={handlePublicPhotos} className="hidden" />
-                </label>
+            {/* Photos + Vidéo côte à côte */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Photos publiques */}
+              <div>
+                <label className="block text-sm text-zinc-400 mb-3">Photos publiques (minimum 3 recommandées)</label>
+                <div className="grid grid-cols-4 gap-3">
+                  {publicPhotos.map((photo, i) => (
+                    <img key={i} src={photo} className="aspect-square object-cover rounded-2xl" alt="" />
+                  ))}
+                  <label className="aspect-square border-2 border-dashed border-zinc-700 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-rose-500 transition">
+                    <Camera className="w-8 h-8 mb-2" />
+                    <span className="text-xs">Ajouter</span>
+                    <input type="file" multiple accept="image/*" onChange={handlePublicPhotos} className="hidden" />
+                  </label>
+                </div>
               </div>
-            </div>
 
-            {/* Vidéo optionnelle */}
-            <div>
-              <label className="block text-sm text-zinc-400 mb-2">Vidéo (optionnelle)</label>
-              <label className="block border border-dashed border-zinc-700 rounded-2xl p-8 text-center cursor-pointer hover:border-rose-500">
-                <Video className="w-10 h-10 mx-auto mb-3" />
-                <span>Ajouter une vidéo</span>
-                <input type="file" accept="video/*" onChange={handleVideo} className="hidden" />
-              </label>
+              {/* Vidéo */}
+              <div>
+                <label className="block text-sm text-zinc-400 mb-3">Vidéo (optionnelle)</label>
+                <label className="border border-dashed border-zinc-700 rounded-3xl p-12 flex flex-col items-center justify-center cursor-pointer hover:border-rose-500 h-full min-h-[220px]">
+                  <Video className="w-12 h-12 mb-4 text-zinc-400" />
+                  <span className="text-lg">Ajouter une vidéo</span>
+                  <input type="file" accept="video/*" onChange={handleVideo} className="hidden" />
+                </label>
+                {publicVideo && (
+                  <video src={publicVideo} controls className="mt-4 rounded-2xl w-full" />
+                )}
+              </div>
             </div>
 
             {/* Description */}
@@ -159,7 +159,7 @@ export default function SellPage() {
             {/* Message vocal */}
             <div>
               <label className="block text-sm text-zinc-400 mb-2">Message vocal (optionnel)</label>
-              <label className="border border-dashed border-zinc-700 rounded-2xl p-8 flex flex-col items-center cursor-pointer hover:border-rose-500">
+              <label className="border border-dashed border-zinc-700 rounded-3xl p-8 flex flex-col items-center cursor-pointer hover:border-rose-500">
                 <Mic className="w-10 h-10 mb-3" />
                 <span>Ajouter un message vocal</span>
                 <input type="file" accept="audio/*" onChange={handleVoice} className="hidden" />
@@ -232,7 +232,7 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* Step 2 et Step 3 à remettre si besoin (dis-le moi) */}
+        {/* Step 2 et Step 3 à ajouter si tu veux, dis-le moi */}
       </main>
     </div>
   );
