@@ -53,9 +53,30 @@ export default function CreatorEditPage() {
     setPendingReviews(reviews || []);
   }, [user, supabase]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-  // Validation des commentaires
+  // Toast photo refusée - ne réapparaît plus après fermeture
+  useEffect(() => {
+    if (!profile) return;
+
+    const dismissedKey = `dismissed_rejected_toast_${user?.id}`;
+
+    if ((profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') 
+        && !localStorage.getItem(dismissedKey)) {
+      setToast({ message: "Une de vos photos a été refusée", type: 'error', link: "/guidelines" });
+    }
+  }, [profile, user]);
+
+  const closeToast = () => {
+    if (toast?.type === 'error') {
+      const dismissedKey = `dismissed_rejected_toast_${user?.id}`;
+      localStorage.setItem(dismissedKey, 'true');
+    }
+    setToast(null);
+  };
+
   const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
     const { error } = await supabase
       .from('reviews')
@@ -72,20 +93,6 @@ export default function CreatorEditPage() {
       loadData();
     }
   };
-
-  // Toast photo refusée
-  useEffect(() => {
-    if (!profile) return;
-    if (profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') {
-      setToast({ message: "Une de vos photos a été refusée", type: 'error', link: "/guidelines" });
-      return;
-    }
-    if ((profile.avatar_status === 'approved' || profile.banner_status === 'approved') && 
-        !sessionStorage.getItem('validatedToastShown')) {
-      setToast({ message: "✅ Une de vos photos a été validée par l'équipe", type: 'success' });
-      sessionStorage.setItem('validatedToastShown', 'true');
-    }
-  }, [profile]);
 
   const saveProfile = async (updates: any) => {
     if (!user) return;
@@ -151,8 +158,6 @@ export default function CreatorEditPage() {
     setToast({ message: `📸 Photo de ${type} envoyée en attente`, type: 'success' });
     loadData();
   };
-
-  const closeToast = () => setToast(null);
 
   if (!user || !profile) {
     return <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center pt-20">Chargement...</div>;
@@ -224,18 +229,8 @@ export default function CreatorEditPage() {
                     <div key={r.id} className="bg-zinc-900 rounded-3xl p-6">
                       <p className="italic">"{r.comment}"</p>
                       <div className="flex gap-3 mt-4">
-                        <button 
-                          onClick={() => validateComment(r.id, 'approved')}
-                          className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-2xl font-medium flex items-center justify-center gap-2"
-                        >
-                          ✅ Valider
-                        </button>
-                        <button 
-                          onClick={() => validateComment(r.id, 'rejected')}
-                          className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-2xl font-medium flex items-center justify-center gap-2"
-                        >
-                          ❌ Rejeter
-                        </button>
+                        <button onClick={() => validateComment(r.id, 'approved')} className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-2xl">✅ Valider</button>
+                        <button onClick={() => validateComment(r.id, 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-2xl">❌ Rejeter</button>
                       </div>
                     </div>
                   ))
