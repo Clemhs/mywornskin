@@ -18,14 +18,14 @@ export default function SellPage() {
   const [verificationPhotos, setVerificationPhotos] = useState<string[]>([]);
   const [publicVideo, setPublicVideo] = useState<string>('');
 
-  // Nouveaux champs
+  // Champs
   const [category, setCategory] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [story, setStory] = useState('');
   const [voiceRecording, setVoiceRecording] = useState<string>('');
 
-  // Tarification avec activation
+  // Tarification
   const [price1Day, setPrice1Day] = useState('');
   const [offer2Days, setOffer2Days] = useState(false);
   const [price2Days, setPrice2Days] = useState('');
@@ -36,8 +36,8 @@ export default function SellPage() {
 
   const categories = [
     "Culotte", "String", "Soutien-gorge", "Bas / Collants",
-    "Bodystocking", "Robe", "Chemise / Haut", "Short / Jupe",
-    "Autre"
+    "Robe", "Chemise / Haut", "Short / Jupe",
+    "Chaussures", "Semelles", "Autre"
   ];
 
   const handlePublicPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,7 +85,7 @@ export default function SellPage() {
     setIsSubmitting(true);
 
     try {
-      // Uploads + insert (identique à la version précédente)
+      // Uploads et insertion (identique à avant)
       const publicImageUrls: string[] = [];
       for (let i = 0; i < publicPhotos.length; i++) {
         const response = await fetch(publicPhotos[i]);
@@ -159,7 +159,7 @@ export default function SellPage() {
               <select 
                 value={category} 
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white"
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5 text-white"
               >
                 <option value="">Choisir un type...</option>
                 {categories.map(cat => (
@@ -171,7 +171,7 @@ export default function SellPage() {
             {/* Titre */}
             <div>
               <label className="block text-sm text-zinc-400 mb-1.5">Titre de la pièce *</label>
-              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3" placeholder="Culotte en dentelle noire" />
+              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5" placeholder="Culotte en dentelle noire portée 2 jours" />
             </div>
 
             {/* Photos + Vidéo */}
@@ -225,30 +225,30 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Tarification compacte */}
+            {/* Nouvelle section Tarification */}
             <div className="bg-zinc-900 rounded-3xl p-6">
               <h3 className="font-semibold mb-5">Tarification</h3>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <input type="number" value={price1Day} onChange={(e) => setPrice1Day(e.target.value)} className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-xl" placeholder="45" />
-                  <span className="text-zinc-400 whitespace-nowrap">€ pour 1 journée</span>
+              <div className="space-y-5">
+                <div className="flex items-center gap-4 bg-zinc-800 rounded-2xl px-5 py-4">
+                  <input type="number" value={price1Day} onChange={(e) => setPrice1Day(e.target.value)} className="flex-1 bg-transparent text-2xl font-semibold focus:outline-none" placeholder="45" />
+                  <span className="text-zinc-400">€ pour 1 journée</span>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <input type="checkbox" checked={offer2Days} onChange={(e) => setOffer2Days(e.target.checked)} className="w-5 h-5 accent-rose-500" />
-                  <input type="number" value={price2Days} onChange={(e) => setPrice2Days(e.target.value)} disabled={!offer2Days} className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-xl" placeholder="75" />
+                  <input type="number" value={price2Days} onChange={(e) => setPrice2Days(e.target.value)} disabled={!offer2Days} className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-xl" placeholder="75" />
                   <span className="text-zinc-400 whitespace-nowrap">€ pour 2 journées</span>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <input type="checkbox" checked={offer3Days} onChange={(e) => setOffer3Days(e.target.checked)} className="w-5 h-5 accent-rose-500" />
-                  <input type="number" value={price3Days} onChange={(e) => setPrice3Days(e.target.value)} disabled={!offer3Days} className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-xl" placeholder="100" />
+                  <input type="number" value={price3Days} onChange={(e) => setPrice3Days(e.target.value)} disabled={!offer3Days} className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-xl" placeholder="100" />
                   <span className="text-zinc-400 whitespace-nowrap">€ pour 3 journées</span>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <input type="checkbox" checked={offerExtraDay} onChange={(e) => setOfferExtraDay(e.target.checked)} className="w-5 h-5 accent-rose-500" />
-                  <input type="number" value={extraDayPrice} onChange={(e) => setExtraDayPrice(e.target.value)} disabled={!offerExtraDay} className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-xl" placeholder="25" />
+                  <input type="number" value={extraDayPrice} onChange={(e) => setExtraDayPrice(e.target.value)} disabled={!offerExtraDay} className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-xl" placeholder="25" />
                   <span className="text-zinc-400 whitespace-nowrap">€ par journée supp.</span>
                 </div>
               </div>
@@ -260,7 +260,7 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* Step 2 et Step 3 restent identiques à la version précédente (je te les remets si besoin) */}
+        {/* Step 2 et Step 3 restent identiques (je peux te les renvoyer si besoin) */}
       </main>
     </div>
   );
