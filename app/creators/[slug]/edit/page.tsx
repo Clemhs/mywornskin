@@ -14,13 +14,11 @@ export default function CreatorEditPage() {
   const [pendingReviews, setPendingReviews] = useState<any[]>([]);
   const [salesBadge, setSalesBadge] = useState<number | null>(null);
   const [frame, setFrame] = useState<string | null>(null);
-
   const [bio, setBio] = useState('');
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
   const [size, setSize] = useState('');
   const [shoeSize, setShoeSize] = useState('');
-
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; link?: string } | null>(null);
 
   const availableSalesBadges = [10, 50, 100, 500];
@@ -33,13 +31,7 @@ export default function CreatorEditPage() {
   const loadData = useCallback(async () => {
     if (!user) return;
 
-    const { data: prof, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
-    if (error) console.error("Erreur loadData:", error);
+    const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).single();
 
     if (prof) {
       setProfile(prof);
@@ -57,39 +49,25 @@ export default function CreatorEditPage() {
       .select('*')
       .eq('creator_id', user.id)
       .eq('status', 'pending')
-      .order('created_at', { ascending: false });
-
+      .limit(3);
     setPendingReviews(reviews || []);
   }, [user, supabase]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData]);
 
-  // Toast photo refusée (persisté)
+  // Toast management (photos)
   useEffect(() => {
     if (!profile) return;
-    const dismissedKey = `dismissed_rejected_toast_${user?.id}`;
-
-    if ((profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') 
-        && !localStorage.getItem(dismissedKey)) {
+    if (profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') {
       setToast({ message: "Une de vos photos a été refusée", type: 'error', link: "/guidelines" });
+      return;
     }
-  }, [profile, user]);
-
-  const closeToast = () => {
-    if (toast?.type === 'error') {
-      const dismissedKey = `dismissed_rejected_toast_${user?.id}`;
-      localStorage.setItem(dismissedKey, 'true');
+    if ((profile.avatar_status === 'approved' || profile.banner_status === 'approved') && 
+        !sessionStorage.getItem('validatedToastShown')) {
+      setToast({ message: "✅ Une de vos photos a été validée par l'équipe", type: 'success' });
+      sessionStorage.setItem('validatedToastShown', 'true');
     }
-    setToast(null);
-  };
-
-  const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
-    await supabase.from('reviews').update({ status }).eq('id', reviewId);
-    setToast({ message: status === 'approved' ? "✅ Commentaire validé" : "❌ Commentaire rejeté", type: 'success' });
-    loadData();
-  };
+  }, [profile]);
 
   const saveProfile = async (updates: any) => {
     if (!user) return;
@@ -128,15 +106,13 @@ export default function CreatorEditPage() {
   };
 
   const handleSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSize(value);
-    saveProfile({ size: value });
+    setSize(e.target.value);
+    saveProfile({ size: e.target.value });
   };
 
   const handleShoeSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setShoeSize(value);
-    saveProfile({ shoe_size: value });
+    setShoeSize(e.target.value);
+    saveProfile({ shoe_size: e.target.value });
   };
 
   const uploadImage = async (file: File, type: 'avatar' | 'banner') => {
@@ -153,9 +129,12 @@ export default function CreatorEditPage() {
       : { banner_pending_url: publicUrl, banner_status: 'pending' as const };
 
     await supabase.from('profiles').update(updateData).eq('id', user.id);
+
     setToast({ message: `📸 Photo de ${type} envoyée en attente`, type: 'success' });
     loadData();
   };
+
+  const closeToast = () => setToast(null);
 
   if (!user || !profile) {
     return <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center pt-20">Chargement...</div>;
@@ -188,9 +167,34 @@ export default function CreatorEditPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* APERÇU */}
+          {/* APERÇU EN DIRECT */}
           <div className="lg:col-span-5 space-y-8">
-            {/* ... ton code d'aperçu existant ... */}
+            <div>
+              <h2 className="text-xl mb-4">Aperçu en direct</h2>
+              <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
+                <img 
+                  src={profile.banner_pending_url || profile.banner_url || "https://picsum.photos/id/1015/1200/400"} 
+                  alt="Bannière" 
+                  className="w-full h-full object-cover" 
+                />
+                {isBannerPending && (
+                  <div className="absolute top-4 right-4 bg-amber-500 text-black text-sm px-4 py-1 rounded-full flex items-center gap-2 font-medium">
+                    <Clock size={16} /> En attente de validation
+                  </div>
+                )}
+                <div className="absolute bottom-8 left-8">
+                  <div className="relative">
+                    <img 
+                      src={profile.avatar_pending_url || profile.avatar_url || "https://picsum.photos/id/64/300/300"} 
+                      alt="Avatar" 
+                      className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" 
+                    />
+                    {frame && <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />}
+                    {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-14 h-14" alt="Badge" />}
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <div>
               <h2 className="text-xl mb-4">Commentaires à valider ({pendingReviews.length})</h2>
@@ -201,10 +205,9 @@ export default function CreatorEditPage() {
                   pendingReviews.map(r => (
                     <div key={r.id} className="bg-zinc-900 rounded-3xl p-6">
                       <p className="italic">"{r.comment}"</p>
-                      <p className="text-sm text-zinc-500 mt-2">- {r.reviewer_name || 'Client anonyme'}</p>
-                      <div className="flex gap-3 mt-6">
-                        <button onClick={() => validateComment(r.id, 'approved')} className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-2xl">✅ Valider</button>
-                        <button onClick={() => validateComment(r.id, 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-2xl">❌ Rejeter</button>
+                      <div className="flex gap-3 mt-4">
+                        <button onClick={() => validateComment(r.id, 'approved')} className="flex-1 bg-emerald-600 py-3 rounded-2xl">✅ Valider</button>
+                        <button onClick={() => validateComment(r.id, 'rejected')} className="flex-1 bg-red-600 py-3 rounded-2xl">❌ Rejeter</button>
                       </div>
                     </div>
                   ))
@@ -215,7 +218,6 @@ export default function CreatorEditPage() {
 
           {/* COLONNE DROITE */}
           <div className="lg:col-span-7 space-y-10">
-            {/* Images */}
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
               <div className="grid grid-cols-2 gap-6">
@@ -233,7 +235,6 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Informations personnelles */}
             <div>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl">Informations personnelles</h2>
@@ -244,7 +245,7 @@ export default function CreatorEditPage() {
               <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 space-y-5">
                 <div>
                   <label className="block text-sm text-zinc-400 mb-1.5">Bio</label>
-                  <textarea value={bio} onChange={handleBioChange} rows={3} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-pink-500" placeholder="Présente-toi..." />
+                  <textarea value={bio} onChange={handleBioChange} rows={3} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-pink-500" placeholder="Présente-toi en quelques lignes..." />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -261,29 +262,16 @@ export default function CreatorEditPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-zinc-400 mb-1.5">Taille vêtements</label>
-                    <input 
-                      type="text" 
-                      value={size} 
-                      onChange={handleSizeChange} 
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-pink-500" 
-                      placeholder="S, M, 38..." 
-                    />
+                    <input type="text" value={size} onChange={handleSizeChange} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-pink-500" placeholder="S, M, 38..." />
                   </div>
                   <div>
                     <label className="block text-sm text-zinc-400 mb-1.5">Pointure</label>
-                    <input 
-                      type="text" 
-                      value={shoeSize} 
-                      onChange={handleShoeSizeChange} 
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-pink-500" 
-                      placeholder="38, 39..." 
-                    />
+                    <input type="text" value={shoeSize} onChange={handleShoeSizeChange} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-pink-500" placeholder="38, 39..." />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Badges, Cadres, Boutique (inchangés) */}
             <div>
               <h2 className="text-xl mb-4">Badges de ventes</h2>
               <div className="flex gap-6 overflow-x-auto pb-6">
