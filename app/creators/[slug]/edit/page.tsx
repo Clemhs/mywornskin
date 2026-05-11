@@ -55,37 +55,24 @@ export default function CreatorEditPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // Validation des commentaires
-  const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
-    const { error } = await supabase
-      .from('reviews')
-      .update({ status })
-      .eq('id', reviewId);
-
-    if (error) {
-      setToast({ message: "Erreur lors de la validation", type: 'error' });
-    } else {
-      setToast({ 
-        message: status === 'approved' ? "✅ Commentaire validé" : "❌ Commentaire rejeté", 
-        type: 'success' 
-      });
-      loadData();
-    }
-  };
-
-  // Toast management
+  // Toast photo refusée - Persistant après fermeture
   useEffect(() => {
     if (!profile) return;
-    if (profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') {
+    const dismissedKey = `dismissed_rejected_toast_${user?.id}`;
+
+    if ((profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') 
+        && !localStorage.getItem(dismissedKey)) {
       setToast({ message: "Une de vos photos a été refusée", type: 'error', link: "/guidelines" });
-      return;
     }
-    if ((profile.avatar_status === 'approved' || profile.banner_status === 'approved') && 
-        !sessionStorage.getItem('validatedToastShown')) {
-      setToast({ message: "✅ Une de vos photos a été validée par l'équipe", type: 'success' });
-      sessionStorage.setItem('validatedToastShown', 'true');
+  }, [profile, user]);
+
+  const closeToast = () => {
+    if (toast?.type === 'error') {
+      const dismissedKey = `dismissed_rejected_toast_${user?.id}`;
+      localStorage.setItem(dismissedKey, 'true');
     }
-  }, [profile]);
+    setToast(null);
+  };
 
   const saveProfile = async (updates: any) => {
     if (!user) return;
@@ -152,7 +139,7 @@ export default function CreatorEditPage() {
     loadData();
   };
 
-  const closeToast = () => setToast(null);
+  const closeToastHandler = () => setToast(null); // renamed to avoid conflict
 
   if (!user || !profile) {
     return <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center pt-20">Chargement...</div>;
@@ -178,7 +165,7 @@ export default function CreatorEditPage() {
             ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'} text-white`}>
             <span>{toast.message}</span>
             {toast.link && <Link href={toast.link} className="underline text-sm ml-2">Guidelines →</Link>}
-            <button onClick={closeToast} className="ml-auto p-1 hover:bg-white/20 rounded-full">
+            <button onClick={closeToastHandler} className="ml-auto p-1 hover:bg-white/20 rounded-full">
               <X size={18} />
             </button>
           </div>
@@ -224,18 +211,8 @@ export default function CreatorEditPage() {
                     <div key={r.id} className="bg-zinc-900 rounded-3xl p-6">
                       <p className="italic">"{r.comment}"</p>
                       <div className="flex gap-3 mt-4">
-                        <button 
-                          onClick={() => validateComment(r.id, 'approved')}
-                          className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-2xl font-medium flex items-center justify-center gap-2"
-                        >
-                          ✅ Valider
-                        </button>
-                        <button 
-                          onClick={() => validateComment(r.id, 'rejected')}
-                          className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-2xl font-medium flex items-center justify-center gap-2"
-                        >
-                          ❌ Rejeter
-                        </button>
+                        <button onClick={() => validateComment(r.id, 'approved')} className="flex-1 bg-emerald-600 py-3 rounded-2xl">✅ Valider</button>
+                        <button onClick={() => validateComment(r.id, 'rejected')} className="flex-1 bg-red-600 py-3 rounded-2xl">❌ Rejeter</button>
                       </div>
                     </div>
                   ))
