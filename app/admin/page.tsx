@@ -12,6 +12,7 @@ export default function AdminPage() {
   const [reportFilter, setReportFilter] = useState<'pending' | 'reviewed' | 'dismissed' | 'all'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'most'>('newest');
+  const [refreshKey, setRefreshKey] = useState(0);   // ← Ajouté ici
 
   const [pendingPhotos, setPendingPhotos] = useState<any[]>([]);
   const [refusedReviews, setRefusedReviews] = useState<any[]>([]);
@@ -73,7 +74,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     loadData();
-  }, [activeTab]);
+  }, [activeTab, refreshKey]);
 
   // Memo pour les refus par créatrice
   const creatorRefusalCounts = useMemo(() => {
@@ -88,7 +89,6 @@ export default function AdminPage() {
   const filteredAndSortedReports = useMemo(() => {
     let result = [...reports];
 
-    // Recherche
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
       result = result.filter(report => 
@@ -97,12 +97,10 @@ export default function AdminPage() {
       );
     }
 
-    // Filtre par statut
     if (reportFilter !== 'all') {
       result = result.filter(r => r.status === reportFilter);
     }
 
-    // Tri
     if (sortBy === 'newest') {
       result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     } else if (sortBy === 'oldest') {
@@ -131,7 +129,7 @@ export default function AdminPage() {
     return Object.values(grouped);
   }, [filteredAndSortedReports]);
 
-  // ACTIONS SIGNALEMENTS
+  // ACTIONS
   const markReportAsReviewed = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
     if (error) showToast("Erreur", "error");
@@ -146,13 +144,13 @@ export default function AdminPage() {
   };
 
   const deleteReport = async (reportId: string) => {
-    if (!confirm("Supprimer définitivement ce signalement ?")) return;
+    if (!confirm("Supprimer définitivement ?")) return;
     await supabase.from('reports').delete().eq('id', reportId);
     setRefreshKey(k => k + 1);
     showToast("Signalement supprimé");
   };
 
-  // === FONCTIONS ORIGINALES (Photos + Commentaires) ===
+  // FONCTIONS ORIGINALES
   const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
     const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
@@ -222,10 +220,9 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* ==================== SIGNALEMENTS ==================== */}
+        {/* SIGNALEMENTS AMÉLIORÉS */}
         {activeTab === 'reports' && (
           <div>
-            {/* Barre de recherche + filtres */}
             <div className="flex flex-col md:flex-row gap-4 mb-8">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-3.5 text-zinc-500" size={20} />
@@ -238,21 +235,13 @@ export default function AdminPage() {
                 />
               </div>
 
-              <select 
-                value={sortBy} 
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5"
-              >
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5">
                 <option value="newest">Plus récents</option>
                 <option value="oldest">Plus anciens</option>
                 <option value="most">Plus de signalements</option>
               </select>
 
-              <select 
-                value={reportFilter} 
-                onChange={(e) => setReportFilter(e.target.value as any)} 
-                className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5"
-              >
+              <select value={reportFilter} onChange={(e) => setReportFilter(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5">
                 <option value="pending">En attente</option>
                 <option value="reviewed">Traités</option>
                 <option value="dismissed">Ignorés</option>
@@ -260,7 +249,6 @@ export default function AdminPage() {
               </select>
             </div>
 
-            {/* Liste */}
             {reports.length === 0 ? (
               <p className="text-zinc-500 text-xl py-12">Aucun signalement pour le moment.</p>
             ) : (
