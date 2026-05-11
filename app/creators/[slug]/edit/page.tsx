@@ -58,6 +58,30 @@ export default function CreatorEditPage() {
     loadData();
   }, [loadData]);
 
+  // ==================== GESTION TOAST PHOTO REFUSÉE ====================
+  useEffect(() => {
+    if (!profile) return;
+
+    const hasRejectedPhoto = profile.avatar_status === 'rejected' || profile.banner_status === 'rejected';
+    const dismissedKey = `dismissed_rejected_toast_${user?.id}`;
+
+    if (hasRejectedPhoto && !localStorage.getItem(dismissedKey)) {
+      setToast({ 
+        message: "Une de vos photos a été refusée", 
+        type: 'error', 
+        link: "/guidelines" 
+      });
+    }
+  }, [profile, user]);
+
+  const closeToast = () => {
+    if (toast?.type === 'error') {
+      const dismissedKey = `dismissed_rejected_toast_${user?.id}`;
+      localStorage.setItem(dismissedKey, 'true');
+    }
+    setToast(null);
+  };
+
   // Validation des commentaires
   const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
     const { error } = await supabase
@@ -72,23 +96,9 @@ export default function CreatorEditPage() {
         message: status === 'approved' ? "✅ Commentaire validé" : "❌ Commentaire rejeté", 
         type: 'success' 
       });
-      loadData(); // Rafraîchit la liste
+      loadData();
     }
   };
-
-  // Toast management pour les photos
-  useEffect(() => {
-    if (!profile) return;
-    if (profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') {
-      setToast({ message: "Une de vos photos a été refusée", type: 'error', link: "/guidelines" });
-      return;
-    }
-    if ((profile.avatar_status === 'approved' || profile.banner_status === 'approved') && 
-        !sessionStorage.getItem('validatedToastShown')) {
-      setToast({ message: "✅ Une de vos photos a été validée par l'équipe", type: 'success' });
-      sessionStorage.setItem('validatedToastShown', 'true');
-    }
-  }, [profile]);
 
   const saveProfile = async (updates: any) => {
     if (!user) return;
@@ -154,8 +164,6 @@ export default function CreatorEditPage() {
     setToast({ message: `📸 Photo de ${type} envoyée en attente`, type: 'success' });
     loadData();
   };
-
-  const closeToast = () => setToast(null);
 
   if (!user || !profile) {
     return <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center pt-20">Chargement...</div>;
@@ -228,7 +236,6 @@ export default function CreatorEditPage() {
                     <div key={r.id} className="bg-zinc-900 rounded-3xl p-6">
                       <p className="italic">"{r.comment}"</p>
                       <p className="text-sm text-zinc-500 mt-2">- {r.reviewer_name || 'Client anonyme'}</p>
-                      
                       <div className="flex gap-3 mt-6">
                         <button 
                           onClick={() => validateComment(r.id, 'approved')}
@@ -250,7 +257,7 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* COLONNE DROITE */}
+          {/* COLONNE DROITE - Tout le reste identique à ton code original */}
           <div className="lg:col-span-7 space-y-10">
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
@@ -279,13 +286,7 @@ export default function CreatorEditPage() {
               <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 space-y-5">
                 <div>
                   <label className="block text-sm text-zinc-400 mb-1.5">Bio</label>
-                  <textarea 
-                    value={bio} 
-                    onChange={handleBioChange} 
-                    rows={3} 
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-pink-500" 
-                    placeholder="Présente-toi en quelques lignes..."
-                  />
+                  <textarea value={bio} onChange={handleBioChange} rows={3} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-pink-500" placeholder="Présente-toi en quelques lignes..." />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
