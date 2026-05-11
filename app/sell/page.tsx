@@ -150,7 +150,7 @@ export default function SellPage() {
           <div className="space-y-8">
             {/* Type d'article, Titre, Photos, Description, Histoire, Vocal (inchangés) */}
 
-            {/* TARIFICATION FINALE */}
+            {/* TARIFICATION FINALE ET ÉQUILIBRÉE */}
             <div className="bg-zinc-900 rounded-3xl p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="font-semibold">Tarification</h3>
@@ -169,7 +169,7 @@ export default function SellPage() {
                       className="flex-1 bg-transparent text-2xl font-semibold focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                       placeholder="45" 
                     />
-                    <span className="text-zinc-400 ml-2">€</span>
+                    <span className="text-zinc-400 ml-2 font-medium">€</span>
                   </div>
                 </div>
 
@@ -188,7 +188,7 @@ export default function SellPage() {
                       className={`flex-1 bg-transparent text-2xl font-semibold focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!offer2Days ? 'opacity-40' : ''}`} 
                       placeholder="75" 
                     />
-                    <span className="text-zinc-400 ml-2">€</span>
+                    <span className="text-zinc-400 ml-2 font-medium">€</span>
                   </div>
                 </div>
 
@@ -207,7 +207,7 @@ export default function SellPage() {
                       className={`flex-1 bg-transparent text-2xl font-semibold focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!offerExtraDay ? 'opacity-40' : ''}`} 
                       placeholder="25" 
                     />
-                    <span className="text-zinc-400 ml-2">€ / jour</span>
+                    <span className="text-zinc-400 ml-2 font-medium">€</span>
                   </div>
                 </div>
               </div>
@@ -219,7 +219,7 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* Step 2 et Step 3 restent identiques */}
+        {/* Step 2 et Step 3 (identiques) */}
       </main>
     </div>
   );
