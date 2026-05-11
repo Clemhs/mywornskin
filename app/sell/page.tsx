@@ -12,11 +12,11 @@ export default function SellPage() {
   const [verificationPhotos, setVerificationPhotos] = useState<string[]>([]);
   const [publicVideo, setPublicVideo] = useState<string>('');
 
-  // === NOUVEAU : Tarification ===
+  // Tarification
   const [price1Day, setPrice1Day] = useState('');
   const [price2Days, setPrice2Days] = useState('');
   const [price3Days, setPrice3Days] = useState('');
-  const [extraDayPrice, setExtraDayPrice] = useState(''); // majoration par journée supplémentaire
+  const [extraDayPrice, setExtraDayPrice] = useState('');
 
   const handlePublicPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -95,20 +95,14 @@ export default function SellPage() {
               </div>
             )}
 
-            {/* === TARIFICATION === */}
+            {/* Tarification */}
             <div className="mt-12">
               <h3 className="text-xl font-semibold mb-6">Tarification de la pièce</h3>
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
                   <label className="block text-sm text-zinc-400 mb-2">Prix pour <span className="text-rose-400">1 journée</span> portée</label>
                   <div className="relative">
-                    <input 
-                      type="number" 
-                      value={price1Day}
-                      onChange={(e) => setPrice1Day(e.target.value)}
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" 
-                      placeholder="45" 
-                    />
+                    <input type="number" value={price1Day} onChange={(e) => setPrice1Day(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" placeholder="45" />
                     <span className="absolute right-6 top-1/2 -translate-y-1/2 text-3xl text-zinc-400">€</span>
                   </div>
                 </div>
@@ -116,13 +110,7 @@ export default function SellPage() {
                 <div>
                   <label className="block text-sm text-zinc-400 mb-2">Prix pour <span className="text-rose-400">2 journées</span></label>
                   <div className="relative">
-                    <input 
-                      type="number" 
-                      value={price2Days}
-                      onChange={(e) => setPrice2Days(e.target.value)}
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" 
-                      placeholder="75" 
-                    />
+                    <input type="number" value={price2Days} onChange={(e) => setPrice2Days(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" placeholder="75" />
                     <span className="absolute right-6 top-1/2 -translate-y-1/2 text-3xl text-zinc-400">€</span>
                   </div>
                 </div>
@@ -130,30 +118,17 @@ export default function SellPage() {
                 <div>
                   <label className="block text-sm text-zinc-400 mb-2">Prix pour <span className="text-rose-400">3 journées</span></label>
                   <div className="relative">
-                    <input 
-                      type="number" 
-                      value={price3Days}
-                      onChange={(e) => setPrice3Days(e.target.value)}
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" 
-                      placeholder="100" 
-                    />
+                    <input type="number" value={price3Days} onChange={(e) => setPrice3Days(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" placeholder="100" />
                     <span className="absolute right-6 top-1/2 -translate-y-1/2 text-3xl text-zinc-400">€</span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm text-zinc-400 mb-2">Majoration par journée supplémentaire (optionnel)</label>
+                  <label className="block text-sm text-zinc-400 mb-2">Majoration par journée supplémentaire</label>
                   <div className="relative">
-                    <input 
-                      type="number" 
-                      value={extraDayPrice}
-                      onChange={(e) => setExtraDayPrice(e.target.value)}
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" 
-                      placeholder="25" 
-                    />
+                    <input type="number" value={extraDayPrice} onChange={(e) => setExtraDayPrice(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" placeholder="25" />
                     <span className="absolute right-6 top-1/2 -translate-y-1/2 text-3xl text-zinc-400">€</span>
                   </div>
-                  <p className="text-xs text-zinc-500 mt-2">Ex : +25€ par jour après le 3ème</p>
                 </div>
               </div>
             </div>
@@ -181,21 +156,7 @@ export default function SellPage() {
                 <span>Je ne souhaite pas montrer mon visage</span>
               </label>
 
-              {noFace && (
-                <div className="mb-10 p-6 bg-zinc-800 border border-amber-400/30 rounded-2xl">
-                  <p className="font-medium mb-4">Pour valider votre pièce sans visage, merci de fournir :</p>
-                  <ul className="list-disc list-inside space-y-2 text-sm text-zinc-300">
-                    <li>Plusieurs angles du vêtement porté (face, dos, côtés, détails)</li>
-                    <li>Une marque distinctive visible (tatouage, bijou, vernis à ongles, piercing, cicatrice…)</li>
-                    <li>Une photo avec un papier indiquant clairement la date du jour</li>
-                  </ul>
-                  <p className="mt-6 text-amber-400 text-sm">
-                    La vérification pourra prendre un peu plus de temps sans photo du visage, mais reste tout à fait possible.
-                  </p>
-                </div>
-              )}
-
-              <div className="border-2 border-dashed border-emerald-500/40 rounded-3xl p-12 text-center hover:border-emerald-400 transition-colors cursor-pointer">
+              <div className="border-2 border-dashed border-emerald-500/40 rounded-3xl p-12 text-center hover:border-emerald-400 transition-colors cursor-pointer mb-8">
                 <input type="file" multiple accept="image/*" onChange={handleVerificationPhotos} className="hidden" id="verif" />
                 <label htmlFor="verif" className="cursor-pointer">
                   <ShieldCheck className="w-14 h-14 mx-auto mb-4 text-emerald-400" />
@@ -203,6 +164,18 @@ export default function SellPage() {
                   <p className="text-sm text-zinc-400 mt-2">Vous portant le vêtement (strictement confidentiel)</p>
                 </label>
               </div>
+
+              {/* === APERÇU DES PHOTOS DE VÉRIFICATION === */}
+              {verificationPhotos.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-emerald-400 text-sm mb-3">Photos de vérification ajoutées ({verificationPhotos.length}) :</p>
+                  <div className="grid grid-cols-4 gap-4">
+                    {verificationPhotos.map((img, i) => (
+                      <img key={i} src={img} className="rounded-2xl aspect-square object-cover border border-emerald-500/30" />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-8 text-sm text-zinc-400 bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
                 <strong className="text-rose-400">Pourquoi cette vérification Real Worn est importante ?</strong><br />
@@ -226,8 +199,8 @@ export default function SellPage() {
               Notre équipe vérifie les photos Real Worn pour garantir la qualité et l’authenticité.<br /><br />
               Vous serez notifié dès que l’annonce sera publiée.
             </p>
-            <Link href="/shop" className="mt-12 inline-block px-12 py-5 bg-white text-black rounded-3xl font-semibold text-lg">
-              Retour à la boutique
+            <Link href="/creators/me" className="mt-12 inline-block px-12 py-5 bg-white text-black rounded-3xl font-semibold text-lg">
+              Retour à mon profil
             </Link>
           </div>
         )}
