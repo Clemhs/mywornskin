@@ -12,6 +12,12 @@ export default function SellPage() {
   const [verificationPhotos, setVerificationPhotos] = useState<string[]>([]);
   const [publicVideo, setPublicVideo] = useState<string>('');
 
+  // === NOUVEAU : Tarification ===
+  const [price1Day, setPrice1Day] = useState('');
+  const [price2Days, setPrice2Days] = useState('');
+  const [price3Days, setPrice3Days] = useState('');
+  const [extraDayPrice, setExtraDayPrice] = useState(''); // majoration par journée supplémentaire
+
   const handlePublicPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     files.forEach(file => {
@@ -89,7 +95,70 @@ export default function SellPage() {
               </div>
             )}
 
-            <button onClick={() => setStep(2)} className="w-full py-5 bg-rose-500 hover:bg-rose-600 rounded-3xl text-lg font-semibold">
+            {/* === TARIFICATION === */}
+            <div className="mt-12">
+              <h3 className="text-xl font-semibold mb-6">Tarification de la pièce</h3>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-2">Prix pour <span className="text-rose-400">1 journée</span> portée</label>
+                  <div className="relative">
+                    <input 
+                      type="number" 
+                      value={price1Day}
+                      onChange={(e) => setPrice1Day(e.target.value)}
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" 
+                      placeholder="45" 
+                    />
+                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-3xl text-zinc-400">€</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-2">Prix pour <span className="text-rose-400">2 journées</span></label>
+                  <div className="relative">
+                    <input 
+                      type="number" 
+                      value={price2Days}
+                      onChange={(e) => setPrice2Days(e.target.value)}
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" 
+                      placeholder="75" 
+                    />
+                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-3xl text-zinc-400">€</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-2">Prix pour <span className="text-rose-400">3 journées</span></label>
+                  <div className="relative">
+                    <input 
+                      type="number" 
+                      value={price3Days}
+                      onChange={(e) => setPrice3Days(e.target.value)}
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" 
+                      placeholder="100" 
+                    />
+                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-3xl text-zinc-400">€</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-2">Majoration par journée supplémentaire (optionnel)</label>
+                  <div className="relative">
+                    <input 
+                      type="number" 
+                      value={extraDayPrice}
+                      onChange={(e) => setExtraDayPrice(e.target.value)}
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" 
+                      placeholder="25" 
+                    />
+                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-3xl text-zinc-400">€</span>
+                  </div>
+                  <p className="text-xs text-zinc-500 mt-2">Ex : +25€ par jour après le 3ème</p>
+                </div>
+              </div>
+            </div>
+
+            <button onClick={() => setStep(2)} className="w-full py-5 bg-rose-500 hover:bg-rose-600 rounded-3xl text-lg font-semibold mt-8">
               Continuer
             </button>
           </div>
