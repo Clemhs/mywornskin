@@ -40,8 +40,8 @@ export default function CreatorEditPage() {
       setBio(prof.bio || '');
       setCountry(prof.country || '');
       setCity(prof.city || '');
-      setSize(prof.size || '');           // ← Corrigé
-      setShoeSize(prof.shoe_size || '');  // ← Corrigé
+      setSize(prof.size || '');
+      setShoeSize(prof.shoe_size || '');
     }
 
     const { data: reviews } = await supabase
@@ -55,7 +55,25 @@ export default function CreatorEditPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // Toast management (photos)
+  // Validation des commentaires
+  const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
+    const { error } = await supabase
+      .from('reviews')
+      .update({ status })
+      .eq('id', reviewId);
+
+    if (error) {
+      setToast({ message: "Erreur lors de la validation", type: 'error' });
+    } else {
+      setToast({ 
+        message: status === 'approved' ? "✅ Commentaire validé" : "❌ Commentaire rejeté", 
+        type: 'success' 
+      });
+      loadData();
+    }
+  };
+
+  // Toast management
   useEffect(() => {
     if (!profile) return;
     if (profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') {
@@ -206,8 +224,18 @@ export default function CreatorEditPage() {
                     <div key={r.id} className="bg-zinc-900 rounded-3xl p-6">
                       <p className="italic">"{r.comment}"</p>
                       <div className="flex gap-3 mt-4">
-                        <button onClick={() => validateComment(r.id, 'approved')} className="flex-1 bg-emerald-600 py-3 rounded-2xl">✅ Valider</button>
-                        <button onClick={() => validateComment(r.id, 'rejected')} className="flex-1 bg-red-600 py-3 rounded-2xl">❌ Rejeter</button>
+                        <button 
+                          onClick={() => validateComment(r.id, 'approved')}
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-2xl font-medium flex items-center justify-center gap-2"
+                        >
+                          ✅ Valider
+                        </button>
+                        <button 
+                          onClick={() => validateComment(r.id, 'rejected')}
+                          className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-2xl font-medium flex items-center justify-center gap-2"
+                        >
+                          ❌ Rejeter
+                        </button>
                       </div>
                     </div>
                   ))
