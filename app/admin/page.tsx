@@ -18,8 +18,6 @@ export default function AdminPage() {
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const [selectedReview, setSelectedReview] = useState<any>(null);
-  const [adminReply, setAdminReply] = useState("");
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -27,29 +25,14 @@ export default function AdminPage() {
   };
 
   const loadData = async () => {
-    if (activeTab === 'photos') {
-      const { data } = await supabase
-        .from('profiles')
-        .select(`id, username, full_name, avatar_url, banner_url, avatar_pending_url, banner_pending_url, avatar_status, banner_status`)
-        .or('avatar_status.eq.pending,banner_status.eq.pending')
-        .order('updated_at', { ascending: false });
-      setPendingPhotos(data || []);
-    }
-
-    if (activeTab === 'reviews') {
-      const { data } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('status', 'rejected')
-        .order('created_at', { ascending: false });
-      setRefusedReviews(data || []);
-    }
-
     if (activeTab === 'reports') {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('reports')
         .select(`*, creator:profiles!creator_id (username, full_name)`)
         .order('created_at', { ascending: false });
+
+      if (error) console.error('❌ Erreur load reports:', error);
+      console.log('📥 Reports chargés:', data?.length, data);
       setReports(data || []);
     }
 
@@ -68,46 +51,55 @@ export default function AdminPage() {
     const grouped: any = {};
     reports.forEach(report => {
       const key = report.creator_id;
-      if (!grouped[key]) {
-        grouped[key] = { creator: report.creator, count: 0, reports: [] };
-      }
+      if (!grouped[key]) grouped[key] = { creator: report.creator, count: 0, reports: [] };
       grouped[key].count++;
       grouped[key].reports.push(report);
     });
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
   }, [reports]);
 
-  // ACTIONS SIGNALEMENTS
   const markReportAsReviewed = async (reportId: string) => {
-    setReports(prev => prev.filter(r => r.id !== reportId));
+    console.log('🟢 markReportAsReviewed - ID:', reportId);
 
-    const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
+    setReports(prev => prev.filter(r => r.id !== reportId)); // optimiste
+
+    const { data, error } = await supabase
+      .from('reports')
+      .update({ status: 'reviewed' })
+      .eq('id', reportId)
+      .select()
+      .single();
+
+    console.log('📤 Résultat update:', { data, error });
 
     if (error) {
-      showToast("Erreur lors de la mise à jour", "error");
+      console.error('❌ Erreur Supabase complète:', error);
+      showToast("Erreur : " + error.message, "error");
       setRefreshKey(k => k + 1);
     } else {
+      console.log('✅ Update réussi ! Nouvelle ligne:', data);
       showToast("✅ Signalement marqué comme traité");
-      setTimeout(() => setRefreshKey(k => k + 1), 400);
+      setTimeout(() => setRefreshKey(k => k + 1), 500);
     }
   };
 
+  // Autres actions simplifiées
   const dismissReport = async (reportId: string) => {
     setReports(prev => prev.filter(r => r.id !== reportId));
     await supabase.from('reports').update({ status: 'dismissed' }).eq('id', reportId);
-    setTimeout(() => setRefreshKey(k => k + 1), 400);
+    setTimeout(() => setRefreshKey(k => k + 1), 500);
     showToast("Signalement ignoré");
   };
 
   const deleteReport = async (reportId: string) => {
-    if (!confirm("Supprimer définitivement ce signalement ?")) return;
+    if (!confirm("Supprimer définitivement ?")) return;
     setReports(prev => prev.filter(r => r.id !== reportId));
     await supabase.from('reports').delete().eq('id', reportId);
-    setTimeout(() => setRefreshKey(k => k + 1), 400);
+    setTimeout(() => setRefreshKey(k => k + 1), 500);
     showToast("Signalement supprimé");
   };
 
-  // FONCTIONS ORIGINALES
+  // === FONCTIONS ORIGINALES (Photos + Commentaires) ===
   const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
     const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
@@ -169,15 +161,9 @@ export default function AdminPage() {
           </button>
           <button onClick={() => setActiveTab('reports')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap relative ${activeTab === 'reports' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <Flag size={22} /> Signalements
-            {pendingReportsCount > 0 && (
-              <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-                {pendingReportsCount}
-              </span>
-            )}
+            {pendingReportsCount > 0 && <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">{pendingReportsCount}</span>}
           </button>
         </div>
-
-        {/* PHOTOS, COMMENTAIRES, SIGNALEMENTS... (le reste est identique à tes versions précédentes) */}
 
         {activeTab === 'reports' && (
           <div key={refreshKey}>
@@ -220,9 +206,7 @@ export default function AdminPage() {
                             <button onClick={() => markReportAsReviewed(report.id)} className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
                               <CheckCircle size={16} /> Marquer comme traité
                             </button>
-                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">
-                              Ignorer
-                            </button>
+                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">Ignorer</button>
                             <button onClick={() => deleteReport(report.id)} className="bg-red-600 hover:bg-red-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
                               <Trash2 size={16} /> Supprimer
                             </button>
@@ -237,7 +221,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* TOAST */}
         {toast && (
           <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
             {toast.type === 'success' && <CheckCircle size={22} />}
