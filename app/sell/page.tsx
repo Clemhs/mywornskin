@@ -148,10 +148,71 @@ export default function SellPage() {
 
         {step === 1 && (
           <div className="space-y-8">
-            {/* Type, Titre, Photos, Description, Histoire, Vocal (inchangés) */}
-            {/* ... (tu peux garder la partie du haut de la version précédente) */}
+            {/* Type d'article */}
+            <div>
+              <label className="block text-sm text-zinc-400 mb-1.5">Type d'article</label>
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5 text-white">
+                <option value="">Choisir un type...</option>
+                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+            </div>
 
-            {/* TARIFICATION COMPACTE ET ÉLÉGANTE */}
+            {/* Titre */}
+            <div>
+              <label className="block text-sm text-zinc-400 mb-1.5">Titre de la pièce *</label>
+              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5" placeholder="Culotte en dentelle noire" />
+            </div>
+
+            {/* Photos + Vidéo */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="border-2 border-dashed border-zinc-700 hover:border-rose-400 rounded-3xl p-8 text-center cursor-pointer">
+                <input type="file" multiple accept="image/*" onChange={handlePublicPhotos} className="hidden" id="public" />
+                <label htmlFor="public" className="cursor-pointer">
+                  <Camera className="w-10 h-10 mx-auto mb-2 text-zinc-400" />
+                  <p className="text-base font-medium">Photos</p>
+                </label>
+              </div>
+              <div className="border-2 border-dashed border-zinc-700 hover:border-rose-400 rounded-3xl p-8 text-center cursor-pointer">
+                <input type="file" accept="video/*" onChange={handleVideo} className="hidden" id="video" />
+                <label htmlFor="video" className="cursor-pointer">
+                  <Video className="w-10 h-10 mx-auto mb-2 text-zinc-400" />
+                  <p className="text-base font-medium">Vidéo</p>
+                </label>
+              </div>
+            </div>
+
+            {publicPhotos.length > 0 && (
+              <div className="grid grid-cols-5 gap-3">
+                {publicPhotos.map((img, i) => <img key={i} src={img} className="rounded-2xl aspect-square object-cover border border-zinc-700" />)}
+              </div>
+            )}
+
+            {/* Description + Histoire + Vocal */}
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1.5">Description</label>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3" placeholder="Portée 2 jours..." />
+              </div>
+
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1.5">Histoire intime</label>
+                <textarea value={story} onChange={(e) => setStory(e.target.value)} rows={4} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3" placeholder="Raconte l'histoire de cette pièce..." />
+              </div>
+
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1.5">Message vocal (optionnel)</label>
+                <div className="border-2 border-dashed border-zinc-700 hover:border-rose-400 rounded-3xl p-6 text-center">
+                  <input type="file" accept="audio/*" onChange={handleVoiceRecording} className="hidden" id="voice" />
+                  <label htmlFor="voice" className="cursor-pointer">
+                    <Mic className="w-9 h-9 mx-auto mb-2 text-zinc-400" />
+                    <p className="text-sm">Ajouter un message vocal</p>
+                  </label>
+                </div>
+                {voiceRecording && <p className="text-emerald-400 text-center text-sm mt-2">✅ Vocal ajouté</p>}
+              </div>
+            </div>
+
+            {/* TARIFICATION CORRIGÉE */}
             <div className="bg-zinc-900 rounded-3xl p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="font-semibold">Tarification</h3>
@@ -163,13 +224,7 @@ export default function SellPage() {
                 <div className="bg-zinc-800 rounded-2xl p-5">
                   <div className="text-rose-400 text-sm mb-2">1 journée</div>
                   <div className="flex items-center bg-zinc-900 rounded-xl px-4 py-3">
-                    <input 
-                      type="number" 
-                      value={price1Day} 
-                      onChange={(e) => setPrice1Day(e.target.value)} 
-                      className="flex-1 bg-transparent text-2xl font-semibold focus:outline-none" 
-                      placeholder="45" 
-                    />
+                    <input type="number" value={price1Day} onChange={(e) => setPrice1Day(e.target.value)} className="flex-1 bg-transparent text-2xl font-semibold focus:outline-none" placeholder="45" />
                     <span className="text-zinc-400 ml-2">€</span>
                   </div>
                 </div>
@@ -181,14 +236,7 @@ export default function SellPage() {
                     <span className={`text-sm ${offer2Days ? 'text-rose-400' : 'text-zinc-400'}`}>2 journées</span>
                   </label>
                   <div className="flex items-center bg-zinc-900 rounded-xl px-4 py-3">
-                    <input 
-                      type="number" 
-                      value={price2Days} 
-                      onChange={(e) => setPrice2Days(e.target.value)} 
-                      disabled={!offer2Days}
-                      className={`flex-1 bg-transparent text-2xl font-semibold focus:outline-none ${!offer2Days ? 'opacity-40' : ''}`} 
-                      placeholder="75" 
-                    />
+                    <input type="number" value={price2Days} onChange={(e) => setPrice2Days(e.target.value)} disabled={!offer2Days} className={`flex-1 bg-transparent text-2xl font-semibold focus:outline-none ${!offer2Days ? 'opacity-40' : ''}`} placeholder="75" />
                     <span className="text-zinc-400 ml-2">€</span>
                   </div>
                 </div>
@@ -200,14 +248,7 @@ export default function SellPage() {
                     <span className={`text-sm ${offerExtraDay ? 'text-rose-400' : 'text-zinc-400'}`}>Jour supp.</span>
                   </label>
                   <div className="flex items-center bg-zinc-900 rounded-xl px-4 py-3">
-                    <input 
-                      type="number" 
-                      value={extraDayPrice} 
-                      onChange={(e) => setExtraDayPrice(e.target.value)} 
-                      disabled={!offerExtraDay}
-                      className={`flex-1 bg-transparent text-2xl font-semibold focus:outline-none ${!offerExtraDay ? 'opacity-40' : ''}`} 
-                      placeholder="25" 
-                    />
+                    <input type="number" value={extraDayPrice} onChange={(e) => setExtraDayPrice(e.target.value)} disabled={!offerExtraDay} className={`flex-1 bg-transparent text-2xl font-semibold focus:outline-none ${!offerExtraDay ? 'opacity-40' : ''}`} placeholder="25" />
                     <span className="text-zinc-400 ml-2">€ / jour</span>
                   </div>
                 </div>
@@ -220,7 +261,70 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* Step 2 et Step 3 restent identiques à la version précédente */}
+        {/* Step 2 - Vérification Real Worn */}
+        {step === 2 && (
+          <div className="space-y-10">
+            <h2 className="text-2xl font-semibold">2. Vérification Real Worn (privée)</h2>
+            <p className="text-zinc-400">Ces éléments permettent de garantir l’authenticité des pièces et de maintenir la confiance de nos acheteurs.</p>
+
+            <div className="bg-zinc-900 rounded-3xl p-10">
+              <label className="flex items-center gap-3 cursor-pointer mb-8 text-lg">
+                <input type="checkbox" checked={noFace} onChange={(e) => setNoFace(e.target.checked)} className="w-5 h-5 accent-rose-500" />
+                <span>Je ne souhaite pas montrer mon visage</span>
+              </label>
+
+              {noFace && (
+                <div className="mb-10 p-6 bg-zinc-800 border border-amber-400/30 rounded-2xl">
+                  <p className="font-medium mb-4">Pour valider votre pièce sans visage, merci de fournir :</p>
+                  <ul className="list-disc list-inside space-y-2 text-sm text-zinc-300">
+                    <li>Plusieurs angles du vêtement porté</li>
+                    <li>Une marque distinctive visible</li>
+                    <li>Une photo avec la date du jour</li>
+                  </ul>
+                </div>
+              )}
+
+              <div className="border-2 border-dashed border-emerald-500/40 rounded-3xl p-12 text-center hover:border-emerald-400 transition-colors cursor-pointer mb-8">
+                <input type="file" multiple accept="image/*" onChange={handleVerificationPhotos} className="hidden" id="verif" />
+                <label htmlFor="verif" className="cursor-pointer">
+                  <ShieldCheck className="w-14 h-14 mx-auto mb-4 text-emerald-400" />
+                  <p className="text-lg font-medium">Ajouter les photos de vérification</p>
+                  <p className="text-sm text-zinc-400 mt-2">Vous portant le vêtement visage visible (strictement confidentiel)</p>
+                </label>
+              </div>
+
+              {verificationPhotos.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-emerald-400 text-sm mb-3">Photos de vérification ajoutées ({verificationPhotos.length}) :</p>
+                  <div className="grid grid-cols-4 gap-4">
+                    {verificationPhotos.map((img, i) => <img key={i} src={img} className="rounded-2xl aspect-square object-cover border border-emerald-500/30" />)}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-4">
+              <button onClick={() => setStep(1)} className="flex-1 py-5 border border-zinc-700 rounded-3xl font-medium">Retour</button>
+              <button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 py-5 bg-rose-500 hover:bg-rose-600 rounded-3xl font-semibold disabled:opacity-70">
+                {isSubmitting ? "Envoi en cours..." : "Envoyer pour validation"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="text-center py-20">
+            <CheckCircle className="w-28 h-28 text-green-400 mx-auto mb-10" />
+            <h2 className="text-4xl font-bold mb-4">Merci ! Votre pièce est en cours de validation</h2>
+            <p className="text-zinc-400 max-w-md mx-auto">
+              Notre équipe vérifie les photos Real Worn.<br /><br />
+              Vous serez notifié dès que l’annonce sera publiée.
+            </p>
+            <Link href="/creators/me" className="mt-12 inline-block px-12 py-5 bg-white text-black rounded-3xl font-semibold text-lg">
+              Retour à mon profil
+            </Link>
+          </div>
+        )}
       </main>
     </div>
   );
