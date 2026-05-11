@@ -74,7 +74,7 @@ export default function AdminPage() {
     loadData();
   }, [activeTab, refreshKey]);
 
-  // Memo pour les refus par créatrice
+  // Pour les commentaires refusés
   const creatorRefusalCounts = useMemo(() => {
     const counts: { [key: string]: number } = {};
     refusedReviews.forEach(r => {
@@ -83,10 +83,16 @@ export default function AdminPage() {
     return counts;
   }, [refusedReviews]);
 
-  // Memo pour les signalements groupés
+  // Pour les signalements
+  const filteredReports = useMemo(() => {
+    return reportFilter === 'all' 
+      ? reports 
+      : reports.filter(r => r.status === reportFilter);
+  }, [reports, reportFilter, refreshKey]);
+
   const reportsByCreator = useMemo(() => {
     const grouped: any = {};
-    reports.forEach(report => {
+    filteredReports.forEach(report => {
       const key = report.creator_id;
       if (!grouped[key]) {
         grouped[key] = { creator: report.creator, count: 0, reports: [] };
@@ -95,7 +101,7 @@ export default function AdminPage() {
       grouped[key].reports.push(report);
     });
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
-  }, [reports]);
+  }, [filteredReports]);
 
   // ACTIONS SIGNALEMENTS
   const markReportAsReviewed = async (reportId: string) => {
@@ -118,7 +124,7 @@ export default function AdminPage() {
     showToast("Signalement supprimé");
   };
 
-  // FONCTIONS ORIGINALES QUE TU AVAIS
+  // FONCTIONS ORIGINALES (Photos + Commentaires)
   const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
     const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
@@ -188,7 +194,7 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* PHOTOS - TON CODE ORIGINAL */}
+        {/* PHOTOS - Ton ancien code qui marchait */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
@@ -225,7 +231,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* COMMENTAIRES REFUSÉS - TON CODE ORIGINAL */}
+        {/* COMMENTAIRES REFUSÉS - Ton ancien code qui marchait */}
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             {refusedReviews.length === 0 ? (
