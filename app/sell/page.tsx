@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { ArrowLeft, Camera, Video, ShieldCheck, CheckCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Camera, Video, ShieldCheck, CheckCircle, Loader2, Mic } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
 
@@ -14,9 +14,15 @@ export default function SellPage() {
   const [noFace, setNoFace] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [publicPhotos, setPublicPhotos] = useState<string[]>([]);     // URLs temporaires (preview)
+  const [publicPhotos, setPublicPhotos] = useState<string[]>([]);
   const [verificationPhotos, setVerificationPhotos] = useState<string[]>([]);
   const [publicVideo, setPublicVideo] = useState<string>('');
+
+  // Nouveaux champs
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [story, setStory] = useState('');
+  const [voiceRecording, setVoiceRecording] = useState<string>('');
 
   // Tarification
   const [price1Day, setPrice1Day] = useState('');
@@ -51,15 +57,25 @@ export default function SellPage() {
     }
   };
 
+  const handleVoiceRecording = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setVoiceRecording(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user) return alert("Vous devez être connecté");
+    if (!title) return alert("Le titre est obligatoire");
     if (publicPhotos.length === 0) return alert("Ajoutez au moins une photo publique");
     if (!price1Day) return alert("Veuillez indiquer le prix pour 1 journée");
 
     setIsSubmitting(true);
 
     try {
-      // 1. Upload photos publiques
+      // Upload photos publiques
       const publicImageUrls: string[] = [];
       for (let i = 0; i < publicPhotos.length; i++) {
         const response = await fetch(publicPhotos[i]);
@@ -69,11 +85,11 @@ export default function SellPage() {
         const { error } = await supabase.storage.from('products').upload(fileName, blob);
         if (error) throw error;
 
-        const { data: urlData } = supabase.storage.from('products').getPublicUrl(fileName);
-        publicImageUrls.push(urlData.publicUrl);
+        const { data: { publicUrl } } = supabase.storage.from('products').getPublicUrl(fileName);
+        publicImageUrls.push(publicUrl);
       }
 
-      // 2. Upload photos vérification
+      // Upload photos vérification
       const verifImageUrls: string[] = [];
       for (let i = 0; i < verificationPhotos.length; i++) {
         const response = await fetch(verificationPhotos[i]);
@@ -83,14 +99,16 @@ export default function SellPage() {
         const { error } = await supabase.storage.from('products').upload(fileName, blob);
         if (error) throw error;
 
-        const { data: urlData } = supabase.storage.from('products').getPublicUrl(fileName);
-        verifImageUrls.push(urlData.publicUrl);
+        const { data: { publicUrl } } = supabase.storage.from('products').getPublicUrl(fileName);
+        verifImageUrls.push(publicUrl);
       }
 
-      // 3. Création du produit
+      // Création du produit
       const { error: insertError } = await supabase.from('products').insert({
         creator_id: user.id,
-        title: "Nouvelle pièce en vente", // À améliorer plus tard avec un champ titre
+        title: title,
+        description: description || null,
+        story: story || null,
         price_1day: parseInt(price1Day),
         price_2days: price2Days ? parseInt(price2Days) : null,
         price_3days: price3Days ? parseInt(price3Days) : null,
@@ -98,9 +116,9 @@ export default function SellPage() {
         images: publicImageUrls,
         verification_images: verifImageUrls,
         video_url: publicVideo || null,
+        voice_url: voiceRecording || null,
         status: 'pending',
         no_face: noFace,
-        description: null,
       });
 
       if (insertError) throw insertError;
@@ -132,11 +150,24 @@ export default function SellPage() {
           ))}
         </div>
 
-        {/* Step 1 */}
+        {/* ==================== STEP 1 ==================== */}
         {step === 1 && (
           <div className="space-y-10">
             <h2 className="text-2xl font-semibold">1. Contenu Public (visible par les acheteurs)</h2>
 
+            {/* Titre */}
+            <div>
+              <label className="block text-sm text-zinc-400 mb-2">Titre de la pièce *</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 text-lg focus:border-rose-500"
+                placeholder="Culotte en dentelle noire portée 2 jours"
+              />
+            </div>
+
+            {/* Photos + Vidéo */}
             <div className="grid md:grid-cols-2 gap-6">
               <div className="border-2 border-dashed border-zinc-700 hover:border-rose-400 rounded-3xl p-12 text-center transition-colors cursor-pointer">
                 <input type="file" multiple accept="image/*" onChange={handlePublicPhotos} className="hidden" id="public" />
@@ -162,27 +193,64 @@ export default function SellPage() {
               </div>
             )}
 
+            {/* Description */}
+            <div>
+              <label className="block text-sm text-zinc-400 mb-2">Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 focus:border-rose-500"
+                placeholder="Portée pendant 2 jours, très douce, odeur intense de moi..."
+              />
+            </div>
+
+            {/* Histoire intime */}
+            <div>
+              <label className="block text-sm text-zinc-400 mb-2">Histoire intime (visible par l'acheteur)</label>
+              <textarea
+                value={story}
+                onChange={(e) => setStory(e.target.value)}
+                rows={5}
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 focus:border-rose-500"
+                placeholder="Raconte l'histoire de cette pièce, ce que tu as ressenti en la portant..."
+              />
+            </div>
+
+            {/* Enregistrement vocal */}
+            <div>
+              <label className="block text-sm text-zinc-400 mb-2">Message vocal (optionnel)</label>
+              <div className="border-2 border-dashed border-zinc-700 hover:border-rose-400 rounded-3xl p-8 text-center">
+                <input type="file" accept="audio/*" onChange={handleVoiceRecording} className="hidden" id="voice" />
+                <label htmlFor="voice" className="cursor-pointer flex flex-col items-center">
+                  <Mic className="w-12 h-12 mx-auto mb-3 text-zinc-400" />
+                  <p className="text-lg font-medium">Ajouter un message vocal</p>
+                  <p className="text-sm text-zinc-500">Dis quelque chose de personnel à ton futur acheteur...</p>
+                </label>
+              </div>
+              {voiceRecording && <p className="text-emerald-400 text-center mt-3">✅ Message vocal ajouté</p>}
+            </div>
+
             {/* Tarification */}
             <div className="mt-12">
-              <h3 className="text-xl font-semibold mb-6">Tarification de la pièce</h3>
+              <h3 className="text-xl font-semibold mb-6">Tarification</h3>
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
-                  <label className="block text-sm text-zinc-400 mb-2">Prix pour <span className="text-rose-400">1 journée</span></label>
+                  <label className="block text-sm text-zinc-400 mb-2">Prix pour 1 journée portée</label>
                   <div className="relative">
                     <input type="number" value={price1Day} onChange={(e) => setPrice1Day(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" placeholder="45" />
                     <span className="absolute right-6 top-1/2 -translate-y-1/2 text-3xl text-zinc-400">€</span>
                   </div>
                 </div>
-                {/* Les autres champs prix restent identiques */}
                 <div>
-                  <label className="block text-sm text-zinc-400 mb-2">Prix pour <span className="text-rose-400">2 journées</span></label>
+                  <label className="block text-sm text-zinc-400 mb-2">Prix pour 2 journées</label>
                   <div className="relative">
                     <input type="number" value={price2Days} onChange={(e) => setPrice2Days(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" placeholder="75" />
                     <span className="absolute right-6 top-1/2 -translate-y-1/2 text-3xl text-zinc-400">€</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm text-zinc-400 mb-2">Prix pour <span className="text-rose-400">3 journées</span></label>
+                  <label className="block text-sm text-zinc-400 mb-2">Prix pour 3 journées</label>
                   <div className="relative">
                     <input type="number" value={price3Days} onChange={(e) => setPrice3Days(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-5 text-3xl font-semibold focus:border-rose-500" placeholder="100" />
                     <span className="absolute right-6 top-1/2 -translate-y-1/2 text-3xl text-zinc-400">€</span>
@@ -204,7 +272,7 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* Step 2 */}
+        {/* Step 2 - Vérification Real Worn (inchangé) */}
         {step === 2 && (
           <div className="space-y-10">
             <h2 className="text-2xl font-semibold">2. Vérification Real Worn (privée)</h2>
@@ -255,14 +323,14 @@ export default function SellPage() {
                 disabled={isSubmitting}
                 className="flex-1 py-5 bg-rose-500 hover:bg-rose-600 rounded-3xl font-semibold disabled:opacity-70 flex items-center justify-center gap-2"
               >
-                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
                 {isSubmitting ? "Envoi en cours..." : "Envoyer pour validation"}
               </button>
             </div>
           </div>
         )}
 
-        {/* Step 3 - Succès */}
+        {/* Step 3 */}
         {step === 3 && (
           <div className="text-center py-20">
             <CheckCircle className="w-28 h-28 text-green-400 mx-auto mb-10" />
