@@ -22,16 +22,21 @@ export default function SellPage() {
   const [story, setStory] = useState('');
   const [voiceRecording, setVoiceRecording] = useState<string>('');
 
-  // Pricing
+  // Step 2
+  const [verificationPhotos, setVerificationPhotos] = useState<string[]>([]);
+
+  // Tarification
   const [price1Day, setPrice1Day] = useState('45');
   const [offer2Days, setOffer2Days] = useState(false);
   const [price2Days, setPrice2Days] = useState('75');
   const [offerExtraDay, setOfferExtraDay] = useState(false);
   const [extraDayPrice, setExtraDayPrice] = useState('25');
 
-  const [verificationPhotos, setVerificationPhotos] = useState<string[]>([]);
-
-  const categories = ["Culotte", "String", "Soutien-gorge", "Bas / Collants", "Robe", "Chemise / Haut", "Short / Jupe", "Chaussures", "Talons", "Semelles", "Autre"];
+  const categories = [
+    "Culotte", "String", "Soutien-gorge", "Bas / Collants",
+    "Robe", "Chemise / Haut", "Short / Jupe",
+    "Chaussures", "Talons", "Semelles", "Autre"
+  ];
 
   const handlePublicPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -71,11 +76,12 @@ export default function SellPage() {
 
   const handleSubmit = async () => {
     if (!user || !title || publicPhotos.length === 0) {
-      alert("Titre et photos publiques obligatoires");
+      alert("Titre et photos publiques sont obligatoires");
       return;
     }
 
     try {
+      // Upload public photos
       const imageUrls: string[] = [];
       for (const base64 of publicPhotos) {
         const res = await fetch(base64);
@@ -86,6 +92,7 @@ export default function SellPage() {
         imageUrls.push(data.publicUrl);
       }
 
+      // Upload verification photos
       const verifUrls: string[] = [];
       for (const base64 of verificationPhotos) {
         const res = await fetch(base64);
@@ -102,6 +109,7 @@ export default function SellPage() {
         category: category || null,
         description: description || null,
         story: story || null,
+        price: parseInt(price1Day),           // ← colonne obligatoire
         price_1day: parseInt(price1Day),
         price_2days: offer2Days ? parseInt(price2Days) : null,
         extra_day_price: offerExtraDay ? parseInt(extraDayPrice) : null,
@@ -115,6 +123,7 @@ export default function SellPage() {
 
       if (error) throw error;
 
+      console.log("✅ Produit envoyé avec succès");
       setStep(3);
     } catch (err: any) {
       console.error(err);
@@ -138,9 +147,10 @@ export default function SellPage() {
           ))}
         </div>
 
-        {/* ==================== STEP 1 ==================== */}
+        {/* ==================== STEP 1 (exactement ton code) ==================== */}
         {step === 1 && (
           <div className="space-y-8">
+            {/* Catégorie + Titre */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Type d'article</label>
@@ -155,6 +165,7 @@ export default function SellPage() {
               </div>
             </div>
 
+            {/* Photos + Vidéo */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-2 block">Photos publiques (min. 3)</label>
@@ -181,6 +192,7 @@ export default function SellPage() {
               </div>
             </div>
 
+            {/* Description + Histoire */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Description</label>
@@ -192,6 +204,7 @@ export default function SellPage() {
               </div>
             </div>
 
+            {/* Message vocal */}
             <div>
               <label className="text-xs text-zinc-400 mb-1.5 block">Message vocal (optionnel)</label>
               <label className="border border-dashed border-zinc-700 rounded-3xl p-6 flex flex-col items-center cursor-pointer hover:border-rose-500">
@@ -201,47 +214,45 @@ export default function SellPage() {
               </label>
             </div>
 
-            {/* Tarification (identique à avant) */}
+            {/* Tarification */}
             <div className="bg-zinc-900 rounded-3xl p-6">
               <div className="flex justify-between items-center mb-5">
-                <h3 className="font-semibold">Tarification (en fonction du nombre de jours portés)</h3>
+                <h3 className="font-semibold">Tarification</h3>
+                <p className="text-xs text-zinc-400">(en fonction du nombre de jours portés)</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* 1 journée */}
                 <div className="bg-zinc-800 rounded-2xl p-5 text-center">
                   <div className="text-rose-400 text-xs mb-2">1 journée</div>
-                  <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-6">
-                    <input type="number" value={price1Day} onChange={e => setPrice1Day(e.target.value)} className="bg-transparent text-4xl font-bold w-20 text-center focus:outline-none" />
+                  <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-4">
+                    <input type="number" value={price1Day} onChange={e => setPrice1Day(e.target.value)} className="bg-transparent text-4xl font-bold w-20 text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                     <span className="text-4xl font-bold text-zinc-300 ml-1">€</span>
                   </div>
                 </div>
-                {/* 2 journées */}
                 <div className="bg-zinc-800 rounded-2xl p-5 text-center">
                   <label className="flex justify-center gap-2 mb-2 cursor-pointer">
                     <input type="checkbox" checked={offer2Days} onChange={e => setOffer2Days(e.target.checked)} className="accent-rose-500" />
                     <span className={`text-xs ${offer2Days ? 'text-rose-400' : 'text-zinc-400'}`}>2 journées</span>
                   </label>
-                  <div className={`flex items-center justify-center bg-zinc-900 rounded-xl py-6 ${!offer2Days ? 'opacity-40' : ''}`}>
-                    <input type="number" value={price2Days} onChange={e => setPrice2Days(e.target.value)} disabled={!offer2Days} className="bg-transparent text-4xl font-bold w-20 text-center focus:outline-none" />
+                  <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-4">
+                    <input type="number" value={price2Days} onChange={e => setPrice2Days(e.target.value)} disabled={!offer2Days} className={`bg-transparent text-4xl font-bold w-20 text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!offer2Days ? 'opacity-40' : ''}`} />
                     <span className="text-4xl font-bold text-zinc-300 ml-1">€</span>
                   </div>
                 </div>
-                {/* Jour supp */}
                 <div className="bg-zinc-800 rounded-2xl p-5 text-center">
                   <label className="flex justify-center gap-2 mb-2 cursor-pointer">
                     <input type="checkbox" checked={offerExtraDay} onChange={e => setOfferExtraDay(e.target.checked)} className="accent-rose-500" />
-                    <span className={`text-xs ${offerExtraDay ? 'text-rose-400' : 'text-zinc-400'}`}>Jour supplémentaire</span>
+                    <span className={`text-xs ${offerExtraDay ? 'text-rose-400' : 'text-zinc-400'}`}>Jour supp.</span>
                   </label>
-                  <div className={`flex items-center justify-center bg-zinc-900 rounded-xl py-6 ${!offerExtraDay ? 'opacity-40' : ''}`}>
-                    <input type="number" value={extraDayPrice} onChange={e => setExtraDayPrice(e.target.value)} disabled={!offerExtraDay} className="bg-transparent text-4xl font-bold w-20 text-center focus:outline-none" />
+                  <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-4">
+                    <input type="number" value={extraDayPrice} onChange={e => setExtraDayPrice(e.target.value)} disabled={!offerExtraDay} className={`bg-transparent text-4xl font-bold w-20 text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!offerExtraDay ? 'opacity-40' : ''}`} />
                     <span className="text-4xl font-bold text-zinc-300 ml-1">€</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <button onClick={() => setStep(2)} className="w-full py-4 bg-rose-500 hover:bg-rose-600 rounded-3xl font-semibold text-lg">
-              Continuer vers vérification
+            <button onClick={() => setStep(2)} className="w-full py-4 bg-rose-500 hover:bg-rose-600 rounded-3xl text-lg font-semibold">
+              Continuer
             </button>
           </div>
         )}
@@ -254,13 +265,13 @@ export default function SellPage() {
 
             <div className="bg-zinc-900 rounded-3xl p-10">
               <label className="flex items-center gap-3 cursor-pointer mb-8 text-lg">
-                <input type="checkbox" checked={noFace} onChange={e => setNoFace(e.target.checked)} className="w-5 h-5 accent-rose-500" />
-                Je ne souhaite pas montrer mon visage
+                <input type="checkbox" checked={noFace} onChange={(e) => setNoFace(e.target.checked)} className="w-5 h-5 accent-rose-500" />
+                <span>Je ne souhaite pas montrer mon visage</span>
               </label>
 
               <div className="border-2 border-dashed border-emerald-500/40 rounded-3xl p-12 text-center hover:border-emerald-400 transition-colors cursor-pointer">
-                <input type="file" multiple accept="image/*" onChange={handleVerificationPhotos} id="verif" className="hidden" />
-                <label htmlFor="verif" className="cursor-pointer block">
+                <input type="file" multiple accept="image/*" onChange={handleVerificationPhotos} className="hidden" id="verif" />
+                <label htmlFor="verif" className="cursor-pointer">
                   <ShieldCheck className="w-14 h-14 mx-auto mb-4 text-emerald-400" />
                   <p className="text-lg font-medium">Ajouter les photos de vérification</p>
                   <p className="text-sm text-zinc-400 mt-2">Vous portant le vêtement visage visible (strictement confidentiel)</p>
@@ -283,12 +294,14 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* ==================== STEP 3 ==================== */}
         {step === 3 && (
           <div className="text-center py-20">
             <CheckCircle className="w-28 h-28 text-green-400 mx-auto mb-10" />
             <h2 className="text-4xl font-bold mb-4">Merci ! Votre pièce est en cours de validation</h2>
-            <p className="text-zinc-400 max-w-md mx-auto">Notre équipe vérifie les photos Real Worn.<br />Vous serez notifié dès publication.</p>
+            <p className="text-zinc-400 max-w-md mx-auto">
+              Notre équipe vérifie les photos Real Worn pour garantir la qualité et l’authenticité.<br /><br />
+              Vous serez notifié dès que l’annonce sera publiée.
+            </p>
             <Link href="/shop" className="mt-12 inline-block px-12 py-5 bg-white text-black rounded-3xl font-semibold text-lg">
               Retour à la boutique
             </Link>
