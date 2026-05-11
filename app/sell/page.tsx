@@ -40,10 +40,13 @@ export default function SellPage() {
     "Chaussures", "Talons", "Semelles", "Autre"
   ];
 
+  const sizes = ["XS", "S", "M", "L", "XL", "XXL", "34", "36", "38", "40", "42", "Autre"];
+  const shoeSizes = ["35", "36", "37", "38", "39", "40", "41", "42", "43", "Autre"];
+
   // Limites de caractères
-  const TITLE_MAX = 100;
-  const DESCRIPTION_MAX = 500;
-  const STORY_MAX = 1200;
+  const TITLE_MAX = 50;
+  const DESCRIPTION_MAX = 200;
+  const STORY_MAX = 500;
 
   const handlePublicPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -88,7 +91,6 @@ export default function SellPage() {
     }
 
     try {
-      // Upload public photos
       const imageUrls: string[] = [];
       for (const base64 of publicPhotos) {
         const res = await fetch(base64);
@@ -99,7 +101,6 @@ export default function SellPage() {
         imageUrls.push(data.publicUrl);
       }
 
-      // Upload verification photos
       const verifUrls: string[] = [];
       for (const base64 of verificationPhotos) {
         const res = await fetch(base64);
@@ -156,7 +157,6 @@ export default function SellPage() {
           ))}
         </div>
 
-        {/* ==================== STEP 1 ==================== */}
         {step === 1 && (
           <div className="space-y-8">
             {/* Catégorie + Titre */}
@@ -183,15 +183,21 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Taille + Pointure */}
+            {/* Taille + Pointure (menus déroulants) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="text-xs text-zinc-400 mb-1.5 block">Taille (ex: S, M, L, 36-38)</label>
-                <input type="text" value={size} onChange={e => setSize(e.target.value)} placeholder="M" className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-base" />
+                <label className="text-xs text-zinc-400 mb-1.5 block">Taille</label>
+                <select value={size} onChange={e => setSize(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-base">
+                  <option value="">Choisir une taille</option>
+                  {sizes.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
               </div>
               <div>
-                <label className="text-xs text-zinc-400 mb-1.5 block">Pointure (ex: 38, 39)</label>
-                <input type="text" value={shoeSize} onChange={e => setShoeSize(e.target.value)} placeholder="38" className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-base" />
+                <label className="text-xs text-zinc-400 mb-1.5 block">Pointure</label>
+                <select value={shoeSize} onChange={e => setShoeSize(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-base">
+                  <option value="">Choisir une pointure</option>
+                  {shoeSizes.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
               </div>
             </div>
 
@@ -242,7 +248,7 @@ export default function SellPage() {
                 <textarea 
                   value={story} 
                   onChange={e => setStory(e.target.value.slice(0, STORY_MAX))} 
-                  rows={3} 
+                  rows={4} 
                   placeholder="Raconte l'histoire de cette pièce..." 
                   className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-sm" 
                 />
@@ -305,7 +311,7 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* ==================== STEP 2 ==================== */}
+        {/* Step 2 & Step 3 identiques à avant */}
         {step === 2 && (
           <div className="space-y-10">
             <h2 className="text-2xl font-semibold">2. Vérification Real Worn (privée)</h2>
@@ -342,7 +348,6 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* ==================== STEP 3 ==================== */}
         {step === 3 && (
           <div className="text-center py-20">
             <CheckCircle className="w-28 h-28 text-green-400 mx-auto mb-10" />
