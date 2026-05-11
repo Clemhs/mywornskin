@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { MessageCircle, AlertTriangle, Image as ImageIcon, Send, Trash2, Flag, CheckCircle, Search, X, ShieldCheck } from 'lucide-react';
+import { MessageCircle, AlertTriangle, Image as ImageIcon, Send, Trash2, Flag, CheckCircle, Search, X, ShieldCheck, XCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
@@ -386,7 +386,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MESSAGES */}
+        {/* MESSAGES REÇUS */}
         {activeTab === 'messages' && (
           <div className="space-y-6">
             {adminMessages.length === 0 ? (
@@ -473,7 +473,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MODAL MESSAGE */}
+        {/* MODAL ENVOYER MESSAGE */}
         {selectedReview && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200]">
             <div className="bg-zinc-900 rounded-3xl w-full max-w-lg p-8">
