@@ -40,6 +40,11 @@ export default function SellPage() {
     "Chaussures", "Talons", "Semelles", "Autre"
   ];
 
+  // Limites de caractères
+  const TITLE_MAX = 100;
+  const DESCRIPTION_MAX = 500;
+  const STORY_MAX = 1200;
+
   const handlePublicPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     files.forEach(file => {
@@ -165,7 +170,16 @@ export default function SellPage() {
               </div>
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Titre de la pièce</label>
-                <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Culotte en dentelle noire portée 2 jours..." className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-base" />
+                <input 
+                  type="text" 
+                  value={title} 
+                  onChange={e => setTitle(e.target.value.slice(0, TITLE_MAX))} 
+                  placeholder="Culotte en dentelle noire portée 2 jours..." 
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-base" 
+                />
+                <p className={`text-xs mt-1 text-right ${title.length > TITLE_MAX * 0.8 ? 'text-red-400' : 'text-zinc-400'}`}>
+                  {title.length} / {TITLE_MAX}
+                </p>
               </div>
             </div>
 
@@ -212,11 +226,29 @@ export default function SellPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Description</label>
-                <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Portée 2 jours..." className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-sm" />
+                <textarea 
+                  value={description} 
+                  onChange={e => setDescription(e.target.value.slice(0, DESCRIPTION_MAX))} 
+                  rows={3} 
+                  placeholder="Portée 2 jours..." 
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-sm" 
+                />
+                <p className={`text-xs mt-1 text-right ${description.length > DESCRIPTION_MAX * 0.8 ? 'text-red-400' : 'text-zinc-400'}`}>
+                  {description.length} / {DESCRIPTION_MAX}
+                </p>
               </div>
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Histoire intime</label>
-                <textarea value={story} onChange={e => setStory(e.target.value)} rows={3} placeholder="Raconte l'histoire de cette pièce..." className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-sm" />
+                <textarea 
+                  value={story} 
+                  onChange={e => setStory(e.target.value.slice(0, STORY_MAX))} 
+                  rows={3} 
+                  placeholder="Raconte l'histoire de cette pièce..." 
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-sm" 
+                />
+                <p className={`text-xs mt-1 text-right ${story.length > STORY_MAX * 0.8 ? 'text-red-400' : 'text-zinc-400'}`}>
+                  {story.length} / {STORY_MAX}
+                </p>
               </div>
             </div>
 
