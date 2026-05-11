@@ -77,7 +77,6 @@ export default function CreatorProfile() {
     }
 
     setSendingReport(true);
-    console.log("Envoi signalement pour creator:", creator.id);
 
     const { data, error } = await supabase
       .from('reports')
@@ -152,7 +151,8 @@ export default function CreatorProfile() {
               </button>
             </div>
 
-            <div className="flex items-center gap-4 mt-3 text-sm text-zinc-400">
+            {/* INFORMATIONS PERSONNELLES AMÉLIORÉES */}
+            <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-zinc-400">
               {(creator.country || creator.city) && (
                 <span className="flex items-center gap-1">
                   <MapPin size={16} />
@@ -205,7 +205,7 @@ export default function CreatorProfile() {
         </div>
       </div>
 
-      {/* Modal Signalement Amélioré */}
+      {/* Modal Signalement */}
       {showReportModal && (
         <div className="fixed inset-0 bg-black/90 z-[200] flex items-center justify-center p-4">
           <div className="bg-zinc-900 rounded-3xl p-8 max-w-md w-full">
