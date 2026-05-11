@@ -97,18 +97,17 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Photos + Vidéo - MÊME TAILLE */}
+            {/* Photos + Vidéo - Même taille */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Photos publiques - même hauteur que la vidéo */}
-              <div className="flex flex-col">
+              {/* Photos publiques */}
+              <div>
                 <label className="text-xs text-zinc-400 mb-2 block">Photos publiques (min. 3)</label>
-                <div className="border border-dashed border-zinc-700 rounded-3xl p-8 flex-1 flex flex-col items-center justify-center cursor-pointer hover:border-rose-500 min-h-[200px]">
+                <label className="border border-dashed border-zinc-700 rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-rose-500 min-h-[200px]">
                   <Camera className="w-10 h-10 mb-3" />
                   <span className="text-sm">Ajouter des photos</span>
                   <input type="file" multiple accept="image/*" onChange={handlePublicPhotos} className="hidden" />
-                </div>
+                </label>
 
-                {/* Prévisualisation des photos */}
                 {publicPhotos.length > 0 && (
                   <div className="grid grid-cols-5 gap-2 mt-4">
                     {publicPhotos.map((p, i) => (
@@ -118,21 +117,19 @@ export default function SellPage() {
                 )}
               </div>
 
-              {/* Vidéo - même taille */}
-              <div className="flex flex-col">
+              {/* Vidéo */}
+              <div>
                 <label className="text-xs text-zinc-400 mb-2 block">Vidéo (optionnelle)</label>
-                <label className="border border-dashed border-zinc-700 rounded-3xl p-8 flex-1 flex flex-col items-center justify-center cursor-pointer hover:border-rose-500 min-h-[200px]">
+                <label className="border border-dashed border-zinc-700 rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-rose-500 min-h-[200px]">
                   <Video className="w-10 h-10 mb-3" />
                   <span className="text-sm">Ajouter une vidéo</span>
                   <input type="file" accept="video/*" onChange={handleVideo} className="hidden" />
                 </label>
-                {publicVideo && (
-                  <video src={publicVideo} controls className="mt-3 rounded-2xl w-full" />
-                )}
+                {publicVideo && <video src={publicVideo} controls className="mt-3 rounded-2xl w-full" />}
               </div>
             </div>
 
-            {/* Description + Histoire intime */}
+            {/* Description + Histoire */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Description</label>
@@ -156,7 +153,7 @@ export default function SellPage() {
               </label>
             </div>
 
-            {/* Tarification (inchangée) */}
+            {/* Tarification */}
             <div className="bg-zinc-900 rounded-3xl p-6">
               <div className="flex justify-between items-center mb-5">
                 <h3 className="font-semibold">Tarification</h3>
