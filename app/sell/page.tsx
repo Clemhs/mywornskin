@@ -28,7 +28,11 @@ export default function SellPage() {
   const [offerExtraDay, setOfferExtraDay] = useState(false);
   const [extraDayPrice, setExtraDayPrice] = useState('25');
 
-  const categories = ["Culotte", "String", "Soutien-gorge", "Bas / Collants", "Robe", "Chemise / Haut", "Short / Jupe", "Chaussures", "Talons", "Semelles", "Autre"];
+  const categories = [
+    "Culotte", "String", "Soutien-gorge", "Bas / Collants",
+    "Robe", "Chemise / Haut", "Short / Jupe",
+    "Chaussures", "Talons", "Semelles", "Autre"
+  ];
 
   const handlePublicPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -67,22 +71,24 @@ export default function SellPage() {
   };
 
   const handleSubmit = async () => {
-    if (!user) return alert("Vous devez être connecté");
-    if (!title) return alert("Le titre est obligatoire");
-    if (publicPhotos.length === 0) return alert("Ajoutez au moins une photo publique");
+    if (!user || !title || publicPhotos.length === 0) {
+      alert("Titre et photos publiques sont obligatoires");
+      return;
+    }
 
     try {
+      // Upload public photos
       const imageUrls: string[] = [];
       for (const base64 of publicPhotos) {
         const res = await fetch(base64);
         const blob = await res.blob();
         const fileName = `${user.id}-public-${Date.now()}.jpg`;
-        const { error: uploadError } = await supabase.storage.from('products').upload(fileName, blob);
-        if (uploadError) throw uploadError;
+        await supabase.storage.from('products').upload(fileName, blob);
         const { data } = supabase.storage.from('products').getPublicUrl(fileName);
         imageUrls.push(data.publicUrl);
       }
 
+      // Upload verification photos
       const verifUrls: string[] = [];
       for (const base64 of verificationPhotos) {
         const res = await fetch(base64);
@@ -93,7 +99,7 @@ export default function SellPage() {
         verifUrls.push(data.publicUrl);
       }
 
-      const { data, error } = await supabase.from('products').insert({
+      const { error } = await supabase.from('products').insert({
         creator_id: user.id,
         title,
         description: description || null,
@@ -107,14 +113,14 @@ export default function SellPage() {
         voice_url: voiceRecording || null,
         status: 'pending',
         no_face: noFace,
-      }).select();
+      });
 
       if (error) throw error;
 
-      console.log("✅ Produit inséré avec succès :", data);
+      console.log("Produit envoyé avec succès");
       setStep(3);
     } catch (err: any) {
-      console.error("Erreur complète :", err);
+      console.error(err);
       alert("Erreur lors de l'envoi : " + (err.message || err));
     }
   };
@@ -137,7 +143,6 @@ export default function SellPage() {
 
         {step === 1 && (
           <div className="space-y-8">
-            {/* Catégorie + Titre */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Type d'article</label>
@@ -152,7 +157,6 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Photos + Vidéo */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-2 block">Photos publiques (min. 3)</label>
@@ -179,7 +183,6 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Description + Histoire */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Description</label>
@@ -191,7 +194,6 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Message vocal */}
             <div>
               <label className="text-xs text-zinc-400 mb-1.5 block">Message vocal (optionnel)</label>
               <label className="border border-dashed border-zinc-700 rounded-3xl p-6 flex flex-col items-center cursor-pointer hover:border-rose-500">
@@ -201,7 +203,6 @@ export default function SellPage() {
               </label>
             </div>
 
-            {/* Tarification */}
             <div className="bg-zinc-900 rounded-3xl p-6">
               <div className="flex justify-between items-center mb-5">
                 <h3 className="font-semibold">Tarification</h3>
