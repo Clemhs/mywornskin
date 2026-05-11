@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { ArrowLeft, Camera, Video, Mic, ShieldCheck, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Camera, Video, ShieldCheck, CheckCircle, Mic } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
 
@@ -71,12 +71,6 @@ export default function SellPage() {
     }
   };
 
-  const handleContinue = () => setStep(2);
-  const handleSubmit = async () => {
-    // Ici tu pourras mettre la logique d'envoi Supabase plus tard
-    setStep(3);
-  };
-
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-16 pb-12">
       <main className="max-w-4xl mx-auto px-6">
@@ -93,7 +87,7 @@ export default function SellPage() {
           ))}
         </div>
 
-        {/* ==================== STEP 1 ==================== */}
+        {/* STEP 1 */}
         {step === 1 && (
           <div className="space-y-8">
             {/* Catégorie + Titre */}
@@ -167,7 +161,6 @@ export default function SellPage() {
                 <p className="text-xs text-zinc-400">(en fonction du nombre de jours portés)</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* 1 journée, 2 journées, Jour supp. (comme avant) */}
                 <div className="bg-zinc-800 rounded-2xl p-5 text-center">
                   <div className="text-rose-400 text-xs mb-2">1 journée</div>
                   <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-4">
@@ -175,7 +168,6 @@ export default function SellPage() {
                     <span className="text-4xl font-bold text-zinc-300 ml-1">€</span>
                   </div>
                 </div>
-                {/* (les 2 autres cases identiques) */}
                 <div className="bg-zinc-800 rounded-2xl p-5 text-center">
                   <label className="flex justify-center gap-2 mb-2 cursor-pointer">
                     <input type="checkbox" checked={offer2Days} onChange={e => setOffer2Days(e.target.checked)} className="accent-rose-500" />
@@ -199,64 +191,76 @@ export default function SellPage() {
               </div>
             </div>
 
-            <button onClick={handleContinue} className="w-full py-4 bg-rose-500 hover:bg-rose-600 rounded-3xl text-lg font-semibold">
+            <button onClick={() => setStep(2)} className="w-full py-4 bg-rose-500 hover:bg-rose-600 rounded-3xl text-lg font-semibold">
               Continuer
             </button>
           </div>
         )}
 
-        {/* ==================== STEP 2 : VÉRIFICATION REAL WORN ==================== */}
+        {/* STEP 2 - RESTAURÉ EXACTEMENT COMME AVANT */}
         {step === 2 && (
-          <div className="space-y-8">
-            <div className="text-center mb-8">
-              <ShieldCheck className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-semibold">Vérification Real Worn</h2>
-              <p className="text-zinc-400 mt-2">Photos strictement confidentielles</p>
-            </div>
+          <div className="space-y-10">
+            <h2 className="text-2xl font-semibold">2. Vérification Real Worn (privée)</h2>
+            <p className="text-zinc-400">Ces éléments permettent de garantir l’authenticité des pièces et de maintenir la confiance de nos acheteurs.</p>
 
-            <div>
-              <label className="text-xs text-zinc-400 mb-2 block">Photos de vérification (vous portant le vêtement)</label>
-              <label className="border border-dashed border-emerald-500/30 rounded-3xl p-12 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-500 min-h-[220px]">
-                <Camera className="w-12 h-12 mb-4 text-emerald-400" />
-                <span className="text-emerald-400">Ajouter les photos Real Worn</span>
-                <input type="file" multiple accept="image/*" onChange={handleVerificationPhotos} className="hidden" />
+            <div className="bg-zinc-900 rounded-3xl p-10">
+              <label className="flex items-center gap-3 cursor-pointer mb-8 text-lg">
+                <input 
+                  type="checkbox" 
+                  checked={noFace} 
+                  onChange={(e) => setNoFace(e.target.checked)}
+                  className="w-5 h-5 accent-rose-500"
+                />
+                <span>Je ne souhaite pas montrer mon visage</span>
               </label>
-            </div>
 
-            {verificationPhotos.length > 0 && (
-              <div className="grid grid-cols-4 gap-4">
-                {verificationPhotos.map((p, i) => (
-                  <img key={i} src={p} className="aspect-square object-cover rounded-2xl border border-emerald-500/30" />
-                ))}
+              {noFace && (
+                <div className="mb-10 p-6 bg-zinc-800 border border-amber-400/30 rounded-2xl">
+                  <p className="font-medium mb-4">Pour valider votre pièce sans visage, merci de fournir :</p>
+                  <ul className="list-disc list-inside space-y-2 text-sm text-zinc-300">
+                    <li>Plusieurs angles du vêtement porté (face, dos, côtés, détails)</li>
+                    <li>Une marque distinctive visible (tatouage, bijou, vernis à ongles, piercing, cicatrice…)</li>
+                    <li>Une photo avec un papier indiquant clairement la date du jour</li>
+                  </ul>
+                  <p className="mt-6 text-amber-400 text-sm">
+                    La vérification pourra prendre un peu plus de temps sans photo du visage, mais reste tout à fait possible.
+                  </p>
+                </div>
+              )}
+
+              <div className="border-2 border-dashed border-emerald-500/40 rounded-3xl p-12 text-center hover:border-emerald-400 transition-colors cursor-pointer">
+                <input type="file" multiple accept="image/*" onChange={handleVerificationPhotos} className="hidden" id="verif" />
+                <label htmlFor="verif" className="cursor-pointer">
+                  <ShieldCheck className="w-14 h-14 mx-auto mb-4 text-emerald-400" />
+                  <p className="text-lg font-medium">Ajouter les photos de vérification</p>
+                  <p className="text-sm text-zinc-400 mt-2">Vous portant le vêtement (strictement confidentiel)</p>
+                </label>
               </div>
-            )}
 
-            <div className="flex items-start gap-3 bg-zinc-900/50 p-4 rounded-2xl">
-              <input type="checkbox" checked={noFace} onChange={e => setNoFace(e.target.checked)} className="mt-1 accent-emerald-500" />
-              <div className="text-sm">
-                <p className="font-medium">Je ne souhaite pas montrer mon visage</p>
-                <p className="text-zinc-500 text-xs mt-1">Dans ce cas, merci de fournir une photo avec la pièce portée + un autre élément permettant de prouver l’authenticité (main, tatouage, bijou, etc.).</p>
+              <div className="mt-8 text-sm text-zinc-400 bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
+                <strong className="text-rose-400">Pourquoi cette vérification Real Worn est importante ?</strong><br />
+                Elle permet à nos acheteurs d’avoir une confiance totale dans l’authenticité des pièces. C’est notre principal gage de qualité et ce qui différencie MyWornSkin.
               </div>
             </div>
 
             <div className="flex gap-4">
-              <button onClick={() => setStep(1)} className="flex-1 py-4 border border-zinc-700 rounded-3xl">Retour</button>
-              <button onClick={handleSubmit} className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl font-semibold">Envoyer pour validation</button>
+              <button onClick={() => setStep(1)} className="flex-1 py-5 border border-zinc-700 rounded-3xl font-medium">Retour</button>
+              <button onClick={() => setStep(3)} className="flex-1 py-5 bg-rose-500 hover:bg-rose-600 rounded-3xl font-semibold">Envoyer pour validation</button>
             </div>
           </div>
         )}
 
-        {/* ==================== STEP 3 : SUCCÈS ==================== */}
+        {/* STEP 3 */}
         {step === 3 && (
           <div className="text-center py-20">
-            <CheckCircle className="w-24 h-24 text-emerald-400 mx-auto mb-8" />
-            <h2 className="text-4xl font-bold mb-4">Merci !</h2>
-            <p className="text-xl text-zinc-400 max-w-md mx-auto">
-              Votre pièce est en cours de validation par notre équipe.<br />
-              Vous serez notifié dès qu’elle sera en ligne.
+            <CheckCircle className="w-28 h-28 text-green-400 mx-auto mb-10" />
+            <h2 className="text-4xl font-bold mb-4">Merci ! Votre pièce est en cours de validation</h2>
+            <p className="text-zinc-400 max-w-md mx-auto">
+              Notre équipe vérifie les photos Real Worn pour garantir la qualité et l’authenticité.<br /><br />
+              Vous serez notifié dès que l’annonce sera publiée.
             </p>
-            <Link href="/creators" className="mt-12 inline-block px-12 py-4 bg-white text-black rounded-3xl font-semibold text-lg">
-              Retour à mon espace
+            <Link href="/shop" className="mt-12 inline-block px-12 py-5 bg-white text-black rounded-3xl font-semibold text-lg">
+              Retour à la boutique
             </Link>
           </div>
         )}
