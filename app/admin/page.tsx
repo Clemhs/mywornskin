@@ -27,24 +27,6 @@ export default function AdminPage() {
   };
 
   const loadData = async () => {
-    if (activeTab === 'photos') {
-      const { data } = await supabase
-        .from('profiles')
-        .select(`id, username, full_name, avatar_url, banner_url, avatar_pending_url, banner_pending_url, avatar_status, banner_status`)
-        .or('avatar_status.eq.pending,banner_status.eq.pending')
-        .order('updated_at', { ascending: false });
-      setPendingPhotos(data || []);
-    }
-
-    if (activeTab === 'reviews') {
-      const { data } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('status', 'rejected')
-        .order('created_at', { ascending: false });
-      setRefusedReviews(data || []);
-    }
-
     if (activeTab === 'reports') {
       const { data } = await supabase
         .from('reports')
@@ -64,9 +46,15 @@ export default function AdminPage() {
     loadData();
   }, [activeTab, refreshKey]);
 
+  const filteredReports = useMemo(() => {
+    return reportFilter === 'all' 
+      ? reports 
+      : reports.filter(r => r.status === reportFilter);
+  }, [reports, reportFilter, refreshKey]);
+
   const reportsByCreator = useMemo(() => {
     const grouped: any = {};
-    reports.forEach(report => {
+    filteredReports.forEach(report => {
       const key = report.creator_id;
       if (!grouped[key]) {
         grouped[key] = { creator: report.creator, count: 0, reports: [] };
@@ -75,7 +63,7 @@ export default function AdminPage() {
       grouped[key].reports.push(report);
     });
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
-  }, [reports]);
+  }, [filteredReports]);
 
   const markReportAsReviewed = async (reportId: string) => {
     const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
@@ -95,12 +83,13 @@ export default function AdminPage() {
   };
 
   const deleteReport = async (reportId: string) => {
-    if (!confirm("Supprimer définitivement ce signalement ?")) return;
+    if (!confirm("Supprimer définitivement ?")) return;
     await supabase.from('reports').delete().eq('id', reportId);
     setRefreshKey(k => k + 1);
     showToast("Signalement supprimé");
   };
 
+  // === FONCTIONS ORIGINALES ===
   const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
     const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
@@ -211,9 +200,7 @@ export default function AdminPage() {
                             <button onClick={() => markReportAsReviewed(report.id)} className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
                               <CheckCircle size={16} /> Marquer comme traité
                             </button>
-                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">
-                              Ignorer
-                            </button>
+                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">Ignorer</button>
                             <button onClick={() => deleteReport(report.id)} className="bg-red-600 hover:bg-red-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
                               <Trash2 size={16} /> Supprimer
                             </button>
