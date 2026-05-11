@@ -18,6 +18,8 @@ export default function AdminPage() {
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [selectedReview, setSelectedReview] = useState<any>(null);
+  const [adminReply, setAdminReply] = useState("");
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -25,16 +27,29 @@ export default function AdminPage() {
   };
 
   const loadData = async () => {
-    console.log('🔄 loadData appelé');
+    if (activeTab === 'photos') {
+      const { data } = await supabase
+        .from('profiles')
+        .select(`id, username, full_name, avatar_url, banner_url, avatar_pending_url, banner_pending_url, avatar_status, banner_status`)
+        .or('avatar_status.eq.pending,banner_status.eq.pending')
+        .order('updated_at', { ascending: false });
+      setPendingPhotos(data || []);
+    }
+
+    if (activeTab === 'reviews') {
+      const { data } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('status', 'rejected')
+        .order('created_at', { ascending: false });
+      setRefusedReviews(data || []);
+    }
 
     if (activeTab === 'reports') {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('reports')
         .select(`*, creator:profiles!creator_id (username, full_name)`)
         .order('created_at', { ascending: false });
-
-      if (error) console.error('❌ Erreur chargement reports:', error);
-      console.log('📥 Reports reçus du serveur:', data?.length || 0);
       setReports(data || []);
     }
 
@@ -42,7 +57,6 @@ export default function AdminPage() {
       .from('reports')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'pending');
-    console.log('🔢 Compteur pending:', count);
     setPendingReportsCount(count || 0);
   };
 
@@ -52,58 +66,49 @@ export default function AdminPage() {
 
   const reportsByCreator = useMemo(() => {
     const grouped: any = {};
-    reports.forEach(report => {  // On utilise reports directement (pas filtered pour le moment)
+    reports.forEach(report => {
       const key = report.creator_id;
-      if (!grouped[key]) grouped[key] = { creator: report.creator, count: 0, reports: [] };
+      if (!grouped[key]) {
+        grouped[key] = { creator: report.creator, count: 0, reports: [] };
+      }
       grouped[key].count++;
       grouped[key].reports.push(report);
     });
     return Object.values(grouped).sort((a: any, b: any) => b.count - a.count);
   }, [reports]);
 
+  // ACTIONS SIGNALEMENTS
   const markReportAsReviewed = async (reportId: string) => {
-    console.log('🟢 Tentative de marquage traité pour ID:', reportId);
-
-    // Optimiste
     setReports(prev => prev.filter(r => r.id !== reportId));
 
-    const { error } = await supabase
-      .from('reports')
-      .update({ status: 'reviewed' })
-      .eq('id', reportId)
-      .select();   // On récupère la ligne mise à jour
+    const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
 
     if (error) {
-      console.error('❌ Erreur Supabase:', error);
       showToast("Erreur lors de la mise à jour", "error");
       setRefreshKey(k => k + 1);
     } else {
-      console.log('✅ Update réussi dans Supabase !');
       showToast("✅ Signalement marqué comme traité");
-      // On attend un peu avant de recharger pour laisser Supabase propager
-      setTimeout(() => setRefreshKey(k => k + 1), 300);
+      setTimeout(() => setRefreshKey(k => k + 1), 400);
     }
   };
 
-  // Autres actions (similaires)
   const dismissReport = async (reportId: string) => {
     setReports(prev => prev.filter(r => r.id !== reportId));
     await supabase.from('reports').update({ status: 'dismissed' }).eq('id', reportId);
-    setTimeout(() => setRefreshKey(k => k + 1), 300);
+    setTimeout(() => setRefreshKey(k => k + 1), 400);
     showToast("Signalement ignoré");
   };
 
   const deleteReport = async (reportId: string) => {
-    if (!confirm("Supprimer définitivement ?")) return;
+    if (!confirm("Supprimer définitivement ce signalement ?")) return;
     setReports(prev => prev.filter(r => r.id !== reportId));
     await supabase.from('reports').delete().eq('id', reportId);
-    setTimeout(() => setRefreshKey(k => k + 1), 300);
+    setTimeout(() => setRefreshKey(k => k + 1), 400);
     showToast("Signalement supprimé");
   };
 
-  // === FONCTIONS ORIGINALES (Photos + Commentaires) ===
+  // FONCTIONS ORIGINALES
   const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
-    // ... ton code original complet ...
     const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
     const statusField = type === 'avatar' ? 'avatar_status' : 'banner_status';
@@ -152,12 +157,28 @@ export default function AdminPage() {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold mb-10">Administration MyWornSkin</h1>
 
-        {/* Tabs - identique à avant */}
         <div className="flex border-b border-zinc-800 mb-10 overflow-x-auto">
-          {/* ... tes 4 boutons tabs ... */}
+          <button onClick={() => setActiveTab('photos')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'photos' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+            <ImageIcon size={22} /> Photos en attente
+          </button>
+          <button onClick={() => setActiveTab('reviews')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'reviews' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+            <AlertTriangle size={22} /> Commentaires refusés
+          </button>
+          <button onClick={() => setActiveTab('messages')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'messages' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+            <MessageCircle size={22} /> Messages
+          </button>
+          <button onClick={() => setActiveTab('reports')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap relative ${activeTab === 'reports' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+            <Flag size={22} /> Signalements
+            {pendingReportsCount > 0 && (
+              <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                {pendingReportsCount}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* SIGNALEMENTS */}
+        {/* PHOTOS, COMMENTAIRES, SIGNALEMENTS... (le reste est identique à tes versions précédentes) */}
+
         {activeTab === 'reports' && (
           <div key={refreshKey}>
             <div className="flex justify-between items-center mb-6">
@@ -173,14 +194,21 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Liste des signalements */}
             {reports.length === 0 ? (
               <p className="text-zinc-500 text-xl">Aucun signalement pour le moment.</p>
             ) : (
               <div className="space-y-8">
                 {reportsByCreator.map((group: any) => (
                   <div key={group.creator.id} className="bg-zinc-900 rounded-3xl p-8">
-                    {/* ... card créatrice ... */}
+                    <div className="flex justify-between mb-6">
+                      <Link href={`/creators/${group.creator.username}`} className="text-xl font-semibold hover:text-pink-400">
+                        @{group.creator.username}
+                      </Link>
+                      <span className="bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-sm">
+                        {group.count} signalement{group.count > 1 ? 's' : ''}
+                      </span>
+                    </div>
+
                     <div className="space-y-4">
                       {group.reports.map((report: any) => (
                         <div key={report.id} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
@@ -192,7 +220,9 @@ export default function AdminPage() {
                             <button onClick={() => markReportAsReviewed(report.id)} className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
                               <CheckCircle size={16} /> Marquer comme traité
                             </button>
-                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">Ignorer</button>
+                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">
+                              Ignorer
+                            </button>
                             <button onClick={() => deleteReport(report.id)} className="bg-red-600 hover:bg-red-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
                               <Trash2 size={16} /> Supprimer
                             </button>
@@ -209,8 +239,9 @@ export default function AdminPage() {
 
         {/* TOAST */}
         {toast && (
-          <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
-            {toast.message}
+          <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+            {toast.type === 'success' && <CheckCircle size={22} />}
+            <span className="font-medium">{toast.message}</span>
           </div>
         )}
       </div>
