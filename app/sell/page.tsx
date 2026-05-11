@@ -18,6 +18,8 @@ export default function SellPage() {
   const [publicVideo, setPublicVideo] = useState<string>('');
   const [category, setCategory] = useState('');
   const [title, setTitle] = useState('');
+  const [size, setSize] = useState('');
+  const [shoeSize, setShoeSize] = useState('');
   const [description, setDescription] = useState('');
   const [story, setStory] = useState('');
   const [voiceRecording, setVoiceRecording] = useState<string>('');
@@ -107,9 +109,11 @@ export default function SellPage() {
         creator_id: user.id,
         title,
         category: category || null,
+        size: size || null,
+        shoe_size: shoeSize || null,
         description: description || null,
         story: story || null,
-        price: parseInt(price1Day),           // ← colonne obligatoire
+        price: parseInt(price1Day),
         price_1day: parseInt(price1Day),
         price_2days: offer2Days ? parseInt(price2Days) : null,
         extra_day_price: offerExtraDay ? parseInt(extraDayPrice) : null,
@@ -147,7 +151,7 @@ export default function SellPage() {
           ))}
         </div>
 
-        {/* ==================== STEP 1 (exactement ton code) ==================== */}
+        {/* ==================== STEP 1 ==================== */}
         {step === 1 && (
           <div className="space-y-8">
             {/* Catégorie + Titre */}
@@ -162,6 +166,18 @@ export default function SellPage() {
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Titre de la pièce</label>
                 <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Culotte en dentelle noire portée 2 jours..." className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-base" />
+              </div>
+            </div>
+
+            {/* Taille + Pointure */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="text-xs text-zinc-400 mb-1.5 block">Taille (ex: S, M, L, 36-38)</label>
+                <input type="text" value={size} onChange={e => setSize(e.target.value)} placeholder="M" className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-base" />
+              </div>
+              <div>
+                <label className="text-xs text-zinc-400 mb-1.5 block">Pointure (ex: 38, 39)</label>
+                <input type="text" value={shoeSize} onChange={e => setShoeSize(e.target.value)} placeholder="38" className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-base" />
               </div>
             </div>
 
@@ -192,7 +208,7 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Description + Histoire */}
+            {/* Description + Histoire intime */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Description</label>
@@ -294,6 +310,7 @@ export default function SellPage() {
           </div>
         )}
 
+        {/* ==================== STEP 3 ==================== */}
         {step === 3 && (
           <div className="text-center py-20">
             <CheckCircle className="w-28 h-28 text-green-400 mx-auto mb-10" />
