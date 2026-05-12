@@ -12,9 +12,9 @@ interface AuthContextType {
   isCreator: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, username?: string) => Promise<boolean>;
+  register: (email: string, password: string, username?: string, isCreatorAccount?: boolean) => Promise<boolean>;
   logout: () => Promise<void>;
-  refreshProfile: () => Promise<void>;   // ← Nouvelle fonction
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -82,13 +82,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return !error;
   };
 
-  const register = async (email: string, password: string, username?: string): Promise<boolean> => {
-    const { error } = await supabase.auth.signUp({
+  const register = async (
+    email: string, 
+    password: string, 
+    username?: string,
+    isCreatorAccount: boolean = false   // ← Nouveau paramètre
+  ): Promise<boolean> => {
+    // Inscription
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { username } }
+      options: { 
+        data: { username } 
+      }
     });
-    return !error;
+
+    if (error) {
+      console.error("Erreur inscription :", error);
+      return false;
+    }
+
+    // Création automatique du profil
+    if (data.user) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: data.user.id,
+          username: username || email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ''),
+          full_name: username || (isCreatorAccount ? 'Nouvelle Créatrice' : 'Nouveau Client'),
+          email: email,
+          role: isCreatorAccount ? 'creator' : 'client',
+          is_creator: isCreatorAccount,
+          avatar_status: 'approved',
+          banner_status: 'pending',
+          created_at: new Date().toISOString()
+        });
+
+      if (profileError) {
+        console.error("Erreur création profil :", profileError);
+      }
+    }
+
+    return true;
   };
 
   const logout = async () => {
@@ -109,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login, 
         register, 
         logout,
-        refreshProfile   // ← Exposé ici
+        refreshProfile
       }}
     >
       {children}
