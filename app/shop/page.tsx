@@ -8,55 +8,94 @@ export default function ShopPage() {
   const supabase = createClient();
 
   const [products, setProducts] = useState<any[]>([]);
+  const [allProducts, setAllProducts] = useState<any[]>([]); // Pour les filtres
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+  const limit = 12;
+
+  // Filtres
   const [activeFilter, setActiveFilter] = useState<'all' | 'story' | 'voice' | 'both'>('all');
-  const [selectedShoeSize, setSelectedShoeSize] = useState<string>('');
+  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedShoeSize, setSelectedShoeSize] = useState('');
+  const [sortOption, setSortOption] = useState<'newest' | 'price-low' | 'price-high'>('newest');
+
+  // Récupération des produits
+  const fetchProducts = async (reset = false) => {
+    if (reset) {
+      setPage(0);
+      setProducts([]);
+      setHasMore(true);
+    }
+
+    setLoading(reset);
+    setLoadingMore(!reset);
+
+    let query = supabase
+      .from('products')
+      .select(`
+        id, title, price, images, has_story, has_voice, worn_days,
+        size, shoe_size, category, country, city,
+        creator:profiles!creator_id (username, full_name)
+      `, { count: 'exact' })
+      .eq('status', 'approved')
+      .order(sortOption === 'price-low' ? 'price' : 'created_at', 
+            { ascending: sortOption === 'price-low' });
+
+    if (sortOption === 'price-high') {
+      query = query.order('price', { ascending: false });
+    }
+
+    const from = (page * limit);
+    const { data, error, count } = await query.range(from, from + limit - 1);
+
+    if (error) console.error(error);
+    else {
+      if (reset) setProducts(data || []);
+      else setProducts(prev => [...prev, ...(data || [])]);
+
+      setHasMore((data?.length || 0) === limit);
+      if (reset) setAllProducts(data || []); // Pour extraire les filtres uniques
+    }
+
+    setLoading(false);
+    setLoadingMore(false);
+  };
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
+    fetchProducts(true);
+  }, [sortOption, activeFilter, selectedSize, selectedShoeSize, selectedCountry, selectedCity]);
 
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          id, title, price, images, has_story, has_voice, worn_days, 
-          size, shoe_size, category,
-          creator:profiles!creator_id (username, full_name)
-        `)
-        .eq('status', 'approved')           // ← Important
-        .order('created_at', { ascending: false });
+  // Extraction des valeurs uniques pour les filtres
+  const uniqueSizes = useMemo(() => [...new Set(allProducts.map(p => p.size).filter(Boolean))], [allProducts]);
+  const uniqueCountries = useMemo(() => [...new Set(allProducts.map(p => p.country).filter(Boolean))], [allProducts]);
+  const uniqueCities = useMemo(() => [...new Set(allProducts.map(p => p.city).filter(Boolean))], [allProducts]);
+  const uniqueShoeSizes = useMemo(() => [...new Set(allProducts.map(p => p.shoe_size).filter(Boolean))].sort((a,b) => Number(a)-Number(b)), [allProducts]);
 
-      if (error) {
-        console.error("Erreur Supabase :", error);
-      } else {
-        console.log("Produits récupérés :", data);   // ← Debug
-        setProducts(data || []);
-      }
-
-      setLoading(false);
-    };
-
-    fetchProducts();
-  }, [supabase]);
-
+  // Filtrage côté client (pour les filtres story/voice + taille/pays/ville)
   const filteredProducts = useMemo(() => {
-    return products.filter(product => {
-      const matchStoryVoice =
-        activeFilter === 'all' ||
-        (activeFilter === 'story' && product.has_story) ||
-        (activeFilter === 'voice' && product.has_voice) ||
-        (activeFilter === 'both' && product.has_story && product.has_voice);
+    return products.filter(p => {
+      const storyMatch = activeFilter === 'all' || 
+                        (activeFilter === 'story' && p.has_story) ||
+                        (activeFilter === 'voice' && p.has_voice) ||
+                        (activeFilter === 'both' && p.has_story && p.has_voice);
 
-      const matchShoeSize = !selectedShoeSize || product.shoe_size === selectedShoeSize;
+      const sizeMatch = !selectedSize || p.size === selectedSize;
+      const countryMatch = !selectedCountry || p.country === selectedCountry;
+      const cityMatch = !selectedCity || p.city === selectedCity;
+      const shoeMatch = !selectedShoeSize || p.shoe_size === selectedShoeSize;
 
-      return matchStoryVoice && matchShoeSize;
+      return storyMatch && sizeMatch && countryMatch && cityMatch && shoeMatch;
     });
-  }, [products, activeFilter, selectedShoeSize]);
+  }, [products, activeFilter, selectedSize, selectedCountry, selectedCity, selectedShoeSize]);
 
-  const availableShoeSizes = useMemo(() => {
-    const sizes = new Set(products.map(p => p.shoe_size).filter(Boolean));
-    return Array.from(sizes).sort((a, b) => Number(a) - Number(b));
-  }, [products]);
+  const loadMore = () => {
+    setPage(prev => prev + 1);
+    fetchProducts(false);
+  };
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20">
@@ -66,66 +105,90 @@ export default function ShopPage() {
           Pièces portées avec passion • {filteredProducts.length} pièces
         </p>
 
-        {/* Filtres */}
+        {/* Filtres principaux */}
         <div className="flex justify-center mb-8 gap-2 flex-wrap">
           {[
             { label: 'Tout', value: 'all' },
             { label: 'Avec histoire', value: 'story' },
             { label: 'Avec vocal', value: 'voice' },
             { label: 'Histoire + Vocal', value: 'both' },
-          ].map((filter) => (
+          ].map(f => (
             <button
-              key={filter.value}
-              onClick={() => setActiveFilter(filter.value as any)}
+              key={f.value}
+              onClick={() => setActiveFilter(f.value as any)}
               className={`px-6 py-3 rounded-2xl text-sm font-medium transition-all ${
-                activeFilter === filter.value ? 'bg-rose-500 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'
+                activeFilter === f.value ? 'bg-rose-500 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'
               }`}
             >
-              {filter.label}
+              {f.label}
             </button>
           ))}
         </div>
 
-        {/* Filtre Pointure */}
-        {availableShoeSizes.length > 0 && (
-          <div className="flex justify-center mb-10">
-            <div className="flex items-center gap-3">
-              <span className="text-zinc-400">Pointure :</span>
-              <select
-                value={selectedShoeSize}
-                onChange={(e) => setSelectedShoeSize(e.target.value)}
-                className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-2.5 text-sm"
-              >
-                <option value="">Toutes</option>
-                {availableShoeSizes.map(size => (
-                  <option key={size} value={size}>{size}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
+        {/* Filtres avancés */}
+        <div className="flex flex-wrap justify-center gap-4 mb-12">
+          <select value={selectedSize} onChange={e => setSelectedSize(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3">
+            <option value="">Toutes tailles</option>
+            {uniqueSizes.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+
+          <select value={selectedShoeSize} onChange={e => setSelectedShoeSize(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3">
+            <option value="">Toutes pointures</option>
+            {uniqueShoeSizes.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+
+          <select value={selectedCountry} onChange={e => setSelectedCountry(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3">
+            <option value="">Tous pays</option>
+            {uniqueCountries.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+
+          <select value={selectedCity} onChange={e => setSelectedCity(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3">
+            <option value="">Toutes villes</option>
+            {uniqueCities.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+
+          <select value={sortOption} onChange={e => setSortOption(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3">
+            <option value="newest">Plus récents</option>
+            <option value="price-low">Prix croissant</option>
+            <option value="price-high">Prix décroissant</option>
+          </select>
+        </div>
 
         {loading ? (
-          <p className="text-center text-zinc-400 py-20">Chargement...</p>
+          <p className="text-center text-zinc-400 py-20">Chargement des pièces...</p>
         ) : filteredProducts.length === 0 ? (
           <p className="text-center text-zinc-400 py-20">Aucune pièce trouvée avec ces filtres.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
-            {filteredProducts.map((product) => (
-              <StoryCard
-                key={product.id}
-                id={product.id}
-                title={product.title}
-                creator={product.creator?.full_name || product.creator?.username || 'Créatrice'}
-                creatorSlug={product.creator?.username}
-                price={product.price}
-                image={product.images?.[0] || '/placeholder.jpg'}
-                hasStory={product.has_story}
-                hasVoice={product.has_voice}
-                wornDays={product.worn_days}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
+              {filteredProducts.map((product) => (
+                <StoryCard
+                  key={product.id}
+                  id={product.id}
+                  title={product.title}
+                  creator={product.creator?.full_name || product.creator?.username || 'Créatrice'}
+                  creatorSlug={product.creator?.username}
+                  price={product.price}
+                  image={product.images?.[0]}
+                  hasStory={product.has_story}
+                  hasVoice={product.has_voice}
+                  wornDays={product.worn_days}
+                />
+              ))}
+            </div>
+
+            {hasMore && (
+              <div className="flex justify-center mt-12">
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="bg-zinc-800 hover:bg-zinc-700 px-10 py-4 rounded-2xl font-medium disabled:opacity-50"
+                >
+                  {loadingMore ? "Chargement..." : "Charger plus"}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </main>
