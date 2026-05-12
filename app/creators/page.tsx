@@ -14,20 +14,23 @@ export default function CreatorsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
-  const [selectedSize, setSelectedSize] = useState('');        // ← nouveau
-  const [selectedShoeSize, setSelectedShoeSize] = useState(''); // ← nouveau
+  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedShoeSize, setSelectedShoeSize] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'top' | 'new'>('all');
 
   useEffect(() => {
     const fetchCreators = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size') // ← ajouté size + shoe_size
+        .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size')
+        .eq('is_creator', true)                    // ← Filtre essentiel
         .order('sales_badge', { ascending: false });
 
-      if (error) console.error(error);
-      else setCreators(data || []);
-
+      if (error) {
+        console.error("Erreur chargement créatrices :", error);
+      } else {
+        setCreators(data || []);
+      }
       setLoading(false);
     };
 
@@ -43,11 +46,12 @@ export default function CreatorsPage() {
 
       const matchesCountry = !selectedCountry || creator.country === selectedCountry;
       const matchesCity = !selectedCity || creator.city === selectedCity;
-      const matchesSize = !selectedSize || creator.size === selectedSize;           // ← nouveau
-      const matchesShoeSize = !selectedShoeSize || creator.shoe_size === selectedShoeSize; // ← nouveau
+      const matchesSize = !selectedSize || creator.size === selectedSize;
+      const matchesShoeSize = !selectedShoeSize || creator.shoe_size === selectedShoeSize;
 
       let matchesFilter = true;
       if (activeFilter === 'top') matchesFilter = (creator.sales_badge || 0) >= 10;
+      if (activeFilter === 'new') matchesFilter = !creator.sales_badge; // ou une logique selon tes besoins
 
       return matchesSearch && matchesCountry && matchesCity && matchesSize && matchesShoeSize && matchesFilter;
     });
@@ -55,8 +59,8 @@ export default function CreatorsPage() {
 
   const countries = [...new Set(creators.map(c => c.country).filter(Boolean))];
   const cities = [...new Set(creators.map(c => c.city).filter(Boolean))];
-  const sizes = [...new Set(creators.map(c => c.size).filter(Boolean))];           // ← nouveau
-  const shoeSizes = [...new Set(creators.map(c => c.shoe_size).filter(Boolean))]; // ← nouveau
+  const sizes = [...new Set(creators.map(c => c.size).filter(Boolean))];
+  const shoeSizes = [...new Set(creators.map(c => c.shoe_size).filter(Boolean))];
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20 pb-20">
@@ -76,49 +80,24 @@ export default function CreatorsPage() {
             className="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-pink-500"
           />
 
-          <select
-            value={selectedCountry}
-            onChange={(e) => setSelectedCountry(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500 min-w-[180px]"
-          >
+          <select value={selectedCountry} onChange={(e) => setSelectedCountry(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500 min-w-[180px]">
             <option value="">Tous les pays</option>
-            {countries.map(country => (
-              <option key={country} value={country}>{country}</option>
-            ))}
+            {countries.map(country => <option key={country} value={country}>{country}</option>)}
           </select>
 
-          <select
-            value={selectedCity}
-            onChange={(e) => setSelectedCity(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500 min-w-[180px]"
-          >
+          <select value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500 min-w-[180px]">
             <option value="">Toutes les villes</option>
-            {cities.map(city => (
-              <option key={city} value={city}>{city}</option>
-            ))}
+            {cities.map(city => <option key={city} value={city}>{city}</option>)}
           </select>
 
-          {/* Nouveaux filtres Taille & Pointure */}
-          <select
-            value={selectedSize}
-            onChange={(e) => setSelectedSize(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500 min-w-[140px]"
-          >
+          <select value={selectedSize} onChange={(e) => setSelectedSize(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500 min-w-[140px]">
             <option value="">Toutes tailles</option>
-            {sizes.map(size => (
-              <option key={size} value={size}>{size}</option>
-            ))}
+            {sizes.map(size => <option key={size} value={size}>{size}</option>)}
           </select>
 
-          <select
-            value={selectedShoeSize}
-            onChange={(e) => setSelectedShoeSize(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500 min-w-[140px]"
-          >
+          <select value={selectedShoeSize} onChange={(e) => setSelectedShoeSize(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-pink-500 min-w-[140px]">
             <option value="">Toutes pointures</option>
-            {shoeSizes.map(shoe => (
-              <option key={shoe} value={shoe}>{shoe}</option>
-            ))}
+            {shoeSizes.map(shoe => <option key={shoe} value={shoe}>{shoe}</option>)}
           </select>
         </div>
 
@@ -149,8 +128,7 @@ export default function CreatorsPage() {
           <p className="text-center text-zinc-400 py-20">Chargement des créatrices...</p>
         ) : filteredCreators.length === 0 ? (
           <p className="text-center text-zinc-400 py-20">
-            Aucune créatrice trouvée avec ces filtres.<br />
-            Essayez d'élargir vos critères.
+            Aucune créatrice trouvée avec ces filtres.
           </p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
