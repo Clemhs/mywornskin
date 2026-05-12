@@ -55,6 +55,33 @@ export default function CreatorEditPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // ==================== TOAST PHOTO REFUSÉE ====================
+  useEffect(() => {
+    if (!profile || !user) return;
+
+    const dismissedKey = `dismissed_rejected_toast_${user.id}`;
+
+    const hasRejectedPhoto = 
+      profile.avatar_status === 'rejected' || 
+      profile.banner_status === 'rejected';
+
+    if (hasRejectedPhoto && !localStorage.getItem(dismissedKey)) {
+      setToast({ 
+        message: "Une de vos photos a été refusée par l'équipe", 
+        type: 'error', 
+        link: "/guidelines" 
+      });
+    }
+  }, [profile, user]);
+
+  const closeToast = () => {
+    if (toast?.type === 'error' && user) {
+      const dismissedKey = `dismissed_rejected_toast_${user.id}`;
+      localStorage.setItem(dismissedKey, 'true');
+    }
+    setToast(null);
+  };
+
   // Validation des commentaires
   const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
     const { error } = await supabase
@@ -71,25 +98,6 @@ export default function CreatorEditPage() {
       });
       loadData();
     }
-  };
-
-  // Toast photo refusée - ne réapparaît plus après fermeture
-  useEffect(() => {
-    if (!profile) return;
-    const dismissedKey = `dismissed_rejected_toast_${user?.id}`;
-
-    if ((profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') 
-        && !localStorage.getItem(dismissedKey)) {
-      setToast({ message: "Une de vos photos a été refusée", type: 'error', link: "/guidelines" });
-    }
-  }, [profile, user]);
-
-  const closeToast = () => {
-    if (toast?.type === 'error') {
-      const dismissedKey = `dismissed_rejected_toast_${user?.id}`;
-      localStorage.setItem(dismissedKey, 'true');
-    }
-    setToast(null);
   };
 
   const saveProfile = async (updates: any) => {
@@ -161,9 +169,6 @@ export default function CreatorEditPage() {
     return <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center pt-20">Chargement...</div>;
   }
 
-  const isAvatarPending = profile.avatar_status === 'pending';
-  const isBannerPending = profile.banner_status === 'pending';
-
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-12">
       <div className="max-w-6xl mx-auto px-6">
@@ -176,11 +181,12 @@ export default function CreatorEditPage() {
           <div className="w-[140px] flex-shrink-0" />
         </div>
 
+        {/* TOAST PHOTO REFUSÉE */}
         {toast && (
           <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 min-w-[460px]
             ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'} text-white`}>
             <span>{toast.message}</span>
-            {toast.link && <Link href={toast.link} className="underline text-sm ml-2">Guidelines →</Link>}
+            {toast.link && <Link href={toast.link} className="underline text-sm ml-2">Voir les guidelines →</Link>}
             <button onClick={closeToast} className="ml-auto p-1 hover:bg-white/20 rounded-full">
               <X size={18} />
             </button>
@@ -198,7 +204,7 @@ export default function CreatorEditPage() {
                   alt="Bannière" 
                   className="w-full h-full object-cover" 
                 />
-                {isBannerPending && (
+                {(profile.banner_status === 'pending' || profile.avatar_status === 'pending') && (
                   <div className="absolute top-4 right-4 bg-amber-500 text-black text-sm px-4 py-1 rounded-full flex items-center gap-2 font-medium">
                     <Clock size={16} /> En attente de validation
                   </div>
