@@ -28,7 +28,11 @@ export default function CheckoutPage() {
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cartItems }),
+        body: JSON.stringify({ 
+          cartItems,
+          // On passe les IDs pour le webhook
+          productIds: cartItems.map(item => item.id)
+        }),
       });
 
       const data = await response.json();
