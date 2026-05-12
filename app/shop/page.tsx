@@ -20,7 +20,6 @@ export default function ShopPage() {
   const [maxPrice, setMaxPrice] = useState('');
   const [sortOption, setSortOption] = useState<'newest' | 'price-low' | 'price-high'>('newest');
 
-  // Chargement des produits
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
@@ -34,25 +33,20 @@ export default function ShopPage() {
         .eq('status', 'approved')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error("Erreur Supabase :", error);
-      } else {
-        console.log("✅ Produits chargés :", data);
-        setProducts(data || []);
-      }
+      if (error) console.error(error);
+      else setProducts(data || []);
+
       setLoading(false);
     };
 
     fetchProducts();
   }, [supabase]);
 
-  // Valeurs uniques pour les filtres
   const uniqueSizes = useMemo(() => [...new Set(products.map(p => p.size).filter(Boolean))], [products]);
-  const uniqueShoeSizes = useMemo(() => [...new Set(products.map(p => p.shoe_size).filter(Boolean))].sort((a, b) => Number(a) - Number(b)), [products]);
+  const uniqueShoeSizes = useMemo(() => [...new Set(products.map(p => p.shoe_size).filter(Boolean))].sort((a,b) => Number(a)-Number(b)), [products]);
   const uniqueCountries = useMemo(() => [...new Set(products.map(p => p.creator?.country).filter(Boolean))], [products]);
   const uniqueCities = useMemo(() => [...new Set(products.map(p => p.creator?.city).filter(Boolean))], [products]);
 
-  // Filtrage
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       const storyVoiceMatch = activeFilter === 'all' ||
@@ -91,27 +85,16 @@ export default function ShopPage() {
           />
         </div>
 
-        {/* Filtres principaux */}
+        {/* Filtres principaux + avancés (identiques) */}
         <div className="flex justify-center mb-8 gap-2 flex-wrap">
-          {[
-            { label: 'Tout', value: 'all' },
-            { label: 'Avec histoire', value: 'story' },
-            { label: 'Avec vocal', value: 'voice' },
-            { label: 'Histoire + Vocal', value: 'both' },
-          ].map(f => (
-            <button
-              key={f.value}
-              onClick={() => setActiveFilter(f.value as any)}
-              className={`px-6 py-3 rounded-2xl text-sm font-medium transition-all ${
-                activeFilter === f.value ? 'bg-rose-500 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'
-              }`}
-            >
-              {f.label}
+          {['all','story','voice','both'].map(v => (
+            <button key={v} onClick={() => setActiveFilter(v as any)}
+              className={`px-6 py-3 rounded-2xl text-sm font-medium ${activeFilter === v ? 'bg-rose-500 text-white' : 'bg-zinc-900 text-zinc-400'}`}>
+              {v === 'all' ? 'Tout' : v === 'story' ? 'Avec histoire' : v === 'voice' ? 'Avec vocal' : 'Histoire + Vocal'}
             </button>
           ))}
         </div>
 
-        {/* Filtres avancés */}
         <div className="flex flex-wrap justify-center gap-4 mb-12">
           <select value={selectedSize} onChange={e => setSelectedSize(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-sm">
             <option value="">Toutes tailles</option>
@@ -134,20 +117,8 @@ export default function ShopPage() {
           </select>
 
           <div className="flex gap-3">
-            <input 
-              type="text" 
-              placeholder="Prix min" 
-              value={minPrice} 
-              onChange={e => setMinPrice(e.target.value)} 
-              className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 w-28 text-sm focus:outline-none" 
-            />
-            <input 
-              type="text" 
-              placeholder="Prix max" 
-              value={maxPrice} 
-              onChange={e => setMaxPrice(e.target.value)} 
-              className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 w-28 text-sm focus:outline-none" 
-            />
+            <input type="text" placeholder="Prix min" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 w-28 text-sm" />
+            <input type="text" placeholder="Prix max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 w-28 text-sm" />
           </div>
 
           <select value={sortOption} onChange={e => setSortOption(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-sm">
@@ -158,25 +129,33 @@ export default function ShopPage() {
         </div>
 
         {loading ? (
-          <p className="text-center text-zinc-400 py-20">Chargement des pièces...</p>
+          <p className="text-center text-zinc-400 py-20">Chargement...</p>
         ) : filteredProducts.length === 0 ? (
-          <p className="text-center text-zinc-400 py-20">Aucune pièce trouvée avec ces filtres.</p>
+          <p className="text-center text-zinc-400 py-20">Aucune pièce trouvée.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
-            {filteredProducts.map(product => (
-              <StoryCard
-                key={product.id}
-                id={product.id}
-                title={product.title}
-                creator={product.creator?.full_name || product.creator?.username || 'Créatrice'}
-                creatorSlug={product.creator?.username}
-                price={product.price}
-                image={product.images?.[0]}
-                hasStory={product.has_story}
-                hasVoice={product.has_voice}
-                wornDays={product.worn_days}
-              />
-            ))}
+            {filteredProducts.map(product => {
+              const isNew = new Date(product.created_at) > new Date(Date.now() - 7*24*60*60*1000);
+              const isBestSeller = (product.sales_count || 0) >= 5;   // tu peux ajuster le seuil
+
+              return (
+                <div key={product.id} className="relative">
+                  <StoryCard
+                    id={product.id}
+                    title={product.title}
+                    creator={product.creator?.full_name || product.creator?.username || 'Créatrice'}
+                    creatorSlug={product.creator?.username}
+                    price={product.price}
+                    image={product.images?.[0]}
+                    hasStory={product.has_story}
+                    hasVoice={product.has_voice}
+                    wornDays={product.worn_days}
+                  />
+                  {isNew && <div className="absolute top-3 left-3 bg-emerald-500 text-[10px] px-2.5 py-1 rounded-full font-medium">NOUVEAUTÉ</div>}
+                  {isBestSeller && <div className="absolute top-3 right-3 bg-amber-500 text-[10px] px-2.5 py-1 rounded-full font-medium">PLUS VENDU</div>}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
