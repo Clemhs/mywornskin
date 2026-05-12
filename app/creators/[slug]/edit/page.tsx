@@ -20,7 +20,6 @@ export default function CreatorEditPage() {
   const [size, setSize] = useState('');
   const [shoeSize, setShoeSize] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; link?: string } | null>(null);
-  const [dismissRejected, setDismissRejected] = useState(false);
 
   const availableSalesBadges = [10, 50, 100, 500];
   const availableFrames = [
@@ -69,6 +68,18 @@ export default function CreatorEditPage() {
   const closeToast = () => setToast(null);
 
   const hasRejectedPhoto = profile?.avatar_status === 'rejected' || profile?.banner_status === 'rejected';
+
+  // Gestion du bandeau refusé avec localStorage
+  const dismissedKey = user ? `dismissed_rejected_${user.id}` : '';
+  const isDismissed = user && localStorage.getItem(dismissedKey) === 'true';
+
+  const dismissRejectedBanner = () => {
+    if (user) {
+      localStorage.setItem(dismissedKey, 'true');
+      // On force un re-render
+      setTimeout(() => window.location.reload(), 100); // petit refresh pour cacher immédiatement
+    }
+  };
 
   const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
     const { error } = await supabase.from('reviews').update({ status }).eq('id', reviewId);
@@ -141,7 +152,8 @@ export default function CreatorEditPage() {
 
     setToast({ message: `📸 Photo de ${type} envoyée en attente`, type: 'success' });
     loadData();
-    setDismissRejected(false); // On réactive le bandeau si nouvelle photo
+    // On réactive le bandeau pour une nouvelle photo
+    if (user) localStorage.removeItem(dismissedKey);
   };
 
   if (!user || !profile) {
@@ -161,7 +173,7 @@ export default function CreatorEditPage() {
         </div>
 
         {/* BANDEAU ROUGE PHOTO REFUSÉE */}
-        {hasRejectedPhoto && !dismissRejected && (
+        {hasRejectedPhoto && !isDismissed && (
           <div className="mb-8 bg-red-900/30 border border-red-600 rounded-3xl p-5 flex items-start gap-4">
             <AlertTriangle className="text-red-500 mt-0.5" size={24} />
             <div className="flex-1">
@@ -176,7 +188,11 @@ export default function CreatorEditPage() {
               Voir les Guidelines →
             </Link>
             <button 
-              onClick={() => setDismissRejected(true)}
+              onClick={() => {
+                if (user) localStorage.setItem(dismissedKey, 'true');
+                // Force re-render
+                window.location.reload();
+              }}
               className="text-zinc-400 hover:text-white p-1 -mt-1 -mr-1"
             >
               <X size={20} />
