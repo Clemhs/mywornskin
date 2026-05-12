@@ -154,7 +154,7 @@ export default function AdminPage() {
     showToast("✅ Toutes les données ont été rafraîchies");
   };
 
-  // === ACTIONS ===
+  // === ACTIONS (identiques) ===
   const approveProduct = async (id: string) => {
     const { error } = await supabase.from('products').update({ status: 'approved' }).eq('id', id);
     if (error) showToast("Erreur", "error");
@@ -311,7 +311,7 @@ export default function AdminPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {pendingProducts.map((p) => (
-                <div key={p.id} className="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 flex flex-col">
+                <div key={p.id} className="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 flex flex-col h-full">
                   <div className="p-4">
                     <p className="text-xs text-zinc-400 mb-2">Photos publiques</p>
                     <div className="flex gap-2 overflow-x-auto pb-3">
@@ -340,20 +340,21 @@ export default function AdminPage() {
                     </Link>
                     <h3 className="font-semibold text-lg mb-3">{p.title}</h3>
 
-                    {/* Titre + Description (hauteur suffisante) */}
-                    <div className="text-sm text-zinc-400 mb-5">
-                      <p className="font-medium text-zinc-300 mb-1">Titre :</p>
+                    {/* Titre clair */}
+                    <div className="text-sm text-zinc-400 mb-4">
+                      <p className="font-medium text-zinc-300">Titre :</p>
                       <p>{p.title}</p>
                     </div>
 
-                    <div className="text-sm text-zinc-400 mb-5 max-h-32 overflow-y-auto pr-2">
+                    {/* Description avec scroll vertical */}
+                    <div className="text-sm text-zinc-400 mb-5 max-h-32 overflow-y-auto pr-2 border-l-2 border-zinc-700 pl-3">
                       <p className="font-medium text-zinc-300 mb-1">Description :</p>
                       <p>{p.description || "Aucune description"}</p>
                     </div>
 
-                    {/* Histoire intime */}
+                    {/* Histoire intime avec scroll vertical */}
                     {p.story && (
-                      <div className="text-sm text-zinc-400 mb-6 max-h-40 overflow-y-auto pr-2">
+                      <div className="text-sm text-zinc-400 mb-6 max-h-40 overflow-y-auto pr-2 border-l-2 border-zinc-700 pl-3">
                         <p className="font-medium text-zinc-300 mb-1">Histoire intime :</p>
                         <p>{p.story}</p>
                       </div>
@@ -378,7 +379,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* TOUT LE RESTE (Photos, Commentaires, Messages, Signalements) reste IDENTIQUE à ton code original */}
+        {/* Tous les autres onglets restent EXACTEMENT comme dans ton code original (non modifiés) */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
@@ -537,7 +538,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MODALS & TOAST (inchangés) */}
+        {/* MODALS */}
         {selectedReview && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200]">
             <div className="bg-zinc-900 rounded-3xl w-full max-w-lg p-8">
