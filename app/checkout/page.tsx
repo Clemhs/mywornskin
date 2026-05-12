@@ -30,8 +30,7 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           cartItems,
-          // On passe les IDs pour le webhook
-          productIds: cartItems.map(item => item.id)
+          productIds: cartItems.map(item => item.id)   // ← Important pour le webhook
         }),
       });
 
