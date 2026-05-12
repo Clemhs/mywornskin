@@ -15,18 +15,16 @@ export default function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  // Redirection si créatrice ou non connecté
+  // Redirection
   useEffect(() => {
     if (!loading && (!user || isCreator)) {
       router.push(isCreator ? '/creators/me' : '/login');
     }
   }, [user, isCreator, loading, router]);
 
-  // Mise à jour de l'avatar affiché
+  // Synchronisation de l'avatar
   useEffect(() => {
-    if (profile?.avatar_url) {
-      setAvatarUrl(profile.avatar_url);
-    }
+    setAvatarUrl(profile?.avatar_url || null);
   }, [profile]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,6 +38,7 @@ export default function ProfilePage() {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
 
+      // Upload dans le bucket avatars
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, { upsert: true });
@@ -50,29 +49,29 @@ export default function ProfilePage() {
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Mise à jour dans la base
-      await supabase
+      // Mise à jour du profil
+      const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
         .eq('id', user.id);
 
+      if (updateError) throw updateError;
+
+      // Mise à jour locale + refresh global
       setAvatarUrl(publicUrl);
-      setToast({ message: "✅ Photo de profil mise à jour !", type: 'success' });
+      await refreshProfile();        // Important : rafraîchit tout le context
 
-      // Rafraîchir le context global pour mettre à jour le Header
-      await refreshProfile();
+      setToast({ message: "✅ Photo de profil mise à jour avec succès !", type: 'success' });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      setToast({ message: "❌ Erreur lors de l'upload de la photo", type: 'error' });
+      setToast({ message: "❌ Erreur lors de l'upload", type: 'error' });
     } finally {
       setUploading(false);
     }
   };
 
-  if (loading) {
-    return <div className="min-h-screen bg-zinc-950 flex items-center justify-center">Chargement...</div>;
-  }
+  if (loading) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center">Chargement...</div>;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-20">
@@ -81,7 +80,6 @@ export default function ProfilePage() {
 
         <div className="bg-zinc-900 rounded-3xl p-10">
           <div className="flex flex-col md:flex-row gap-10 items-start">
-            {/* Avatar */}
             <div className="relative group flex-shrink-0">
               <div className="w-40 h-40 rounded-3xl overflow-hidden border-4 border-zinc-700">
                 {avatarUrl ? (
@@ -105,15 +103,12 @@ export default function ProfilePage() {
               </label>
             </div>
 
-            {/* Informations */}
             <div className="flex-1 pt-2">
               <h2 className="text-3xl font-semibold">
                 {profile?.full_name || user?.user_metadata?.full_name || 'Client'}
               </h2>
               <p className="text-zinc-400 mt-1">{user?.email}</p>
-              <p className="text-emerald-400 text-sm mt-3 flex items-center gap-2">
-                ✓ Compte Client
-              </p>
+              <p className="text-emerald-400 text-sm mt-3">✓ Compte Client</p>
 
               {toast && (
                 <div className={`mt-6 px-6 py-4 rounded-2xl text-sm ${
@@ -127,29 +122,21 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Navigation rapide */}
+          {/* Navigation */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12">
-            <button 
-              onClick={() => router.push('/profile/favorites')}
-              className="bg-zinc-800 hover:bg-zinc-700 transition p-6 rounded-3xl flex flex-col items-center gap-3"
-            >
+            <button onClick={() => router.push('/profile/favorites')} className="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl flex flex-col items-center gap-3">
               <Heart className="w-8 h-8 text-rose-400" />
-              <span className="font-medium">Mes Favoris</span>
+              <span>Mes Favoris</span>
             </button>
 
-            <button 
-              onClick={() => router.push('/orders')}
-              className="bg-zinc-800 hover:bg-zinc-700 transition p-6 rounded-3xl flex flex-col items-center gap-3"
-            >
+            <button onClick={() => router.push('/orders')} className="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl flex flex-col items-center gap-3">
               <Package className="w-8 h-8 text-rose-400" />
-              <span className="font-medium">Mes Commandes</span>
+              <span>Mes Commandes</span>
             </button>
 
-            <button 
-              className="bg-zinc-800 hover:bg-zinc-700 transition p-6 rounded-3xl flex flex-col items-center gap-3"
-            >
+            <button className="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl flex flex-col items-center gap-3">
               <Settings className="w-8 h-8 text-rose-400" />
-              <span className="font-medium">Paramètres</span>
+              <span>Paramètres</span>
             </button>
           </div>
         </div>
