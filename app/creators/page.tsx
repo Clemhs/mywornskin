@@ -17,14 +17,17 @@ export default function CreatorsPage() {
   const [selectedShoeSize, setSelectedShoeSize] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'top' | 'new'>('all');
 
-  // Hook avec typage explicite
-  const { data: creators = [], loading, error } = useSupabaseQuery<any[]>(async (sb) => {
+  // Hook avec typage explicite + fallback sécurisé
+  const { data: creatorsData = [], loading, error } = useSupabaseQuery<any[]>(async (sb) => {
     return sb
       .from('profiles')
       .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size')
       .or('is_creator.eq.true,role.eq.creator')
       .order('created_at', { ascending: false });
   });
+
+  // Sécurité supplémentaire
+  const creators = creatorsData || [];
 
   const filteredCreators = useMemo(() => {
     return creators.filter(creator => {
