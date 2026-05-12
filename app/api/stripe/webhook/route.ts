@@ -1,8 +1,14 @@
-import { createClient } from '@/lib/supabase/server';
 import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
+// Client Supabase avec Service Role Key (droits admin)
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!   // ← Clé importante
+);
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -22,15 +28,12 @@ export async function POST(req: Request) {
     const productIds = JSON.parse(session.metadata?.productIds || '[]');
 
     if (productIds.length > 0) {
-      const supabase = await createClient();   // Client serveur
-
       for (const productId of productIds) {
-        const { error } = await supabase.rpc('increment_sales_count', { 
-          p_id: productId 
-        });
+        const { error } = await supabaseAdmin
+          .rpc('increment_sales_count', { p_id: productId });
 
         if (error) {
-          console.error(`Erreur incrémentation sales_count pour ${productId}:`, error);
+          console.error(`Erreur incrémentation pour ${productId}:`, error);
         } else {
           console.log(`✅ sales_count incrémenté pour produit ${productId}`);
         }
