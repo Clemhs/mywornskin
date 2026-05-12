@@ -86,15 +86,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string, 
     password: string, 
     username?: string,
-    isCreatorAccount: boolean = false   // false = client, true = créatrice
+    isCreatorAccount: boolean = false
   ): Promise<boolean> => {
-    // 1. Inscription Auth
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { 
-        data: { username } 
-      }
+      options: { data: { username } }
     });
 
     if (error) {
@@ -102,7 +99,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
-    // 2. Création automatique du profil
     if (data.user) {
       const { error: profileError } = await supabase
         .from('profiles')
@@ -114,22 +110,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: isCreatorAccount ? 'creator' : 'client',
           is_creator: isCreatorAccount,
           avatar_status: 'approved',
-          banner_status: 'pending',
-          created_at: new Date().toISOString()
+          banner_status: 'pending'
         });
 
-      if (profileError) {
-        console.error("Erreur création profil :", profileError);
-      }
+      if (profileError) console.error("Erreur création profil :", profileError);
     }
 
     return true;
   };
 
+  // Déconnexion améliorée et robuste
   const logout = async () => {
-    await supabase.auth.signOut();
-    setProfile(null);
-    setIsCreator(false);
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+      
+      // Nettoyage complet des états
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      setIsCreator(false);
+      setIsLoggedIn(false);
+
+      console.log("Déconnexion réussie");
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion :", error);
+      // Fallback agressif
+      window.location.href = '/login';
+    }
   };
 
   return (
