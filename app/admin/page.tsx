@@ -311,7 +311,7 @@ export default function AdminPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {pendingProducts.map((p) => (
-                <div key={p.id} className="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 flex flex-col h-full">
+                <div key={p.id} className="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 flex flex-col">
                   <div className="p-4">
                     <p className="text-xs text-zinc-400 mb-2">Photos publiques</p>
                     <div className="flex gap-2 overflow-x-auto pb-3">
@@ -338,25 +338,24 @@ export default function AdminPage() {
                     <Link href={`/creators/${p.profiles?.username}`} className="text-rose-400 hover:underline text-sm mb-1">
                       @{p.profiles?.username || 'inconnu'}
                     </Link>
-                    <h3 className="font-semibold text-lg mb-3">{p.title}</h3>
 
-                    {/* Titre clair */}
-                    <div className="text-sm text-zinc-400 mb-4">
+                    {/* Titre */}
+                    <div className="text-sm text-zinc-400 mb-3">
                       <p className="font-medium text-zinc-300">Titre :</p>
-                      <p>{p.title}</p>
+                      <p className="break-words">{p.title}</p>
                     </div>
 
-                    {/* Description avec scroll vertical */}
-                    <div className="text-sm text-zinc-400 mb-5 max-h-32 overflow-y-auto pr-2 border-l-2 border-zinc-700 pl-3">
+                    {/* Description avec retour à la ligne automatique */}
+                    <div className="text-sm text-zinc-400 mb-4 max-h-32 overflow-y-auto pr-2">
                       <p className="font-medium text-zinc-300 mb-1">Description :</p>
-                      <p>{p.description || "Aucune description"}</p>
+                      <p className="break-words whitespace-pre-wrap">{p.description || "Aucune description"}</p>
                     </div>
 
-                    {/* Histoire intime avec scroll vertical */}
+                    {/* Histoire intime avec retour à la ligne automatique */}
                     {p.story && (
-                      <div className="text-sm text-zinc-400 mb-6 max-h-40 overflow-y-auto pr-2 border-l-2 border-zinc-700 pl-3">
+                      <div className="text-sm text-zinc-400 mb-6 max-h-40 overflow-y-auto pr-2">
                         <p className="font-medium text-zinc-300 mb-1">Histoire intime :</p>
-                        <p>{p.story}</p>
+                        <p className="break-words whitespace-pre-wrap">{p.story}</p>
                       </div>
                     )}
 
@@ -379,7 +378,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Tous les autres onglets restent EXACTEMENT comme dans ton code original (non modifiés) */}
+        {/* TOUT LE RESTE (Photos, Commentaires, Messages, Signalements) est IDENTIQUE à ton code original */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
@@ -538,7 +537,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MODALS */}
+        {/* MODALS & TOAST (inchangés) */}
         {selectedReview && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200]">
             <div className="bg-zinc-900 rounded-3xl w-full max-w-lg p-8">
