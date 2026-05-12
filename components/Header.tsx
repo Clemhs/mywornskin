@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Plus, MessageCircle, ShoppingCart, Heart } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function Header() {
@@ -15,7 +15,9 @@ export default function Header() {
   const [avatarUrl, setAvatarUrl] = useState<string>('/default-avatar.png');
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Mise à jour de l'avatar
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Mise à jour avatar
   useEffect(() => {
     if (profile?.avatar_url) {
       setAvatarUrl(profile.avatar_url);
@@ -24,16 +26,30 @@ export default function Header() {
     }
   }, [profile, user]);
 
-  // Déconnexion améliorée
+  // Click outside to close menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [menuOpen]);
+
   const handleLogout = async () => {
     setMenuOpen(false);
-    
     try {
       await logout();
-      router.push('/login');           // Redirection explicite
+      router.push('/login');
     } catch (err) {
       console.error("Erreur logout:", err);
-      // Fallback en cas de problème
       window.location.href = '/login';
     }
   };
@@ -57,11 +73,6 @@ export default function Header() {
             <>
               <Link href="/messages" className="relative p-2 hover:bg-zinc-900 rounded-xl transition-colors">
                 <MessageCircle className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                    {unreadCount}
-                  </span>
-                )}
               </Link>
 
               <Link href="/profile/favorites" className="p-2 hover:bg-zinc-900 rounded-xl transition-colors">
@@ -82,7 +93,8 @@ export default function Header() {
                 </Link>
               )}
 
-              <div className="relative">
+              {/* Menu Profil avec click outside */}
+              <div className="relative" ref={menuRef}>
                 <button 
                   onClick={() => setMenuOpen(!menuOpen)}
                   className="w-9 h-9 rounded-2xl overflow-hidden border border-zinc-700 hover:border-rose-400 transition-all"
