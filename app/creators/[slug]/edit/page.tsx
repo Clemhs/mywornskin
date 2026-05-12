@@ -157,7 +157,7 @@ export default function CreatorEditPage() {
           <div className="w-[140px] flex-shrink-0" />
         </div>
 
-        {/* BANDEAU ROUGE */}
+        {/* BANDEAU ROUGE - UNIQUEMENT SI REFUSÉ */}
         {hasRejectedPhoto && !dismissed && (
           <div className="mb-8 bg-red-900/30 border border-red-600 rounded-3xl p-5 flex items-start gap-4">
             <AlertTriangle className="text-red-500 mt-0.5" size={24} />
