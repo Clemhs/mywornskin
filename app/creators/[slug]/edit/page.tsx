@@ -67,8 +67,16 @@ export default function CreatorEditPage() {
 
   const closeToast = () => setToast(null);
 
-  // ==================== NOUVELLE SOLUTION : BANDEAU REFUSÉ ====================
+  // ==================== BANDEAU PHOTO REFUSÉE ====================
   const hasRejectedPhoto = profile?.avatar_status === 'rejected' || profile?.banner_status === 'rejected';
+
+  const dismissRejectedBanner = () => {
+    if (user) {
+      localStorage.setItem(`dismissed_rejected_banner_${user.id}`, 'true');
+    }
+  };
+
+  const isBannerDismissed = user ? localStorage.getItem(`dismissed_rejected_banner_${user.id}`) === 'true' : false;
 
   const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
     const { error } = await supabase.from('reviews').update({ status }).eq('id', reviewId);
@@ -80,7 +88,68 @@ export default function CreatorEditPage() {
     }
   };
 
-  // ... (toutes tes autres fonctions : saveProfile, toggleSalesBadge, selectFrame, handle*Change, uploadImage restent identiques) ...
+  const saveProfile = async (updates: any) => {
+    if (!user) return;
+    await supabase.from('profiles').update(updates).eq('id', user.id);
+  };
+
+  const toggleSalesBadge = async (level: number) => {
+    const newBadge = salesBadge === level ? null : level;
+    setSalesBadge(newBadge);
+    await saveProfile({ sales_badge: newBadge });
+    setToast({ message: "✅ Badge mis à jour", type: 'success' });
+  };
+
+  const selectFrame = async (id: string) => {
+    const newFrame = frame === id ? null : id;
+    setFrame(newFrame);
+    await saveProfile({ frame: newFrame });
+    setToast({ message: "✅ Cadre mis à jour", type: 'success' });
+  };
+
+  const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setBio(e.target.value);
+    saveProfile({ bio: e.target.value });
+  };
+
+  const handleCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCountry(e.target.value);
+    saveProfile({ country: e.target.value });
+  };
+
+  const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCity(e.target.value);
+    saveProfile({ city: e.target.value });
+  };
+
+  const handleSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSize(e.target.value);
+    saveProfile({ size: e.target.value });
+  };
+
+  const handleShoeSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setShoeSize(e.target.value);
+    saveProfile({ shoe_size: e.target.value });
+  };
+
+  const uploadImage = async (file: File, type: 'avatar' | 'banner') => {
+    if (!user) return;
+    const fileName = `${user.id}-${type}-${Date.now()}.${file.name.split('.').pop()}`;
+
+    const { error } = await supabase.storage.from('profiles').upload(fileName, file, { upsert: true });
+    if (error) return setToast({ message: "Erreur d'upload", type: 'error' });
+
+    const { data: { publicUrl } } = supabase.storage.from('profiles').getPublicUrl(fileName);
+
+    const updateData = type === 'avatar'
+      ? { avatar_pending_url: publicUrl, avatar_status: 'pending' as const }
+      : { banner_pending_url: publicUrl, banner_status: 'pending' as const };
+
+    await supabase.from('profiles').update(updateData).eq('id', user.id);
+
+    setToast({ message: `📸 Photo de ${type} envoyée en attente`, type: 'success' });
+    loadData();
+  };
 
   if (!user || !profile) {
     return <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center pt-20">Chargement...</div>;
@@ -98,21 +167,27 @@ export default function CreatorEditPage() {
           <div className="w-[140px] flex-shrink-0" />
         </div>
 
-        {/* BANDEAU ROUGE QUAND PHOTO REFUSÉE */}
-        {hasRejectedPhoto && (
-          <div className="mb-8 bg-red-600/10 border border-red-600 rounded-3xl p-5 flex items-center gap-4">
-            <AlertTriangle className="text-red-500 flex-shrink-0" size={28} />
+        {/* BANDEAU PHOTO REFUSÉE */}
+        {hasRejectedPhoto && !isBannerDismissed && (
+          <div className="mb-8 bg-red-900/30 border border-red-600 rounded-3xl p-5 flex items-start gap-4">
+            <AlertTriangle className="text-red-500 mt-0.5" size={24} />
             <div className="flex-1">
               <p className="font-medium text-red-400">Une ou plusieurs de vos photos ont été refusées par l'équipe.</p>
               <p className="text-sm text-zinc-400 mt-1">Veuillez les remplacer en respectant les guidelines.</p>
             </div>
             <Link 
               href="/guidelines" 
-              className="bg-red-600 hover:bg-red-500 px-6 py-2.5 rounded-2xl text-sm font-medium whitespace-nowrap transition"
+              className="bg-red-600 hover:bg-red-500 px-5 py-2 rounded-2xl text-sm font-medium whitespace-nowrap transition mt-0.5"
               target="_blank"
             >
               Voir les Guidelines →
             </Link>
+            <button 
+              onClick={dismissRejectedBanner}
+              className="text-zinc-400 hover:text-white p-1 -mt-1 -mr-1"
+            >
+              <X size={20} />
+            </button>
           </div>
         )}
 
@@ -156,7 +231,6 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Commentaires à valider (inchangé) */}
             <div>
               <h2 className="text-xl mb-4">Commentaires à valider ({pendingReviews.length})</h2>
               <div className="space-y-4">
@@ -177,10 +251,94 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* COLONNE DROITE - tout le reste identique à ton code précédent */}
+          {/* COLONNE DROITE */}
           <div className="lg:col-span-7 space-y-10">
-            {/* Changer les images, infos personnelles, badges, cadres, boutique cosmétiques... */}
-            {/* (remets ici tout le contenu de la colonne droite de ta dernière version qui marchait) */}
+            <div>
+              <h2 className="text-xl mb-4">Changer les images</h2>
+              <div className="grid grid-cols-2 gap-6">
+                <label className="cursor-pointer border border-dashed border-zinc-700 hover:border-pink-500 rounded-3xl p-8 text-center">
+                  <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0], 'banner')} className="hidden" />
+                  <Camera className="mx-auto mb-3 text-pink-400" size={36} />
+                  <p className="text-pink-400 font-medium">Changer la couverture</p>
+                </label>
+
+                <label className="cursor-pointer border border-dashed border-zinc-700 hover:border-pink-500 rounded-3xl p-8 text-center">
+                  <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0], 'avatar')} className="hidden" />
+                  <Camera className="mx-auto mb-3 text-pink-400" size={36} />
+                  <p className="text-pink-400 font-medium">Changer la photo de profil</p>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl">Informations personnelles</h2>
+                <p className="text-emerald-500 text-sm flex items-center gap-1.5">
+                  <CheckCircle size={16} /> Enregistrement automatique
+                </p>
+              </div>
+              <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 space-y-5">
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-1.5">Bio</label>
+                  <textarea value={bio} onChange={handleBioChange} rows={3} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-pink-500" placeholder="Présente-toi en quelques lignes..." />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-zinc-400 mb-1.5">Pays</label>
+                    <input type="text" value={country} onChange={handleCountryChange} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-pink-500" placeholder="France" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-zinc-400 mb-1.5">Ville</label>
+                    <input type="text" value={city} onChange={handleCityChange} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-pink-500" placeholder="Paris" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-zinc-400 mb-1.5">Taille vêtements</label>
+                    <input type="text" value={size} onChange={handleSizeChange} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-pink-500" placeholder="S, M, 38..." />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-zinc-400 mb-1.5">Pointure</label>
+                    <input type="text" value={shoeSize} onChange={handleShoeSizeChange} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-pink-500" placeholder="38, 39..." />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-xl mb-4">Badges de ventes</h2>
+              <div className="flex gap-6 overflow-x-auto pb-6">
+                {availableSalesBadges.map(level => (
+                  <button key={level} onClick={() => toggleSalesBadge(level)} 
+                    className={`flex-shrink-0 w-28 h-28 rounded-3xl flex flex-col items-center justify-center border-2 transition-all ${salesBadge === level ? 'border-pink-400 bg-pink-900/30' : 'border-zinc-700 hover:border-pink-400'}`}>
+                    <img src={`/badges/${level}.png`} className="w-16 h-16" alt={`${level}`} />
+                    <span className="text-sm mt-1">{level} ventes</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-xl mb-4">Cadres de profil</h2>
+              <div className="flex gap-6 overflow-x-auto pb-6">
+                {availableFrames.map(f => (
+                  <button key={f.id} onClick={() => selectFrame(f.id)}
+                    className={`flex-shrink-0 w-28 h-28 rounded-3xl border-2 overflow-hidden transition-all relative ${frame === f.id ? 'border-pink-400' : 'border-zinc-700 hover:border-pink-400'}`}>
+                    <div className={`shimmer-frame w-full h-full ${f.id}`} />
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs bg-black/70 px-3 py-0.5 rounded-full">{f.name}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-xl mb-4 flex items-center gap-2">🛍️ Boutique cosmétiques</h2>
+              <div className="bg-zinc-900 rounded-3xl p-8 text-center text-zinc-400">
+                Prochainement disponible...
+              </div>
+            </div>
           </div>
         </div>
       </div>
