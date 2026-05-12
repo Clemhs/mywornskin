@@ -132,6 +132,8 @@ export default function CreatorEditPage() {
 
   const isAvatarRejected = profile.avatar_status === 'rejected';
   const isBannerRejected = profile.banner_status === 'rejected';
+  const isAvatarPending = profile.avatar_status === 'pending';
+  const isBannerPending = profile.banner_status === 'pending';
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-12">
@@ -161,7 +163,7 @@ export default function CreatorEditPage() {
               <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
                 <img src={profile.banner_pending_url || profile.banner_url || "https://picsum.photos/id/1015/1200/400"} alt="Bannière" className="w-full h-full object-cover" />
 
-                {(profile.banner_status === 'pending' || profile.avatar_status === 'pending') && (
+                {(isBannerPending) && (
                   <div className="absolute top-4 right-4 bg-amber-500 text-black text-sm px-4 py-1 rounded-full flex items-center gap-2 font-medium">
                     <Clock size={16} /> En attente de validation
                   </div>
@@ -179,8 +181,14 @@ export default function CreatorEditPage() {
                     {frame && <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />}
                     {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-14 h-14" alt="Badge" />}
 
+                    {isAvatarPending && (
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-500 text-black text-xs px-3 py-0.5 rounded-full font-medium">
+                        En attente
+                      </div>
+                    )}
+
                     {isAvatarRejected && (
-                      <div className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-2.5 py-0.5 rounded-full font-medium">
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-red-600 text-white text-xs px-3 py-0.5 rounded-full font-medium">
                         Refusée
                       </div>
                     )}
