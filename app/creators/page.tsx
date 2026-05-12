@@ -23,19 +23,20 @@ export default function CreatorsPage() {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size')
-        .or('is_creator.eq.true,role.eq.creator')   // ← Plus tolérant
-        .order('sales_badge', { ascending: false });
+        .or('is_creator.eq.true,role.eq.creator') 
+        .order('created_at', { ascending: false });   // Changé en created_at pour voir les récents
 
-      if (error) console.error("Erreur :", error);
-      else setCreators(data || []);
-
+      if (error) {
+        console.error("Erreur chargement créatrices :", error);
+      } else {
+        console.log("Créatrices récupérées :", data); // ← Debug
+        setCreators(data || []);
+      }
       setLoading(false);
     };
 
     fetchCreators();
   }, [supabase]);
-
-  // ... (le reste du code reste identique à ce que tu avais)
 
   const filteredCreators = useMemo(() => {
     return creators.filter(creator => {
@@ -50,11 +51,14 @@ export default function CreatorsPage() {
       const matchesShoeSize = !selectedShoeSize || creator.shoe_size === selectedShoeSize;
 
       let matchesFilter = true;
-      if (activeFilter === 'top') matchesFilter = (creator.sales_badge || 0) >= 10;
+      if (activeFilter === 'top') matchesFilter = (creator.sales_badge || 0) >= 5;
+      if (activeFilter === 'new') matchesFilter = true; // On montre tout pour "Nouvelles"
 
       return matchesSearch && matchesCountry && matchesCity && matchesSize && matchesShoeSize && matchesFilter;
     });
   }, [creators, searchTerm, selectedCountry, selectedCity, selectedSize, selectedShoeSize, activeFilter]);
+
+  // ... (le reste du code reste identique à ce que tu avais)
 
   const countries = [...new Set(creators.map(c => c.country).filter(Boolean))];
   const cities = [...new Set(creators.map(c => c.city).filter(Boolean))];
@@ -69,7 +73,7 @@ export default function CreatorsPage() {
           Elles partagent leur intimité avec vous • {filteredCreators.length} créatrices
         </p>
 
-        {/* Recherche + Filtres (identique à avant) */}
+        {/* Recherche + Filtres */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
           <input
             type="text"
