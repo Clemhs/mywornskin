@@ -20,7 +20,6 @@ export default function CreatorEditPage() {
   const [size, setSize] = useState('');
   const [shoeSize, setShoeSize] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; link?: string } | null>(null);
-  const [dismissed, setDismissed] = useState(false);
 
   const availableSalesBadges = [10, 50, 100, 500];
   const availableFrames = [
@@ -56,19 +55,7 @@ export default function CreatorEditPage() {
 
   useEffect(() => {
     loadData();
-
-    if (user) {
-      const saved = localStorage.getItem(`dismissed_rejected_${user.id}`);
-      setDismissed(saved === 'true');
-    }
-  }, [loadData, user]);
-
-  const hasRejectedPhoto = profile?.avatar_status === 'rejected' || profile?.banner_status === 'rejected';
-
-  const dismissRejectedBanner = () => {
-    setDismissed(true);
-    if (user) localStorage.setItem(`dismissed_rejected_${user.id}`, 'true');
-  };
+  }, [loadData]);
 
   const uploadImage = async (file: File, type: 'avatar' | 'banner') => {
     if (!user) return;
@@ -86,8 +73,6 @@ export default function CreatorEditPage() {
     await supabase.from('profiles').update(updateData).eq('id', user.id);
 
     setToast({ message: `📸 Photo de ${type} envoyée en attente`, type: 'success' });
-    setDismissed(false);
-    if (user) localStorage.removeItem(`dismissed_rejected_${user.id}`);
     loadData();
   };
 
@@ -145,6 +130,9 @@ export default function CreatorEditPage() {
     return <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center pt-20">Chargement...</div>;
   }
 
+  const isAvatarRejected = profile.avatar_status === 'rejected';
+  const isBannerRejected = profile.banner_status === 'rejected';
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-12">
       <div className="max-w-6xl mx-auto px-6">
@@ -156,23 +144,6 @@ export default function CreatorEditPage() {
           <h1 className="text-4xl font-bold flex-1 text-center">Édition de profil</h1>
           <div className="w-[140px] flex-shrink-0" />
         </div>
-
-        {/* BANDEAU ROUGE - UNIQUEMENT SI REFUSÉ */}
-        {hasRejectedPhoto && !dismissed && (
-          <div className="mb-8 bg-red-900/30 border border-red-600 rounded-3xl p-5 flex items-start gap-4">
-            <AlertTriangle className="text-red-500 mt-0.5" size={24} />
-            <div className="flex-1">
-              <p className="font-medium text-red-400">Une ou plusieurs de vos photos ont été refusées par l'équipe.</p>
-              <p className="text-sm text-zinc-400 mt-1">Veuillez les remplacer en respectant les guidelines.</p>
-            </div>
-            <Link href="/guidelines" className="bg-red-600 hover:bg-red-500 px-5 py-2 rounded-2xl text-sm font-medium whitespace-nowrap transition mt-0.5" target="_blank">
-              Voir les Guidelines →
-            </Link>
-            <button onClick={dismissRejectedBanner} className="text-zinc-400 hover:text-white p-1 -mt-1 -mr-1">
-              <X size={20} />
-            </button>
-          </div>
-        )}
 
         {/* Toast success */}
         {toast && toast.type === 'success' && (
@@ -196,11 +167,23 @@ export default function CreatorEditPage() {
                   </div>
                 )}
 
+                {isBannerRejected && (
+                  <div className="absolute top-4 left-4 bg-red-600 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1 font-medium">
+                    <AlertTriangle size={14} /> Refusée
+                  </div>
+                )}
+
                 <div className="absolute bottom-8 left-8">
                   <div className="relative">
                     <img src={profile.avatar_pending_url || profile.avatar_url || "https://picsum.photos/id/64/300/300"} alt="Avatar" className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" />
                     {frame && <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />}
                     {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-14 h-14" alt="Badge" />}
+
+                    {isAvatarRejected && (
+                      <div className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-2.5 py-0.5 rounded-full font-medium">
+                        Refusée
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
