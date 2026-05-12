@@ -112,7 +112,7 @@ export default function AdminPage() {
     const { error } = await supabase.from('products').update({ status: 'approved' }).eq('id', id);
     if (error) showToast("Erreur", "error");
     else {
-      showToast("✅ Produit approuvé");
+      showToast("Produit approuvé ✅");
       setRefreshKey(k => k + 1);
     }
   };
@@ -121,7 +121,7 @@ export default function AdminPage() {
     const { error } = await supabase.from('products').update({ status: 'rejected' }).eq('id', id);
     if (error) showToast("Erreur", "error");
     else {
-      showToast("❌ Produit refusé");
+      showToast("Produit refusé");
       setRefreshKey(k => k + 1);
     }
   };
@@ -166,14 +166,20 @@ export default function AdminPage() {
   };
 
   const sendAdminMessage = async () => {
-    if (!selectedReview || !adminReply.trim()) return;
+    if (!selectedReview || !adminReply.trim()) {
+      showToast("Veuillez écrire un message", "error");
+      return;
+    }
+
     const { error } = await supabase.from('admin_messages').insert({
       review_id: selectedReview.id,
       creator_id: selectedReview.creator_id,
       admin_message: adminReply,
     });
-    if (error) showToast("Erreur lors de l'envoi", "error");
-    else {
+
+    if (error) {
+      showToast("Erreur lors de l'envoi", "error");
+    } else {
       showToast("✅ Message envoyé à la créatrice");
       setAdminReply("");
       setSelectedReview(null);
@@ -182,7 +188,7 @@ export default function AdminPage() {
 
   const markReportAsReviewed = async (reportId: string) => {
     await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
-    showToast("✅ Signalement traité");
+    showToast("✅ Signalement marqué comme traité");
     setRefreshKey(k => k + 1);
   };
 
@@ -197,12 +203,15 @@ export default function AdminPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-10">
           <h1 className="text-4xl font-bold">Administration MyWornSkin</h1>
-          <button onClick={handleRefresh} className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded-2xl text-sm font-medium transition">
+          <button 
+            onClick={handleRefresh}
+            className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded-2xl text-sm font-medium transition"
+          >
             <RefreshCw size={18} /> Rafraîchir tout
           </button>
         </div>
 
-        {/* Onglets */}
+        {/* Onglets avec compteurs */}
         <div className="flex flex-wrap gap-2 border-b border-zinc-800 pb-4 mb-10">
           <button onClick={() => setActiveTab('products')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'products' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <ShieldCheck size={22} /> Produits en attente ({pendingProducts.length})
@@ -218,7 +227,11 @@ export default function AdminPage() {
           </button>
           <button onClick={() => setActiveTab('reports')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap relative ${activeTab === 'reports' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <Flag size={22} /> Signalements
-            {pendingReportsCount > 0 && <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">{pendingReportsCount}</span>}
+            {pendingReportsCount > 0 && (
+              <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                {pendingReportsCount}
+              </span>
+            )}
           </button>
         </div>
 
@@ -228,7 +241,13 @@ export default function AdminPage() {
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
-                <input type="text" placeholder="Rechercher un titre..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-3xl pl-11 py-3 focus:outline-none focus:border-rose-500" />
+                <input
+                  type="text"
+                  placeholder="Rechercher un titre..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-3xl pl-11 py-3 focus:outline-none focus:border-rose-500"
+                />
               </div>
               <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-3">
                 <option value="newest">Plus récents</option>
@@ -254,7 +273,9 @@ export default function AdminPage() {
 
                   {p.verification_images?.length > 0 && (
                     <div className="px-4 pb-4">
-                      <p className="text-xs text-emerald-400 flex items-center gap-1 mb-2"><ShieldCheck size={14} /> Vérification Real Worn</p>
+                      <p className="text-xs text-emerald-400 flex items-center gap-1 mb-2">
+                        <ShieldCheck size={14} /> Vérification Real Worn
+                      </p>
                       <div className="flex gap-2 overflow-x-auto pb-3">
                         {p.verification_images.map((url: string, i: number) => (
                           <img key={i} src={url} alt="" className="h-28 w-28 object-cover rounded-2xl border border-emerald-500/30 cursor-pointer flex-shrink-0" onClick={() => setSelectedImage(url)} />
@@ -269,13 +290,13 @@ export default function AdminPage() {
                     </Link>
                     <h3 className="font-semibold line-clamp-2 text-lg mb-3">{p.title}</h3>
 
-                    {/* Description - 2 lignes max */}
+                    {/* Description - 2 lignes */}
                     <div className="text-sm text-zinc-400 mb-4 max-h-20 overflow-y-auto pr-2">
                       <p className="font-medium text-zinc-300 mb-1">Description :</p>
                       <p>{p.description || "Aucune description"}</p>
                     </div>
 
-                    {/* Histoire intime - 3 lignes max */}
+                    {/* Histoire intime - 3 lignes */}
                     {p.story && (
                       <div className="text-sm text-zinc-400 mb-6 max-h-28 overflow-y-auto pr-2">
                         <p className="font-medium text-zinc-300 mb-1">Histoire intime :</p>
@@ -302,7 +323,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* PHOTOS EN ATTENTE - Restauré */}
+        {/* PHOTOS EN ATTENTE */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
@@ -313,7 +334,6 @@ export default function AdminPage() {
                   <Link href={`/creators/${p.username}`} className="font-semibold text-xl hover:text-pink-400">
                     @{p.username}
                   </Link>
-
                   {p.avatar_pending_url && (
                     <div className="mt-6">
                       <p className="text-pink-400 mb-4">Photo de profil</p>
@@ -324,7 +344,6 @@ export default function AdminPage() {
                       </div>
                     </div>
                   )}
-
                   {p.banner_pending_url && (
                     <div className="mt-10">
                       <p className="text-pink-400 mb-4">Photo de couverture</p>
@@ -341,7 +360,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* COMMENTAIRES REFUSÉS - Restauré */}
+        {/* COMMENTAIRES REFUSÉS */}
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             {refusedReviews.length === 0 ? (
@@ -372,7 +391,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MESSAGES - Restauré */}
+        {/* MESSAGES */}
         {activeTab === 'messages' && (
           <div className="space-y-6">
             {adminMessages.length === 0 ? (
@@ -395,13 +414,19 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* SIGNALEMENTS - Restauré comme avant */}
+        {/* SIGNALEMENTS */}
         {activeTab === 'reports' && (
           <div>
             <div className="flex flex-col md:flex-row gap-4 mb-8">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-3.5 text-zinc-500" size={20} />
-                <input type="text" placeholder="Rechercher raison ou créatrice..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 pl-11 py-3.5 rounded-2xl focus:outline-none focus:border-pink-500" />
+                <input
+                  type="text"
+                  placeholder="Rechercher raison ou créatrice..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-700 pl-11 py-3.5 rounded-2xl focus:outline-none focus:border-pink-500"
+                />
               </div>
               <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5">
                 <option value="newest">Plus récents</option>
@@ -442,7 +467,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MODALS & TOAST */}
+        {/* MODALS */}
         {selectedReview && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200]">
             <div className="bg-zinc-900 rounded-3xl w-full max-w-lg p-8">
@@ -454,9 +479,16 @@ export default function AdminPage() {
               </div>
               <p className="text-zinc-400 mb-2">Commentaire concerné :</p>
               <p className="italic mb-6">"{selectedReview.comment}"</p>
-              <textarea value={adminReply} onChange={(e) => setAdminReply(e.target.value)} placeholder="Écris ton message ici..." className="w-full h-40 bg-zinc-950 border border-zinc-700 rounded-2xl p-4 focus:outline-none focus:border-pink-500 resize-y" />
+              <textarea
+                value={adminReply}
+                onChange={(e) => setAdminReply(e.target.value)}
+                placeholder="Écris ton message ici..."
+                className="w-full h-40 bg-zinc-950 border border-zinc-700 rounded-2xl p-4 focus:outline-none focus:border-pink-500 resize-y"
+              />
               <div className="flex gap-3 mt-6">
-                <button onClick={() => { setSelectedReview(null); setAdminReply(""); }} className="flex-1 py-4 rounded-2xl border border-zinc-700 hover:bg-zinc-800">Annuler</button>
+                <button onClick={() => { setSelectedReview(null); setAdminReply(""); }} className="flex-1 py-4 rounded-2xl border border-zinc-700 hover:bg-zinc-800">
+                  Annuler
+                </button>
                 <button onClick={sendAdminMessage} disabled={!adminReply.trim()} className="flex-1 py-4 rounded-2xl bg-pink-600 hover:bg-pink-500 disabled:opacity-50 font-medium flex items-center justify-center gap-2">
                   <Send size={18} /> Envoyer
                 </button>
