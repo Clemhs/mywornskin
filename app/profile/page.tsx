@@ -24,9 +24,7 @@ export default function ProfilePage() {
 
   // Synchronisation avatar
   useEffect(() => {
-    if (profile?.avatar_url) {
-      setAvatarUrl(profile.avatar_url);
-    }
+    setAvatarUrl(profile?.avatar_url || null);
   }, [profile]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +38,6 @@ export default function ProfilePage() {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
 
-      // Upload
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, { upsert: true });
@@ -51,7 +48,6 @@ export default function ProfilePage() {
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Mise à jour base
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -59,13 +55,13 @@ export default function ProfilePage() {
 
       if (updateError) throw updateError;
 
-      // Mise à jour immédiate + refresh context
+      // Mise à jour immédiate + force refresh
       setAvatarUrl(publicUrl);
-      await refreshProfile();   // Force refresh
+      await refreshProfile();   // Très important
 
-      setToast({ message: "✅ Photo mise à jour avec succès !", type: 'success' });
+      setToast({ message: "✅ Photo de profil mise à jour avec succès !", type: 'success' });
 
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       setToast({ message: "❌ Erreur lors de l'upload", type: 'error' });
     } finally {
@@ -74,7 +70,7 @@ export default function ProfilePage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">Chargement...</div>;
+    return <div className="min-h-screen bg-zinc-950 flex items-center justify-center">Chargement...</div>;
   }
 
   return (
