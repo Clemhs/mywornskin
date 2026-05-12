@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { MessageCircle, AlertTriangle, Image as ImageIcon, Send, Trash2, Flag, CheckCircle, ShieldCheck, XCircle, Search, X } from 'lucide-react';
+import { MessageCircle, AlertTriangle, Image as ImageIcon, Send, Trash2, Flag, CheckCircle, ShieldCheck, XCircle, Search, X, RefreshCw } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
@@ -156,6 +156,11 @@ export default function AdminPage() {
     return Object.values(grouped);
   }, [filteredAndSortedReports]);
 
+  const handleRefresh = () => {
+    setRefreshKey(k => k + 1);
+    showToast("✅ Toutes les données ont été rafraîchies");
+  };
+
   // === ACTIONS PRODUITS ===
   const approveProduct = async (id: string) => {
     const { error } = await supabase.from('products').update({ status: 'approved' }).eq('id', id);
@@ -175,7 +180,7 @@ export default function AdminPage() {
     }
   };
 
-  // === ACTIONS ORIGINALES ===
+  // === ACTIONS ORIGINALES (non modifiées) ===
   const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
     const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
@@ -254,22 +259,46 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold mb-10">Administration MyWornSkin</h1>
+        <div className="flex justify-between items-center mb-10">
+          <h1 className="text-4xl font-bold">Administration MyWornSkin</h1>
+          <button 
+            onClick={handleRefresh}
+            className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded-2xl text-sm font-medium transition"
+          >
+            <RefreshCw size={18} /> Rafraîchir tout
+          </button>
+        </div>
 
-        <div className="flex border-b border-zinc-800 mb-10 overflow-x-auto">
-          <button onClick={() => setActiveTab('products')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'products' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
-            <ShieldCheck size={22} /> Produits en attente
+        {/* Onglets sans ascenseur horizontal + compteurs */}
+        <div className="flex flex-wrap gap-2 border-b border-zinc-800 pb-4 mb-10">
+          <button 
+            onClick={() => setActiveTab('products')} 
+            className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'products' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+          >
+            <ShieldCheck size={22} /> Produits en attente ({pendingProducts.length})
           </button>
-          <button onClick={() => setActiveTab('photos')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'photos' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
-            <ImageIcon size={22} /> Photos en attente
+          <button 
+            onClick={() => setActiveTab('photos')} 
+            className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'photos' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+          >
+            <ImageIcon size={22} /> Photos en attente ({pendingPhotos.length})
           </button>
-          <button onClick={() => setActiveTab('reviews')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'reviews' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
-            <AlertTriangle size={22} /> Commentaires refusés
+          <button 
+            onClick={() => setActiveTab('reviews')} 
+            className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'reviews' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+          >
+            <AlertTriangle size={22} /> Commentaires refusés ({refusedReviews.length})
           </button>
-          <button onClick={() => setActiveTab('messages')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'messages' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
-            <MessageCircle size={22} /> Messages reçus
+          <button 
+            onClick={() => setActiveTab('messages')} 
+            className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'messages' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+          >
+            <MessageCircle size={22} /> Messages reçus ({adminMessages.length})
           </button>
-          <button onClick={() => setActiveTab('reports')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap relative ${activeTab === 'reports' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+          <button 
+            onClick={() => setActiveTab('reports')} 
+            className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap relative ${activeTab === 'reports' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+          >
             <Flag size={22} /> Signalements
             {pendingReportsCount > 0 && (
               <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
@@ -279,7 +308,8 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* ==================== PRODUITS EN ATTENTE (version améliorée) ==================== */}
+        {/* ==================== TOUT LE RESTE DE TON CODE ORIGINAL (non touché) ==================== */}
+        {/* PRODUITS EN ATTENTE */}
         {activeTab === 'products' && (
           <div>
             <div className="flex flex-col md:flex-row gap-4 mb-6">
