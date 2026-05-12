@@ -110,7 +110,7 @@ export default function AdminPage() {
   // ==================== ACTIONS ====================
   const approveProduct = async (id: string) => {
     const { error } = await supabase.from('products').update({ status: 'approved' }).eq('id', id);
-    if (error) showToast("Erreur lors de l'approbation", "error");
+    if (error) showToast("Erreur", "error");
     else {
       showToast("✅ Produit approuvé");
       setRefreshKey(k => k + 1);
@@ -119,7 +119,7 @@ export default function AdminPage() {
 
   const rejectProduct = async (id: string) => {
     const { error } = await supabase.from('products').update({ status: 'rejected' }).eq('id', id);
-    if (error) showToast("Erreur lors du refus", "error");
+    if (error) showToast("Erreur", "error");
     else {
       showToast("❌ Produit refusé");
       setRefreshKey(k => k + 1);
@@ -131,7 +131,6 @@ export default function AdminPage() {
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
     const statusField = type === 'avatar' ? 'avatar_status' : 'banner_status';
 
-    // Correction TypeScript : on sélectionne les deux champs possibles
     const { data: profile } = await supabase
       .from('profiles')
       .select('avatar_pending_url, banner_pending_url')
@@ -150,7 +149,6 @@ export default function AdminPage() {
         [statusField]: 'rejected'
       }).eq('id', profileId);
     }
-
     loadData();
     showToast(action === 'approved' ? "✅ Photo validée" : "❌ Photo refusée");
   };
@@ -199,10 +197,7 @@ export default function AdminPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-10">
           <h1 className="text-4xl font-bold">Administration MyWornSkin</h1>
-          <button 
-            onClick={handleRefresh}
-            className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded-2xl text-sm font-medium transition"
-          >
+          <button onClick={handleRefresh} className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded-2xl text-sm font-medium transition">
             <RefreshCw size={18} /> Rafraîchir tout
           </button>
         </div>
@@ -227,19 +222,13 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* PRODUITS EN ATTENTE */}
+        {/* ==================== PRODUITS EN ATTENTE ==================== */}
         {activeTab === 'products' && (
           <div>
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
-                <input
-                  type="text"
-                  placeholder="Rechercher un titre..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-700 rounded-3xl pl-11 py-3 focus:outline-none focus:border-rose-500"
-                />
+                <input type="text" placeholder="Rechercher un titre..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-3xl pl-11 py-3 focus:outline-none focus:border-rose-500" />
               </div>
               <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-3">
                 <option value="newest">Plus récents</option>
@@ -265,9 +254,7 @@ export default function AdminPage() {
 
                   {p.verification_images?.length > 0 && (
                     <div className="px-4 pb-4">
-                      <p className="text-xs text-emerald-400 flex items-center gap-1 mb-2">
-                        <ShieldCheck size={14} /> Vérification Real Worn
-                      </p>
+                      <p className="text-xs text-emerald-400 flex items-center gap-1 mb-2"><ShieldCheck size={14} /> Vérification Real Worn</p>
                       <div className="flex gap-2 overflow-x-auto pb-3">
                         {p.verification_images.map((url: string, i: number) => (
                           <img key={i} src={url} alt="" className="h-28 w-28 object-cover rounded-2xl border border-emerald-500/30 cursor-pointer flex-shrink-0" onClick={() => setSelectedImage(url)} />
@@ -282,13 +269,13 @@ export default function AdminPage() {
                     </Link>
                     <h3 className="font-semibold line-clamp-2 text-lg mb-3">{p.title}</h3>
 
-                    {/* Description - 2 lignes */}
+                    {/* Description - 2 lignes max */}
                     <div className="text-sm text-zinc-400 mb-4 max-h-20 overflow-y-auto pr-2">
                       <p className="font-medium text-zinc-300 mb-1">Description :</p>
                       <p>{p.description || "Aucune description"}</p>
                     </div>
 
-                    {/* Histoire intime - 3 lignes */}
+                    {/* Histoire intime - 3 lignes max */}
                     {p.story && (
                       <div className="text-sm text-zinc-400 mb-6 max-h-28 overflow-y-auto pr-2">
                         <p className="font-medium text-zinc-300 mb-1">Histoire intime :</p>
@@ -315,11 +302,11 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* PHOTOS EN ATTENTE */}
+        {/* PHOTOS EN ATTENTE - Restauré */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
-              <p className="text-zinc-500 text-xl">Aucune photo en attente.</p>
+              <p className="text-zinc-500 text-xl">Aucune photo en attente de validation.</p>
             ) : (
               pendingPhotos.map((p) => (
                 <div key={p.id} className="bg-zinc-900 rounded-3xl p-8">
@@ -354,7 +341,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* COMMENTAIRES REFUSÉS */}
+        {/* COMMENTAIRES REFUSÉS - Restauré */}
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             {refusedReviews.length === 0 ? (
@@ -385,7 +372,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MESSAGES */}
+        {/* MESSAGES - Restauré */}
         {activeTab === 'messages' && (
           <div className="space-y-6">
             {adminMessages.length === 0 ? (
@@ -408,19 +395,13 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* SIGNALEMENTS */}
+        {/* SIGNALEMENTS - Restauré comme avant */}
         {activeTab === 'reports' && (
           <div>
             <div className="flex flex-col md:flex-row gap-4 mb-8">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-3.5 text-zinc-500" size={20} />
-                <input
-                  type="text"
-                  placeholder="Rechercher raison ou créatrice..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-700 pl-11 py-3.5 rounded-2xl focus:outline-none focus:border-pink-500"
-                />
+                <input type="text" placeholder="Rechercher raison ou créatrice..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 pl-11 py-3.5 rounded-2xl focus:outline-none focus:border-pink-500" />
               </div>
               <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3.5">
                 <option value="newest">Plus récents</option>
@@ -436,7 +417,7 @@ export default function AdminPage() {
             </div>
 
             {reports.length === 0 ? (
-              <p className="text-zinc-500 text-xl py-12">Aucun signalement.</p>
+              <p className="text-zinc-500 text-xl py-12">Aucun signalement pour le moment.</p>
             ) : (
               <div className="space-y-8">
                 {reports.map((report) => (
@@ -473,12 +454,7 @@ export default function AdminPage() {
               </div>
               <p className="text-zinc-400 mb-2">Commentaire concerné :</p>
               <p className="italic mb-6">"{selectedReview.comment}"</p>
-              <textarea
-                value={adminReply}
-                onChange={(e) => setAdminReply(e.target.value)}
-                placeholder="Écris ton message ici..."
-                className="w-full h-40 bg-zinc-950 border border-zinc-700 rounded-2xl p-4 focus:outline-none focus:border-pink-500 resize-y"
-              />
+              <textarea value={adminReply} onChange={(e) => setAdminReply(e.target.value)} placeholder="Écris ton message ici..." className="w-full h-40 bg-zinc-950 border border-zinc-700 rounded-2xl p-4 focus:outline-none focus:border-pink-500 resize-y" />
               <div className="flex gap-3 mt-6">
                 <button onClick={() => { setSelectedReview(null); setAdminReply(""); }} className="flex-1 py-4 rounded-2xl border border-zinc-700 hover:bg-zinc-800">Annuler</button>
                 <button onClick={sendAdminMessage} disabled={!adminReply.trim()} className="flex-1 py-4 rounded-2xl bg-pink-600 hover:bg-pink-500 disabled:opacity-50 font-medium flex items-center justify-center gap-2">
