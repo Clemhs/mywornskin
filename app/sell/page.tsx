@@ -157,9 +157,9 @@ export default function SellPage() {
           ))}
         </div>
 
+        {/* ==================== STEP 1 ==================== */}
         {step === 1 && (
           <div className="space-y-8">
-            {/* Catégorie + Titre */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Type d'article</label>
@@ -173,35 +173,33 @@ export default function SellPage() {
                 <input 
                   type="text" 
                   value={title} 
-                  onChange={e => setTitle(e.target.value.slice(0, TITLE_MAX))} 
+                  onChange={e => setTitle(e.target.value.slice(0, 50))} 
                   placeholder="Culotte en dentelle noire portée 2 jours..." 
                   className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-base" 
                 />
-                <p className={`text-xs mt-1 text-right ${title.length > TITLE_MAX * 0.8 ? 'text-red-400' : 'text-zinc-400'}`}>
-                  {title.length} / {TITLE_MAX}
+                <p className={`text-xs mt-1 text-right ${title.length > 40 ? 'text-red-400' : 'text-zinc-400'}`}>
+                  {title.length} / 50
                 </p>
               </div>
             </div>
 
-            {/* Taille + Pointure (menus déroulants) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Taille</label>
                 <select value={size} onChange={e => setSize(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-base">
                   <option value="">Choisir une taille</option>
-                  {sizes.map(s => <option key={s} value={s}>{s}</option>)}
+                  {["XS","S","M","L","XL","XXL","34","36","38","40","42","Autre"].map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Pointure</label>
                 <select value={shoeSize} onChange={e => setShoeSize(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-base">
                   <option value="">Choisir une pointure</option>
-                  {shoeSizes.map(s => <option key={s} value={s}>{s}</option>)}
+                  {["35","36","37","38","39","40","41","42","43","Autre"].map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
             </div>
 
-            {/* Photos + Vidéo */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-2 block">Photos publiques (min. 3)</label>
@@ -228,37 +226,35 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Description + Histoire intime */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Description</label>
                 <textarea 
                   value={description} 
-                  onChange={e => setDescription(e.target.value.slice(0, DESCRIPTION_MAX))} 
+                  onChange={e => setDescription(e.target.value.slice(0, 200))} 
                   rows={3} 
                   placeholder="Portée 2 jours..." 
                   className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-sm" 
                 />
-                <p className={`text-xs mt-1 text-right ${description.length > DESCRIPTION_MAX * 0.8 ? 'text-red-400' : 'text-zinc-400'}`}>
-                  {description.length} / {DESCRIPTION_MAX}
+                <p className={`text-xs mt-1 text-right ${description.length > 160 ? 'text-red-400' : 'text-zinc-400'}`}>
+                  {description.length} / 200
                 </p>
               </div>
               <div>
                 <label className="text-xs text-zinc-400 mb-1.5 block">Histoire intime</label>
                 <textarea 
                   value={story} 
-                  onChange={e => setStory(e.target.value.slice(0, STORY_MAX))} 
-                  rows={4} 
+                  onChange={e => setStory(e.target.value.slice(0, 500))} 
+                  rows={3} 
                   placeholder="Raconte l'histoire de cette pièce..." 
                   className="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-sm" 
                 />
-                <p className={`text-xs mt-1 text-right ${story.length > STORY_MAX * 0.8 ? 'text-red-400' : 'text-zinc-400'}`}>
-                  {story.length} / {STORY_MAX}
+                <p className={`text-xs mt-1 text-right ${story.length > 400 ? 'text-red-400' : 'text-zinc-400'}`}>
+                  {story.length} / 500
                 </p>
               </div>
             </div>
 
-            {/* Message vocal */}
             <div>
               <label className="text-xs text-zinc-400 mb-1.5 block">Message vocal (optionnel)</label>
               <label className="border border-dashed border-zinc-700 rounded-3xl p-6 flex flex-col items-center cursor-pointer hover:border-rose-500">
@@ -268,7 +264,6 @@ export default function SellPage() {
               </label>
             </div>
 
-            {/* Tarification */}
             <div className="bg-zinc-900 rounded-3xl p-6">
               <div className="flex justify-between items-center mb-5">
                 <h3 className="font-semibold">Tarification</h3>
@@ -311,7 +306,7 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* Step 2 & Step 3 identiques à avant */}
+        {/* ==================== STEP 2 ==================== */}
         {step === 2 && (
           <div className="space-y-10">
             <h2 className="text-2xl font-semibold">2. Vérification Real Worn (privée)</h2>
@@ -322,6 +317,18 @@ export default function SellPage() {
                 <input type="checkbox" checked={noFace} onChange={(e) => setNoFace(e.target.checked)} className="w-5 h-5 accent-rose-500" />
                 <span>Je ne souhaite pas montrer mon visage</span>
               </label>
+
+              {noFace && (
+                <div className="mb-10 p-6 bg-zinc-800 border border-amber-400/30 rounded-2xl">
+                  <p className="font-medium mb-4">Pour valider sans visage, merci de fournir :</p>
+                  <ul className="list-disc list-inside space-y-2 text-sm text-zinc-300">
+                    <li>Plusieurs angles du vêtement porté (face, dos, côtés, détails)</li>
+                    <li>Une marque distinctive visible (tatouage, bijou, vernis à ongles, piercing, cicatrice…)</li>
+                    <li>Une photo avec un papier indiquant clairement la date du jour</li>
+                  </ul>
+                  <p className="mt-6 text-amber-400 text-sm">La vérification pourra prendre un peu plus de temps sans photo du visage, mais reste tout à fait possible.</p>
+                </div>
+              )}
 
               <div className="border-2 border-dashed border-emerald-500/40 rounded-3xl p-12 text-center hover:border-emerald-400 transition-colors cursor-pointer">
                 <input type="file" multiple accept="image/*" onChange={handleVerificationPhotos} className="hidden" id="verif" />
@@ -348,6 +355,7 @@ export default function SellPage() {
           </div>
         )}
 
+        {/* ==================== STEP 3 ==================== */}
         {step === 3 && (
           <div className="text-center py-20">
             <CheckCircle className="w-28 h-28 text-green-400 mx-auto mb-10" />
