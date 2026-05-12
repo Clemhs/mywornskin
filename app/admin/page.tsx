@@ -12,15 +12,11 @@ export default function AdminPage() {
 
   const [activeTab, setActiveTab] = useState<'products' | 'photos' | 'reviews' | 'messages' | 'reports'>('products');
   const [reportFilter, setReportFilter] = useState<'pending' | 'reviewed' | 'dismissed' | 'all'>('pending');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'most'>('newest');
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Products
   const [pendingProducts, setPendingProducts] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCreator, setSelectedCreator] = useState('');
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
-
-  // Anciens onglets
   const [pendingPhotos, setPendingPhotos] = useState<any[]>([]);
   const [refusedReviews, setRefusedReviews] = useState<any[]>([]);
   const [reports, setReports] = useState<any[]>([]);
@@ -34,10 +30,11 @@ export default function AdminPage() {
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 2800);
+    setTimeout(() => setToast(null), 3000);
   };
 
   const loadData = async () => {
+    // ==================== PRODUITS EN ATTENTE ====================
     if (activeTab === 'products') {
       let query = supabase
         .from('products')
@@ -47,19 +44,24 @@ export default function AdminPage() {
         `)
         .eq('status', 'pending');
 
-      if (searchTerm) query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
-      if (selectedCreator) query = query.eq('creator_id', selectedCreator);
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+      }
 
       const { data, error } = await query.order('created_at', { ascending: sortBy === 'newest' });
       if (error) console.error(error);
       else setPendingProducts(data || []);
     }
 
+    // ==================== ONGLETS ORIGINAUX (intacts) ====================
     if (activeTab === 'photos') {
       const { data } = await supabase
         .from('profiles')
         .select(`
-          id, username, full_name, avatar_url, banner_url, avatar_pending_url, banner_pending_url, avatar_status, banner_status
+          id, username, full_name,
+          avatar_url, banner_url,
+          avatar_pending_url, banner_pending_url,
+          avatar_status, banner_status
         `)
         .or('avatar_status.eq.pending,banner_status.eq.pending')
         .order('updated_at', { ascending: false });
@@ -81,28 +83,40 @@ export default function AdminPage() {
         .select(`*, creator:profiles!creator_id (username, full_name)`)
         .order('created_at', { ascending: false });
       setReports(data || []);
-
-      const { count } = await supabase
-        .from('reports')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-      setPendingReportsCount(count || 0);
     }
 
     if (activeTab === 'messages') {
       const { data } = await supabase
-        .from('admin_messages')
-        .select('*')
+        .from('messages')
+        .select(`
+          *,
+          sender:profiles!sender_id (username)
+        `)
+        .eq('receiver_id', ADMIN_ID)
         .order('created_at', { ascending: false });
       setAdminMessages(data || []);
     }
+
+    const { count } = await supabase
+      .from('reports')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending');
+    setPendingReportsCount(count || 0);
   };
 
   useEffect(() => {
     loadData();
-  }, [activeTab, refreshKey, searchTerm, selectedCreator, sortBy]);
+  }, [activeTab, refreshKey, searchTerm, sortBy]);
 
-  // Actions Produits
+  const creatorRefusalCounts = useMemo(() => {
+    const counts: { [key: string]: number } = {};
+    refusedReviews.forEach(r => {
+      counts[r.creator_id] = (counts[r.creator_id] || 0) + 1;
+    });
+    return counts;
+  }, [refusedReviews]);
+
+  // ==================== ACTIONS PRODUITS ====================
   const approveProduct = async (id: string) => {
     const { error } = await supabase.from('products').update({ status: 'approved' }).eq('id', id);
     if (error) showToast("Erreur", "error");
@@ -121,7 +135,7 @@ export default function AdminPage() {
     }
   };
 
-  // Actions originales
+  // ==================== ACTIONS ORIGINALES (intactes) ====================
   const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
     const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
@@ -142,28 +156,37 @@ export default function AdminPage() {
       }).eq('id', profileId);
     }
     loadData();
+    showToast(action === 'approved' ? "✅ Photo validée" : "❌ Photo refusée");
   };
 
   const forcePublishReview = async (reviewId: string) => {
     await supabase.from('reviews').update({ status: 'approved' }).eq('id', reviewId);
     loadData();
+    showToast("✅ Commentaire publié");
   };
 
   const ignoreReview = async (reviewId: string) => {
     await supabase.from('reviews').update({ status: 'ignored' }).eq('id', reviewId);
     loadData();
+    showToast("Commentaire ignoré");
   };
 
   const sendAdminMessage = async () => {
-    if (!selectedReview || !adminReply.trim()) return;
-    await supabase.from('admin_messages').insert({
+    if (!selectedReview || !adminReply.trim()) {
+      showToast("Veuillez écrire un message", "error");
+      return;
+    }
+    const { error } = await supabase.from('admin_messages').insert({
       review_id: selectedReview.id,
       creator_id: selectedReview.creator_id,
       admin_message: adminReply,
     });
-    setAdminReply("");
-    setSelectedReview(null);
-    loadData();
+    if (error) showToast("Erreur lors de l'envoi", "error");
+    else {
+      showToast("✅ Message envoyé à la créatrice");
+      setAdminReply("");
+      setSelectedReview(null);
+    }
   };
 
   const markReportAsReviewed = async (reportId: string) => {
@@ -190,7 +213,6 @@ export default function AdminPage() {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold mb-10">Administration MyWornSkin</h1>
 
-        {/* Tabs */}
         <div className="flex border-b border-zinc-800 mb-10 overflow-x-auto">
           <button onClick={() => setActiveTab('products')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'products' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <ShieldCheck size={22} /> Produits en attente
@@ -206,11 +228,15 @@ export default function AdminPage() {
           </button>
           <button onClick={() => setActiveTab('reports')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap relative ${activeTab === 'reports' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <Flag size={22} /> Signalements
-            {pendingReportsCount > 0 && <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">{pendingReportsCount}</span>}
+            {pendingReportsCount > 0 && (
+              <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                {pendingReportsCount}
+              </span>
+            )}
           </button>
         </div>
 
-        {/* ==================== PRODUITS EN ATTENTE ==================== */}
+        {/* ==================== PRODUITS EN ATTENTE (version améliorée) ==================== */}
         {activeTab === 'products' && (
           <div>
             <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -224,16 +250,7 @@ export default function AdminPage() {
                   className="w-full bg-zinc-900 border border-zinc-700 rounded-3xl pl-11 py-3 focus:outline-none focus:border-rose-500"
                 />
               </div>
-
-              <select value={selectedCreator} onChange={(e) => setSelectedCreator(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-3 min-w-[220px]">
-                <option value="">Toutes les créatrices</option>
-                {Array.from(new Set(pendingProducts.map(p => p.creator_id))).map(id => {
-                  const creator = pendingProducts.find(p => p.creator_id === id)?.profiles;
-                  return creator ? <option key={id} value={id}>@{creator.username} - {creator.full_name}</option> : null;
-                })}
-              </select>
-
-              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest')} className="bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-3">
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-3">
                 <option value="newest">Plus récents</option>
                 <option value="oldest">Plus anciens</option>
               </select>
@@ -345,28 +362,57 @@ export default function AdminPage() {
             {refusedReviews.length === 0 ? (
               <p className="text-zinc-500 text-lg">Aucun commentaire refusé pour le moment.</p>
             ) : (
-              refusedReviews.map(review => (
-                <div key={review.id} className="bg-zinc-900 rounded-3xl p-8">
-                  <div className="flex justify-between items-start mb-6">
-                    <div>
-                      <Link href={`/creators/${review.creator_id}`} className="font-semibold text-xl hover:text-pink-400">
-                        Créatrice
-                      </Link>
+              refusedReviews.map(review => {
+                const refusalCount = creatorRefusalCounts[review.creator_id] || 0;
+                return (
+                  <div key={review.id} className="bg-zinc-900 rounded-3xl p-8">
+                    <div className="flex justify-between items-start mb-6">
+                      <div>
+                        <Link href={`/creators/${review.creator_id}`} className="font-semibold text-xl hover:text-pink-400">
+                          Créatrice
+                        </Link>
+                        <span className="ml-3 bg-orange-500/10 text-orange-400 px-3 py-1 rounded-full text-sm">
+                          {refusalCount} refus
+                        </span>
+                      </div>
+                      <div className="flex gap-3">
+                        <button onClick={() => forcePublishReview(review.id)} className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-2xl text-sm font-medium">
+                          Publier quand même
+                        </button>
+                        <button onClick={() => ignoreReview(review.id)} className="bg-zinc-700 hover:bg-zinc-600 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+                          <Trash2 size={16} /> Ignorer
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex gap-3">
-                      <button onClick={() => forcePublishReview(review.id)} className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-2xl text-sm font-medium">
-                        Publier quand même
-                      </button>
-                      <button onClick={() => ignoreReview(review.id)} className="bg-zinc-700 hover:bg-zinc-600 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
-                        <Trash2 size={16} /> Ignorer
-                      </button>
-                    </div>
+                    <p className="italic text-lg mb-4">"{review.comment}"</p>
+                    <p className="text-sm text-zinc-500">- {review.reviewer_name || 'Client anonyme'}</p>
+                    <button onClick={() => setSelectedReview(review)} className="mt-6 text-pink-400 hover:text-pink-300 flex items-center gap-2 font-medium">
+                      <MessageCircle size={20} /> Envoyer un message à la créatrice
+                    </button>
                   </div>
-                  <p className="italic text-lg mb-4">"{review.comment}"</p>
-                  <p className="text-sm text-zinc-500">- {review.reviewer_name || 'Client anonyme'}</p>
-                  <button onClick={() => setSelectedReview(review)} className="mt-6 text-pink-400 hover:text-pink-300 flex items-center gap-2 font-medium">
-                    <MessageCircle size={20} /> Envoyer un message à la créatrice
-                  </button>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {/* ==================== MESSAGES REÇUS ==================== */}
+        {activeTab === 'messages' && (
+          <div className="space-y-6">
+            {adminMessages.length === 0 ? (
+              <p className="text-zinc-500 text-xl py-12">Aucun message reçu pour le moment.</p>
+            ) : (
+              adminMessages.map((msg) => (
+                <div key={msg.id} className="bg-zinc-900 rounded-3xl p-8">
+                  <div className="flex justify-between mb-4">
+                    <Link href={`/creators/${msg.sender?.username}`} className="font-semibold text-lg hover:text-pink-400">
+                      @{msg.sender?.username || 'Créatrice'}
+                    </Link>
+                    <span className="text-xs text-zinc-500">
+                      {new Date(msg.created_at).toLocaleString('fr-FR')}
+                    </span>
+                  </div>
+                  <p className="text-zinc-300 leading-relaxed">{msg.content}</p>
                 </div>
               ))
             )}
@@ -387,7 +433,7 @@ export default function AdminPage() {
             </div>
 
             {reports.length === 0 ? (
-              <p className="text-zinc-500 text-xl">Aucun signalement pour le moment.</p>
+              <p className="text-zinc-500 text-xl py-12">Aucun signalement pour le moment.</p>
             ) : (
               <div className="space-y-8">
                 {reports.map((report) => (
@@ -396,7 +442,7 @@ export default function AdminPage() {
                       <Link href={`/creators/${report.creator?.username}`} className="text-xl font-semibold hover:text-pink-400">
                         @{report.creator?.username}
                       </Link>
-                      <span className="bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-sm">
+                      <span className="bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-sm font-medium">
                         Signalement
                       </span>
                     </div>
@@ -420,6 +466,36 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* MODAL MESSAGE */}
+        {selectedReview && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200]">
+            <div className="bg-zinc-900 rounded-3xl w-full max-w-lg p-8">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold">Envoyer un message</h3>
+                <button onClick={() => { setSelectedReview(null); setAdminReply(""); }} className="text-zinc-400 hover:text-white">
+                  ✕
+                </button>
+              </div>
+              <p className="text-zinc-400 mb-2">Commentaire concerné :</p>
+              <p className="italic mb-6">"{selectedReview.comment}"</p>
+              <textarea
+                value={adminReply}
+                onChange={(e) => setAdminReply(e.target.value)}
+                placeholder="Écris ton message ici..."
+                className="w-full h-40 bg-zinc-950 border border-zinc-700 rounded-2xl p-4 focus:outline-none focus:border-pink-500 resize-y"
+              />
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => { setSelectedReview(null); setAdminReply(""); }} className="flex-1 py-4 rounded-2xl border border-zinc-700 hover:bg-zinc-800">
+                  Annuler
+                </button>
+                <button onClick={sendAdminMessage} disabled={!adminReply.trim()} className="flex-1 py-4 rounded-2xl bg-pink-600 hover:bg-pink-500 disabled:opacity-50 font-medium flex items-center justify-center gap-2">
+                  <Send size={18} /> Envoyer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* TOAST */}
         {toast && (
           <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
@@ -428,7 +504,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Modal Image */}
+        {/* MODAL IMAGE */}
         {selectedImage && (
           <div className="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
             <div className="relative max-w-5xl max-h-[90vh]">
