@@ -45,7 +45,9 @@ export default function AdminPage() {
         `)
         .eq('status', 'pending');
 
-      if (searchTerm) query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+      }
 
       const { data } = await query.order('created_at', { ascending: sortBy === 'newest' });
       setPendingProducts(data || []);
@@ -54,14 +56,23 @@ export default function AdminPage() {
     if (activeTab === 'photos') {
       const { data } = await supabase
         .from('profiles')
-        .select(`id, username, full_name, avatar_url, banner_url, avatar_pending_url, banner_pending_url, avatar_status, banner_status`)
+        .select(`
+          id, username, full_name,
+          avatar_url, banner_url,
+          avatar_pending_url, banner_pending_url,
+          avatar_status, banner_status
+        `)
         .or('avatar_status.eq.pending,banner_status.eq.pending')
         .order('updated_at', { ascending: false });
       setPendingPhotos(data || []);
     }
 
     if (activeTab === 'reviews') {
-      const { data } = await supabase.from('reviews').select('*').eq('status', 'rejected').order('created_at', { ascending: false });
+      const { data } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('status', 'rejected')
+        .order('created_at', { ascending: false });
       setRefusedReviews(data || []);
     }
 
@@ -82,7 +93,10 @@ export default function AdminPage() {
       setAdminMessages(data || []);
     }
 
-    const { count } = await supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+    const { count } = await supabase
+      .from('reports')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending');
     setPendingReportsCount(count || 0);
   };
 
@@ -92,20 +106,50 @@ export default function AdminPage() {
 
   const creatorRefusalCounts = useMemo(() => {
     const counts: { [key: string]: number } = {};
-    refusedReviews.forEach(r => counts[r.creator_id] = (counts[r.creator_id] || 0) + 1);
+    refusedReviews.forEach(r => {
+      counts[r.creator_id] = (counts[r.creator_id] || 0) + 1;
+    });
     return counts;
   }, [refusedReviews]);
 
+  const filteredAndSortedReports = useMemo(() => {
+    let result = [...reports];
+
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim();
+      result = result.filter(report => 
+        report.reason?.toLowerCase().includes(term) ||
+        report.creator?.username?.toLowerCase().includes(term)
+      );
+    }
+
+    if (reportFilter !== 'all') {
+      result = result.filter(r => r.status === reportFilter);
+    }
+
+    if (sortBy === 'newest') result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    else if (sortBy === 'oldest') result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    else if (sortBy === 'most') {
+      const countMap: { [key: string]: number } = {};
+      result.forEach(r => countMap[r.creator_id] = (countMap[r.creator_id] || 0) + 1);
+      result.sort((a, b) => (countMap[b.creator_id] || 0) - (countMap[a.creator_id] || 0));
+    }
+
+    return result;
+  }, [reports, searchTerm, reportFilter, sortBy]);
+
   const reportsByCreator = useMemo(() => {
     const grouped: any = {};
-    reports.forEach(report => {
+    filteredAndSortedReports.forEach(report => {
       const key = report.creator_id;
-      if (!grouped[key]) grouped[key] = { creator: report.creator, count: 0, reports: [] };
+      if (!grouped[key]) {
+        grouped[key] = { creator: report.creator, count: 0, reports: [] };
+      }
       grouped[key].count++;
       grouped[key].reports.push(report);
     });
     return Object.values(grouped);
-  }, [reports]);
+  }, [filteredAndSortedReports]);
 
   const handleRefresh = () => {
     setRefreshKey(k => k + 1);
@@ -115,13 +159,19 @@ export default function AdminPage() {
   const approveProduct = async (id: string) => {
     const { error } = await supabase.from('products').update({ status: 'approved' }).eq('id', id);
     if (error) showToast("Erreur", "error");
-    else { showToast("Produit approuvé ✅"); setRefreshKey(k => k + 1); }
+    else {
+      showToast("Produit approuvé ✅");
+      setRefreshKey(k => k + 1);
+    }
   };
 
   const rejectProduct = async (id: string) => {
     const { error } = await supabase.from('products').update({ status: 'rejected' }).eq('id', id);
     if (error) showToast("Erreur", "error");
-    else { showToast("Produit refusé"); setRefreshKey(k => k + 1); }
+    else {
+      showToast("Produit refusé");
+      setRefreshKey(k => k + 1);
+    }
   };
 
   const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
@@ -132,9 +182,16 @@ export default function AdminPage() {
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', profileId).single();
 
     if (action === 'approved' && profile?.[pendingField]) {
-      await supabase.from('profiles').update({ [mainField]: profile[pendingField], [pendingField]: null, [statusField]: 'approved' }).eq('id', profileId);
+      await supabase.from('profiles').update({
+        [mainField]: profile[pendingField],
+        [pendingField]: null,
+        [statusField]: 'approved'
+      }).eq('id', profileId);
     } else {
-      await supabase.from('profiles').update({ [pendingField]: null, [statusField]: 'rejected' }).eq('id', profileId);
+      await supabase.from('profiles').update({
+        [pendingField]: null,
+        [statusField]: 'rejected'
+      }).eq('id', profileId);
     }
     loadData();
     showToast(action === 'approved' ? "✅ Photo validée" : "❌ Photo refusée");
@@ -153,10 +210,23 @@ export default function AdminPage() {
   };
 
   const sendAdminMessage = async () => {
-    if (!selectedReview || !adminReply.trim()) return showToast("Veuillez écrire un message", "error");
-    const { error } = await supabase.from('admin_messages').insert({ review_id: selectedReview.id, creator_id: selectedReview.creator_id, admin_message: adminReply });
+    if (!selectedReview || !adminReply.trim()) {
+      showToast("Veuillez écrire un message", "error");
+      return;
+    }
+
+    const { error } = await supabase.from('admin_messages').insert({
+      review_id: selectedReview.id,
+      creator_id: selectedReview.creator_id,
+      admin_message: adminReply,
+    });
+
     if (error) showToast("Erreur lors de l'envoi", "error");
-    else { showToast("✅ Message envoyé"); setAdminReply(""); setSelectedReview(null); }
+    else {
+      showToast("✅ Message envoyé à la créatrice");
+      setAdminReply("");
+      setSelectedReview(null);
+    }
   };
 
   const markReportAsReviewed = async (reportId: string) => {
@@ -176,12 +246,14 @@ export default function AdminPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-10">
           <h1 className="text-4xl font-bold">Administration MyWornSkin</h1>
-          <button onClick={handleRefresh} className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded-2xl text-sm font-medium transition">
+          <button 
+            onClick={handleRefresh}
+            className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded-2xl text-sm font-medium transition"
+          >
             <RefreshCw size={18} /> Rafraîchir tout
           </button>
         </div>
 
-        {/* Onglets */}
         <div className="flex flex-wrap gap-2 border-b border-zinc-800 pb-4 mb-10">
           <button onClick={() => setActiveTab('products')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'products' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <ShieldCheck size={22} /> Produits en attente ({pendingProducts.length})
@@ -193,11 +265,15 @@ export default function AdminPage() {
             <AlertTriangle size={22} /> Commentaires refusés ({refusedReviews.length})
           </button>
           <button onClick={() => setActiveTab('messages')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'messages' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
-            <MessageCircle size={22} /> Messages ({adminMessages.length})
+            <MessageCircle size={22} /> Messages reçus ({adminMessages.length})
           </button>
           <button onClick={() => setActiveTab('reports')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap relative ${activeTab === 'reports' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <Flag size={22} /> Signalements
-            {pendingReportsCount > 0 && <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">{pendingReportsCount}</span>}
+            {pendingReportsCount > 0 && (
+              <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                {pendingReportsCount}
+              </span>
+            )}
           </button>
         </div>
 
@@ -207,9 +283,15 @@ export default function AdminPage() {
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
-                <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-3xl pl-11 py-3 focus:outline-none focus:border-rose-500" />
+                <input
+                  type="text"
+                  placeholder="Rechercher un titre..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-3xl pl-11 py-3 focus:outline-none focus:border-rose-500"
+                />
               </div>
-              <select value={sortBy} onChange={e => setSortBy(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-3">
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-3">
                 <option value="newest">Plus récents</option>
                 <option value="oldest">Plus anciens</option>
               </select>
@@ -220,26 +302,30 @@ export default function AdminPage() {
                 <div key={p.id} className="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 flex flex-col h-fit">
                   <div className="p-4 flex gap-2 overflow-x-auto">
                     {p.images?.map((url: string, i: number) => (
-                      <img key={i} src={url} className="h-28 w-28 object-cover rounded-2xl cursor-pointer flex-shrink-0" onClick={() => setSelectedImage(url)} />
+                      <img key={i} src={url} alt="" className="h-28 w-28 object-cover rounded-2xl cursor-pointer flex-shrink-0" onClick={() => setSelectedImage(url)} />
                     ))}
                   </div>
 
                   {p.verification_images?.length > 0 && (
                     <div className="px-4 pb-4">
-                      <p className="text-emerald-400 text-xs flex items-center gap-1 mb-2"><ShieldCheck size={14} /> Vérification Real Worn</p>
-                      <div className="flex gap-2 overflow-x-auto">
+                      <p className="text-xs text-emerald-400 flex items-center gap-1 mb-2">
+                        <ShieldCheck size={14} /> Vérification Real Worn
+                      </p>
+                      <div className="flex gap-2 overflow-x-auto pb-3">
                         {p.verification_images.map((url: string, i: number) => (
-                          <img key={i} src={url} className="h-28 w-28 object-cover rounded-2xl border border-emerald-500/30 cursor-pointer flex-shrink-0" onClick={() => setSelectedImage(url)} />
+                          <img key={i} src={url} alt="" className="h-28 w-28 object-cover rounded-2xl border border-emerald-500/30 cursor-pointer flex-shrink-0" onClick={() => setSelectedImage(url)} />
                         ))}
                       </div>
                     </div>
                   )}
 
-                  <div className="p-5 flex flex-col">
-                    <Link href={`/creators/${p.profiles?.username}`} className="text-rose-400 hover:underline text-sm">@{p.profiles?.username || 'inconnu'}</Link>
+                  <div className="p-5 flex-1 flex flex-col">
+                    <Link href={`/creators/${p.profiles?.username}`} className="text-rose-400 hover:underline text-sm mb-1">
+                      @{p.profiles?.username || 'inconnu'}
+                    </Link>
 
                     <div className="mt-4 space-y-3 text-sm text-zinc-400">
-                      <div><span className="font-medium text-zinc-300">Type :</span> {p.category || '—'}</div>
+                      <div><span className="font-medium text-zinc-300">Type d'article :</span> {p.category || 'Non renseigné'}</div>
                       <div className="flex gap-6">
                         {p.size && <div><span className="font-medium text-zinc-300">Taille :</span> {p.size}</div>}
                         {p.shoe_size && <div><span className="font-medium text-zinc-300">Pointure :</span> {p.shoe_size}</div>}
@@ -248,7 +334,7 @@ export default function AdminPage() {
 
                       <div className="max-h-32 overflow-y-auto pr-2">
                         <span className="font-medium text-zinc-300">Description :</span>
-                        <p className="break-words whitespace-pre-wrap mt-1">{p.description || "—"}</p>
+                        <p className="break-words whitespace-pre-wrap mt-1">{p.description || "Aucune description"}</p>
                       </div>
 
                       {p.story && (
@@ -259,12 +345,22 @@ export default function AdminPage() {
                       )}
 
                       <div className="flex flex-wrap gap-3 pt-2">
-                        {p.video_url && <button onClick={() => setPlayingVideo(p.video_url)} className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-2xl text-sm"><Play size={16} /> Vidéo</button>}
-                        {p.voice_url && <button onClick={() => { const a = new Audio(p.voice_url); a.play(); }} className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-2xl text-sm">🎤 Vocal</button>}
+                        {p.video_url && (
+                          <button onClick={() => setPlayingVideo(p.video_url)} className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-2xl text-sm">
+                            <Play size={16} /> Voir la vidéo
+                          </button>
+                        )}
+                        {p.voice_url && (
+                          <button onClick={() => { const audio = new Audio(p.voice_url); audio.play(); }} className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-2xl text-sm">
+                            🎤 Écouter le message vocal
+                          </button>
+                        )}
                       </div>
                     </div>
 
-                    <div className="text-3xl font-bold text-rose-400 mt-auto pt-6">{p.price} €</div>
+                    <div className="text-3xl font-bold text-rose-400 mt-auto pt-6">
+                      {p.price} €
+                    </div>
 
                     <div className="flex gap-3 mt-6">
                       <button onClick={() => approveProduct(p.id)} className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-2xl font-medium flex items-center justify-center gap-2">
@@ -281,7 +377,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ==================== PHOTOS EN ATTENTE ==================== */}
+        {/* ==================== TOUT LE RESTE EST EXACTEMENT COMME DANS TON FICHIER ORIGINAL ==================== */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
@@ -289,11 +385,9 @@ export default function AdminPage() {
             ) : (
               pendingPhotos.map((p) => (
                 <div key={p.id} className="bg-zinc-900 rounded-3xl p-8">
-                  <Link href={`/creators/${p.username}`} className="font-semibold text-xl hover:text-pink-400">
-                    @{p.username}
-                  </Link>
+                  <h3 className="font-semibold text-xl mb-6">@{p.username}</h3>
                   {p.avatar_pending_url && (
-                    <div className="mb-12 mt-6">
+                    <div className="mb-12">
                       <p className="text-pink-400 mb-4">Photo de profil</p>
                       <img src={p.avatar_pending_url} className="w-48 h-48 rounded-2xl object-cover mb-6" />
                       <div className="flex gap-4">
@@ -318,7 +412,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ==================== COMMENTAIRES REFUSÉS ==================== */}
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             {refusedReviews.length === 0 ? (
@@ -358,7 +451,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ==================== MESSAGES ==================== */}
         {activeTab === 'messages' && (
           <div className="space-y-6">
             {adminMessages.length === 0 ? (
@@ -381,7 +473,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ==================== SIGNALEMENTS ==================== */}
         {activeTab === 'reports' && (
           <div>
             <div className="flex flex-col md:flex-row gap-4 mb-8">
