@@ -2,41 +2,44 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User, LogOut, Plus, MessageCircle, ShoppingCart } from 'lucide-react';
+import { User, LogOut, Plus, MessageCircle, ShoppingCart, Heart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 
 export default function Header() {
   const pathname = usePathname();
-  const { user, logout, isLoggedIn } = useAuth();
+  const { user, isCreator, logout, isLoggedIn } = useAuth(); // On utilise maintenant isCreator du context
   const supabase = createClient();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>('/default-avatar.png');
-  const [isCreator, setIsCreator] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Chargement de l'avatar + statut créatrice
+  // Chargement de l'avatar
   useEffect(() => {
     if (!user) return;
 
     const loadProfile = async () => {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('avatar_url, role')
+        .select('avatar_url')
         .eq('id', user.id)
         .single();
 
       if (profile?.avatar_url) {
         setAvatarUrl(profile.avatar_url);
       }
-
-      setIsCreator(profile?.role === 'creator');
     };
 
     loadProfile();
   }, [user, supabase]);
+
+  // Mise à jour du compteur de messages non lus (tu peux compléter plus tard)
+  useEffect(() => {
+    // Simulation pour l'instant
+    setUnreadCount(0);
+  }, [user]);
 
   const handleLogout = async () => {
     await logout();
@@ -60,6 +63,7 @@ export default function Header() {
         <div className="flex items-center gap-4">
           {isLoggedIn && user ? (
             <>
+              {/* Messages */}
               <Link href="/messages" className="relative p-2 hover:bg-zinc-900 rounded-xl transition-colors">
                 <MessageCircle className="w-5 h-5" />
                 {unreadCount > 0 && (
@@ -69,7 +73,12 @@ export default function Header() {
                 )}
               </Link>
 
-              {/* === Bouton conditionnel : Créatrice vs Client === */}
+              {/* Favoris (visible pour tout le monde) */}
+              <Link href="/profile/favorites" className="p-2 hover:bg-zinc-900 rounded-xl transition-colors">
+                <Heart className="w-5 h-5" />
+              </Link>
+
+              {/* Panier OU Nouvelle pièce selon le type de compte */}
               {isCreator ? (
                 <Link 
                   href="/sell"
@@ -84,6 +93,7 @@ export default function Header() {
                 </Link>
               )}
 
+              {/* Menu Profil */}
               <div className="relative">
                 <button 
                   onClick={() => setMenuOpen(!menuOpen)}
@@ -99,7 +109,7 @@ export default function Header() {
                 {menuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-3xl py-2 shadow-2xl z-50">
                     <Link 
-                      href={isCreator ? `/creators/${user.user_metadata?.username || 'creator_test'}` : "/profile"} 
+                      href={isCreator ? `/creators/${user.user_metadata?.username || 'me'}` : "/profile"} 
                       className="block px-6 py-3 hover:bg-zinc-800"
                       onClick={() => setMenuOpen(false)}
                     >
