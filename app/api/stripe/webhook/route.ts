@@ -39,7 +39,7 @@ export async function POST(req: Request) {
           if (res.ok) {
             console.log(`✅ sales_count incrémenté pour ${productId}`);
           } else {
-            console.error(`❌ Erreur RPC ${productId} - Status: ${res.status}`);
+            console.error(`❌ Erreur pour ${productId} - Status: ${res.status}`);
           }
         } catch (err) {
           console.error(`Erreur réseau pour ${productId}:`, err);
