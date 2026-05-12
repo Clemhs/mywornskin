@@ -72,11 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         setLoading(false);
 
-        // === Amélioration globale : Refresh forcé après connexion/déconnexion ===
+        // === Amélioration globale pour éviter les chargements infinis ===
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
           setTimeout(() => {
-            window.location.reload(); // Force un refresh propre pour éviter les états bloqués
-          }, 400);
+            window.location.reload();   // Force un refresh propre
+          }, 500);
         }
       }
     );
