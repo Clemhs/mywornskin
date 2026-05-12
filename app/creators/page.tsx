@@ -24,12 +24,12 @@ export default function CreatorsPage() {
         .from('profiles')
         .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size')
         .or('is_creator.eq.true,role.eq.creator') 
-        .order('created_at', { ascending: false });   // Changé en created_at pour voir les récents
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error("Erreur chargement créatrices :", error);
       } else {
-        console.log("Créatrices récupérées :", data); // ← Debug
+        console.log("✅ Créatrices récupérées :", data?.length || 0, data);
         setCreators(data || []);
       }
       setLoading(false);
@@ -52,13 +52,10 @@ export default function CreatorsPage() {
 
       let matchesFilter = true;
       if (activeFilter === 'top') matchesFilter = (creator.sales_badge || 0) >= 5;
-      if (activeFilter === 'new') matchesFilter = true; // On montre tout pour "Nouvelles"
 
       return matchesSearch && matchesCountry && matchesCity && matchesSize && matchesShoeSize && matchesFilter;
     });
   }, [creators, searchTerm, selectedCountry, selectedCity, selectedSize, selectedShoeSize, activeFilter]);
-
-  // ... (le reste du code reste identique à ce que tu avais)
 
   const countries = [...new Set(creators.map(c => c.country).filter(Boolean))];
   const cities = [...new Set(creators.map(c => c.city).filter(Boolean))];
