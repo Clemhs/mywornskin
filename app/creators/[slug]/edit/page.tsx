@@ -32,11 +32,7 @@ export default function CreatorEditPage() {
   const loadData = useCallback(async () => {
     if (!user) return;
 
-    const { data: prof } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).single();
 
     if (prof) {
       setProfile(prof);
@@ -92,7 +88,7 @@ export default function CreatorEditPage() {
     setToast({ message: `📸 Photo de ${type} envoyée en attente`, type: 'success' });
     setDismissed(false);
     if (user) localStorage.removeItem(`dismissed_rejected_${user.id}`);
-    await loadData(); // Force refresh
+    loadData();
   };
 
   const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
@@ -161,7 +157,7 @@ export default function CreatorEditPage() {
           <div className="w-[140px] flex-shrink-0" />
         </div>
 
-        {/* BANDEAU ROUGE - UNIQUEMENT REFUSÉ */}
+        {/* BANDEAU ROUGE - SEULEMENT SI REFUSÉ */}
         {hasRejectedPhoto && !dismissed && (
           <div className="mb-8 bg-red-900/30 border border-red-600 rounded-3xl p-5 flex items-start gap-4">
             <AlertTriangle className="text-red-500 mt-0.5" size={24} />
@@ -178,7 +174,7 @@ export default function CreatorEditPage() {
           </div>
         )}
 
-        {/* Toast */}
+        {/* Toast success */}
         {toast && toast.type === 'success' && (
           <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3.5 rounded-2xl bg-emerald-600 text-white flex items-center gap-3 shadow-2xl">
             {toast.message}
