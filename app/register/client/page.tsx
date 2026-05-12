@@ -29,17 +29,23 @@ export default function ClientRegisterPage() {
     setError('');
     setSuccessMessage('');
 
-    const success = await register(formData.email, formData.password, formData.username);
+    // false = c'est un compte client
+    const success = await register(
+      formData.email, 
+      formData.password, 
+      formData.username,
+      false
+    );
 
     if (success) {
-      setSuccessMessage("✅ Compte créé avec succès ! Vérifie ta boîte mail pour confirmer ton adresse.");
+      setSuccessMessage("✅ Compte client créé avec succès ! Vérifie ta boîte mail pour confirmer ton adresse.");
       
-      // Redirection après 2.5s
+      // Redirection après succès
       setTimeout(() => {
         router.push('/login');
       }, 2500);
     } else {
-      setError("Une erreur est survenue lors de la création du compte. L'email est peut-être déjà utilisé.");
+      setError("Une erreur est survenue. L'email est peut-être déjà utilisé.");
     }
 
     setLoading(false);
