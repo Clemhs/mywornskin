@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
-import { Camera, Clock, X, ArrowLeft, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Camera, Clock, X, ArrowLeft, CheckCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
 
@@ -20,7 +20,6 @@ export default function CreatorEditPage() {
   const [size, setSize] = useState('');
   const [shoeSize, setShoeSize] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; link?: string } | null>(null);
-  const [dismissRejected, setDismissRejected] = useState(false);
 
   const availableSalesBadges = [10, 50, 100, 500];
   const availableFrames = [
@@ -54,38 +53,39 @@ export default function CreatorEditPage() {
     setPendingReviews(reviews || []);
   }, [user, supabase]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData]);
 
-  // Toast success auto-dismiss
-  useEffect(() => {
-    if (toast?.type === 'success') {
-      const timer = setTimeout(() => setToast(null), 2200);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
-
-  const closeToast = () => setToast(null);
-
-  const hasRejectedPhoto = profile?.avatar_status === 'rejected' || profile?.banner_status === 'rejected';
-
-  const dismissRejectedBanner = () => {
-    setDismissRejected(true);
-    if (user) {
-      localStorage.setItem(`dismissed_rejected_${user.id}`, 'true');
-    }
-  };
-
+  // Validation des commentaires
   const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
-    const { error } = await supabase.from('reviews').update({ status }).eq('id', reviewId);
+    const { error } = await supabase
+      .from('reviews')
+      .update({ status })
+      .eq('id', reviewId);
+
     if (error) {
       setToast({ message: "Erreur lors de la validation", type: 'error' });
     } else {
-      setToast({ message: status === 'approved' ? "✅ Commentaire validé" : "❌ Commentaire rejeté", type: 'success' });
+      setToast({ 
+        message: status === 'approved' ? "✅ Commentaire validé" : "❌ Commentaire rejeté", 
+        type: 'success' 
+      });
       loadData();
     }
   };
+
+  // Toast photo refusée
+  useEffect(() => {
+    if (!profile) return;
+    if (profile.avatar_status === 'rejected' || profile.banner_status === 'rejected') {
+      setToast({ message: "Une de vos photos a été refusée", type: 'error', link: "/guidelines" });
+      return;
+    }
+    if ((profile.avatar_status === 'approved' || profile.banner_status === 'approved') && 
+        !sessionStorage.getItem('validatedToastShown')) {
+      setToast({ message: "✅ Une de vos photos a été validée par l'équipe", type: 'success' });
+      sessionStorage.setItem('validatedToastShown', 'true');
+    }
+  }, [profile]);
 
   const saveProfile = async (updates: any) => {
     if (!user) return;
@@ -97,6 +97,7 @@ export default function CreatorEditPage() {
     setSalesBadge(newBadge);
     await saveProfile({ sales_badge: newBadge });
     setToast({ message: "✅ Badge mis à jour", type: 'success' });
+    setTimeout(() => setToast(null), 1500);
   };
 
   const selectFrame = async (id: string) => {
@@ -104,6 +105,7 @@ export default function CreatorEditPage() {
     setFrame(newFrame);
     await saveProfile({ frame: newFrame });
     setToast({ message: "✅ Cadre mis à jour", type: 'success' });
+    setTimeout(() => setToast(null), 1500);
   };
 
   const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -148,13 +150,16 @@ export default function CreatorEditPage() {
 
     setToast({ message: `📸 Photo de ${type} envoyée en attente`, type: 'success' });
     loadData();
-    setDismissRejected(false);
-    if (user) localStorage.removeItem(`dismissed_rejected_${user.id}`);
   };
+
+  const closeToast = () => setToast(null);
 
   if (!user || !profile) {
     return <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center pt-20">Chargement...</div>;
   }
+
+  const isAvatarPending = profile.avatar_status === 'pending';
+  const isBannerPending = profile.banner_status === 'pending';
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-12">
@@ -168,35 +173,14 @@ export default function CreatorEditPage() {
           <div className="w-[140px] flex-shrink-0" />
         </div>
 
-        {/* BANDEAU ROUGE - SEULEMENT SI REFUSÉ */}
-        {hasRejectedPhoto && !dismissRejected && (
-          <div className="mb-8 bg-red-900/30 border border-red-600 rounded-3xl p-5 flex items-start gap-4">
-            <AlertTriangle className="text-red-500 mt-0.5" size={24} />
-            <div className="flex-1">
-              <p className="font-medium text-red-400">Une ou plusieurs de vos photos ont été refusées par l'équipe.</p>
-              <p className="text-sm text-zinc-400 mt-1">Veuillez les remplacer en respectant les guidelines.</p>
-            </div>
-            <Link 
-              href="/guidelines" 
-              className="bg-red-600 hover:bg-red-500 px-5 py-2 rounded-2xl text-sm font-medium whitespace-nowrap transition mt-0.5"
-              target="_blank"
-            >
-              Voir les Guidelines →
-            </Link>
-            <button 
-              onClick={dismissRejectedBanner}
-              className="text-zinc-400 hover:text-white p-1 -mt-1 -mr-1"
-            >
-              <X size={20} />
+        {toast && (
+          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 min-w-[460px]
+            ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'} text-white`}>
+            <span>{toast.message}</span>
+            {toast.link && <Link href={toast.link} className="underline text-sm ml-2">Guidelines →</Link>}
+            <button onClick={closeToast} className="ml-auto p-1 hover:bg-white/20 rounded-full">
+              <X size={18} />
             </button>
-          </div>
-        )}
-
-        {/* Toast success */}
-        {toast && toast.type === 'success' && (
-          <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3.5 rounded-2xl bg-emerald-600 text-white flex items-center gap-3 shadow-2xl">
-            {toast.message}
-            <button onClick={closeToast}><X size={18} /></button>
           </div>
         )}
 
@@ -211,13 +195,11 @@ export default function CreatorEditPage() {
                   alt="Bannière" 
                   className="w-full h-full object-cover" 
                 />
-
-                {(profile.banner_status === 'pending' || profile.avatar_status === 'pending') && (
+                {isBannerPending && (
                   <div className="absolute top-4 right-4 bg-amber-500 text-black text-sm px-4 py-1 rounded-full flex items-center gap-2 font-medium">
                     <Clock size={16} /> En attente de validation
                   </div>
                 )}
-
                 <div className="absolute bottom-8 left-8">
                   <div className="relative">
                     <img 
@@ -242,8 +224,18 @@ export default function CreatorEditPage() {
                     <div key={r.id} className="bg-zinc-900 rounded-3xl p-6">
                       <p className="italic">"{r.comment}"</p>
                       <div className="flex gap-3 mt-4">
-                        <button onClick={() => validateComment(r.id, 'approved')} className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-2xl">✅ Valider</button>
-                        <button onClick={() => validateComment(r.id, 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-2xl">❌ Rejeter</button>
+                        <button 
+                          onClick={() => validateComment(r.id, 'approved')}
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-2xl font-medium flex items-center justify-center gap-2"
+                        >
+                          ✅ Valider
+                        </button>
+                        <button 
+                          onClick={() => validateComment(r.id, 'rejected')}
+                          className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-2xl font-medium flex items-center justify-center gap-2"
+                        >
+                          ❌ Rejeter
+                        </button>
                       </div>
                     </div>
                   ))
