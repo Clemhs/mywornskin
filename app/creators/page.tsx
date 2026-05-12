@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { Star } from 'lucide-react';
 import CreatorAvatarWithFrame from '@/components/CreatorAvatarWithFrame';
 import { createClient } from '@/lib/supabase/client';
-import { useSupabaseQuery } from '@/hooks/useSupabaseQuery';   // ← Import du hook
+import { useSupabaseQuery } from '@/hooks/useSupabaseQuery';
 
 export default function CreatorsPage() {
   const supabase = createClient();
@@ -17,8 +17,8 @@ export default function CreatorsPage() {
   const [selectedShoeSize, setSelectedShoeSize] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'top' | 'new'>('all');
 
-  // Utilisation du hook robuste
-  const { data: creators = [], loading, error } = useSupabaseQuery(async (sb) => {
+  // Hook avec typage explicite
+  const { data: creators = [], loading, error } = useSupabaseQuery<any[]>(async (sb) => {
     return sb
       .from('profiles')
       .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size')
