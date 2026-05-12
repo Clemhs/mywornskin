@@ -22,12 +22,12 @@ export async function POST(req: Request) {
     const productIds = JSON.parse(session.metadata?.productIds || '[]');
 
     if (productIds.length > 0) {
-      const supabase = await createClient();   // ← Important : await ici
+      const supabase = await createClient();   // Client serveur
 
       for (const productId of productIds) {
-        const { error } = await supabase
-          .from('products')
-          .rpc('increment_sales_count', { p_id: productId });
+        const { error } = await supabase.rpc('increment_sales_count', { 
+          p_id: productId 
+        });
 
         if (error) {
           console.error(`Erreur incrémentation sales_count pour ${productId}:`, error);
