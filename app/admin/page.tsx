@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { ShieldCheck, Image as ImageIcon, AlertTriangle, MessageCircle, Flag, CheckCircle, XCircle, Search } from 'lucide-react';
+import { MessageCircle, AlertTriangle, Image as ImageIcon, Send, Trash2, Flag, CheckCircle, ShieldCheck, XCircle, Search } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
@@ -11,77 +11,104 @@ export default function AdminPage() {
   const supabase = createClient();
 
   const [activeTab, setActiveTab] = useState<'products' | 'photos' | 'reviews' | 'messages' | 'reports'>('products');
+  const [reportFilter, setReportFilter] = useState<'pending' | 'reviewed' | 'dismissed' | 'all'>('pending');
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Products
   const [pendingProducts, setPendingProducts] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCreator, setSelectedCreator] = useState<string>(''); // Filtre par créatrice
+  const [selectedCreator, setSelectedCreator] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
 
-  const [loading, setLoading] = useState(false);
-
-  // Modal image
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  // Anciens onglets
+  const [pendingPhotos, setPendingPhotos] = useState<any[]>([]);
+  const [refusedReviews, setRefusedReviews] = useState<any[]>([]);
+  const [reports, setReports] = useState<any[]>([]);
+  const [adminMessages, setAdminMessages] = useState<any[]>([]);
+  const [pendingReportsCount, setPendingReportsCount] = useState(0);
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [selectedReview, setSelectedReview] = useState<any>(null);
+  const [adminReply, setAdminReply] = useState("");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 2800);
   };
 
-  const loadProducts = async () => {
-    setLoading(true);
+  const loadData = async () => {
+    if (activeTab === 'products') {
+      let query = supabase
+        .from('products')
+        .select(`
+          id, title, description, story, price, size, shoe_size, images, verification_images, status, created_at, creator_id,
+          profiles:creator_id (username, full_name)
+        `)
+        .eq('status', 'pending');
 
-    let query = supabase
-      .from('products')
-      .select(`
-        id, title, description, price, size, shoe_size, images, verification_images, status, created_at, creator_id,
-        profiles:creator_id (username, full_name)
-      `)
-      .eq('status', 'pending');
+      if (searchTerm) query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+      if (selectedCreator) query = query.eq('creator_id', selectedCreator);
 
-    if (searchTerm) {
-      query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+      const { data, error } = await query.order('created_at', { ascending: sortBy === 'newest' });
+      if (error) console.error(error);
+      else setPendingProducts(data || []);
     }
 
-    if (selectedCreator) {
-      query = query.eq('creator_id', selectedCreator);
+    if (activeTab === 'photos') {
+      const { data } = await supabase
+        .from('profiles')
+        .select(`
+          id, username, full_name, avatar_url, banner_url, avatar_pending_url, banner_pending_url, avatar_status, banner_status
+        `)
+        .or('avatar_status.eq.pending,banner_status.eq.pending')
+        .order('updated_at', { ascending: false });
+      setPendingPhotos(data || []);
     }
 
-    const { data, error } = await query
-      .order('created_at', { ascending: sortBy === 'newest' });
+    if (activeTab === 'reviews') {
+      const { data } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('status', 'rejected')
+        .order('created_at', { ascending: false });
+      setRefusedReviews(data || []);
+    }
 
-    if (error) console.error(error);
-    else setPendingProducts(data || []);
+    if (activeTab === 'reports') {
+      const { data } = await supabase
+        .from('reports')
+        .select(`*, creator:profiles!creator_id (username, full_name)`)
+        .order('created_at', { ascending: false });
+      setReports(data || []);
 
-    setLoading(false);
+      const { count } = await supabase
+        .from('reports')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      setPendingReportsCount(count || 0);
+    }
+
+    if (activeTab === 'messages') {
+      const { data } = await supabase
+        .from('admin_messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+      setAdminMessages(data || []);
+    }
   };
 
   useEffect(() => {
-    if (activeTab === 'products') {
-      loadProducts();
-    }
-  }, [activeTab, searchTerm, selectedCreator, sortBy]);
+    loadData();
+  }, [activeTab, refreshKey, searchTerm, selectedCreator, sortBy]);
 
-  // Récupérer la liste unique des créatrices pour le filtre
-  const creators = useMemo(() => {
-    const unique = new Map();
-    pendingProducts.forEach(p => {
-      if (p.profiles) {
-        unique.set(p.creator_id, p.profiles);
-      }
-    });
-    return Array.from(unique.values());
-  }, [pendingProducts]);
-
+  // Actions Produits
   const approveProduct = async (id: string) => {
     const { error } = await supabase.from('products').update({ status: 'approved' }).eq('id', id);
     if (error) showToast("Erreur", "error");
     else {
       showToast("Produit approuvé ✅");
-      loadProducts();
+      setRefreshKey(k => k + 1);
     }
   };
 
@@ -90,187 +117,327 @@ export default function AdminPage() {
     if (error) showToast("Erreur", "error");
     else {
       showToast("Produit refusé");
-      loadProducts();
+      setRefreshKey(k => k + 1);
     }
+  };
+
+  // Actions originales
+  const handlePhotoAction = async (profileId: string, type: 'avatar' | 'banner', action: 'approved' | 'rejected') => {
+    const pendingField = type === 'avatar' ? 'avatar_pending_url' : 'banner_pending_url';
+    const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
+    const statusField = type === 'avatar' ? 'avatar_status' : 'banner_status';
+
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', profileId).single();
+
+    if (action === 'approved' && profile?.[pendingField]) {
+      await supabase.from('profiles').update({
+        [mainField]: profile[pendingField],
+        [pendingField]: null,
+        [statusField]: 'approved'
+      }).eq('id', profileId);
+    } else {
+      await supabase.from('profiles').update({
+        [pendingField]: null,
+        [statusField]: 'rejected'
+      }).eq('id', profileId);
+    }
+    loadData();
+  };
+
+  const forcePublishReview = async (reviewId: string) => {
+    await supabase.from('reviews').update({ status: 'approved' }).eq('id', reviewId);
+    loadData();
+  };
+
+  const ignoreReview = async (reviewId: string) => {
+    await supabase.from('reviews').update({ status: 'ignored' }).eq('id', reviewId);
+    loadData();
+  };
+
+  const sendAdminMessage = async () => {
+    if (!selectedReview || !adminReply.trim()) return;
+    await supabase.from('admin_messages').insert({
+      review_id: selectedReview.id,
+      creator_id: selectedReview.creator_id,
+      admin_message: adminReply,
+    });
+    setAdminReply("");
+    setSelectedReview(null);
+    loadData();
+  };
+
+  const markReportAsReviewed = async (reportId: string) => {
+    await supabase.from('reports').update({ status: 'reviewed' }).eq('id', reportId);
+    showToast("✅ Signalement marqué comme traité");
+    setRefreshKey(k => k + 1);
+  };
+
+  const dismissReport = async (reportId: string) => {
+    await supabase.from('reports').update({ status: 'dismissed' }).eq('id', reportId);
+    showToast("Signalement ignoré");
+    setRefreshKey(k => k + 1);
+  };
+
+  const deleteReport = async (reportId: string) => {
+    if (!confirm("Supprimer définitivement ce signalement ?")) return;
+    await supabase.from('reports').delete().eq('id', reportId);
+    showToast("Signalement supprimé");
+    setRefreshKey(k => k + 1);
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-8">
-      <h1 className="text-4xl font-bold mb-8">Administration MyWornSkin</h1>
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-4xl font-bold mb-10">Administration MyWornSkin</h1>
 
-      {/* Tabs */}
-      <div className="flex border-b border-zinc-800 mb-8 overflow-x-auto">
-        {[
-          { key: 'products', label: 'Produits en attente', icon: ShieldCheck },
-          { key: 'photos', label: 'Photos en attente', icon: ImageIcon },
-          { key: 'reviews', label: 'Commentaires refusés', icon: AlertTriangle },
-          { key: 'messages', label: 'Messages reçus', icon: MessageCircle },
-          { key: 'reports', label: 'Signalements', icon: Flag },
-        ].map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key as any)}
-            className={`flex items-center gap-2 px-6 py-4 border-b-2 whitespace-nowrap transition-all ${
-              activeTab === tab.key ? 'border-rose-500 text-white' : 'border-transparent text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <tab.icon size={20} />
-            {tab.label}
+        {/* Tabs */}
+        <div className="flex border-b border-zinc-800 mb-10 overflow-x-auto">
+          <button onClick={() => setActiveTab('products')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'products' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+            <ShieldCheck size={22} /> Produits en attente
           </button>
-        ))}
-      </div>
+          <button onClick={() => setActiveTab('photos')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'photos' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+            <ImageIcon size={22} /> Photos en attente
+          </button>
+          <button onClick={() => setActiveTab('reviews')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'reviews' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+            <AlertTriangle size={22} /> Commentaires refusés
+          </button>
+          <button onClick={() => setActiveTab('messages')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'messages' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+            <MessageCircle size={22} /> Messages reçus
+          </button>
+          <button onClick={() => setActiveTab('reports')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap relative ${activeTab === 'reports' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
+            <Flag size={22} /> Signalements
+            {pendingReportsCount > 0 && <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">{pendingReportsCount}</span>}
+          </button>
+        </div>
 
-      {/* ==================== PRODUITS EN ATTENTE ==================== */}
-      {activeTab === 'products' && (
-        <div>
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            {/* Recherche */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
-              <input
-                type="text"
-                placeholder="Rechercher un titre..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-3xl pl-11 py-3 focus:outline-none focus:border-rose-500"
-              />
+        {/* ==================== PRODUITS EN ATTENTE ==================== */}
+        {activeTab === 'products' && (
+          <div>
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="flex-1 relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
+                <input
+                  type="text"
+                  placeholder="Rechercher un titre..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-3xl pl-11 py-3 focus:outline-none focus:border-rose-500"
+                />
+              </div>
+
+              <select value={selectedCreator} onChange={(e) => setSelectedCreator(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-3 min-w-[220px]">
+                <option value="">Toutes les créatrices</option>
+                {Array.from(new Set(pendingProducts.map(p => p.creator_id))).map(id => {
+                  const creator = pendingProducts.find(p => p.creator_id === id)?.profiles;
+                  return creator ? <option key={id} value={id}>@{creator.username} - {creator.full_name}</option> : null;
+                })}
+              </select>
+
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest')} className="bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-3">
+                <option value="newest">Plus récents</option>
+                <option value="oldest">Plus anciens</option>
+              </select>
             </div>
 
-            {/* Filtre par créatrice */}
-            <select
-              value={selectedCreator}
-              onChange={(e) => setSelectedCreator(e.target.value)}
-              className="bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-3 text-sm min-w-[220px]"
-            >
-              <option value="">Toutes les créatrices</option>
-              {creators.map((c: any) => (
-                <option key={c.id} value={c.id}>
-                  @{c.username} - {c.full_name}
-                </option>
-              ))}
-            </select>
+            <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
+              <ShieldCheck className="text-emerald-400" /> Produits en attente de validation ({pendingProducts.length})
+            </h2>
 
-            {/* Tri */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest')}
-              className="bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-3 text-sm"
-            >
-              <option value="newest">Plus récents</option>
-              <option value="oldest">Plus anciens</option>
-            </select>
-          </div>
-
-          <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
-            <ShieldCheck className="text-emerald-400" />
-            Produits en attente de validation ({pendingProducts.length})
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {pendingProducts.map((p) => (
-              <div key={p.id} className="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 flex flex-col">
-                {/* Photos publiques */}
-                <div className="p-4">
-                  <p className="text-xs text-zinc-400 mb-2">Photos publiques</p>
-                  <div className="flex gap-2 overflow-x-auto pb-3">
-                    {p.images?.map((url: string, i: number) => (
-                      <img
-                        key={i}
-                        src={url}
-                        alt="public"
-                        className="h-28 w-28 object-cover rounded-2xl cursor-pointer flex-shrink-0 hover:scale-105 transition"
-                        onClick={() => setSelectedImage(url)}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Photos Real Worn */}
-                {p.verification_images?.length > 0 && (
-                  <div className="px-4 pb-3">
-                    <p className="text-xs text-emerald-400 flex items-center gap-1 mb-2">
-                      <ShieldCheck size={14} /> Vérification Real Worn
-                    </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {pendingProducts.map((p) => (
+                <div key={p.id} className="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 flex flex-col">
+                  <div className="p-4">
+                    <p className="text-xs text-zinc-400 mb-2">Photos publiques</p>
                     <div className="flex gap-2 overflow-x-auto pb-3">
-                      {p.verification_images.map((url: string, i: number) => (
-                        <img
-                          key={i}
-                          src={url}
-                          alt="verif"
-                          className="h-28 w-28 object-cover rounded-2xl border border-emerald-500/30 cursor-pointer flex-shrink-0"
-                          onClick={() => setSelectedImage(url)}
-                        />
+                      {p.images?.map((url: string, i: number) => (
+                        <img key={i} src={url} alt="" className="h-28 w-28 object-cover rounded-2xl cursor-pointer flex-shrink-0" onClick={() => setSelectedImage(url)} />
                       ))}
                     </div>
                   </div>
-                )}
 
-                <div className="p-5 flex-1 flex flex-col">
-                  <Link 
-                    href={`/creators/${p.profiles?.username}`} 
-                    className="text-rose-400 hover:underline text-sm mb-1"
-                  >
-                    @{p.profiles?.username || 'inconnu'}
-                  </Link>
+                  {p.verification_images?.length > 0 && (
+                    <div className="px-4 pb-4">
+                      <p className="text-xs text-emerald-400 flex items-center gap-1 mb-2">
+                        <ShieldCheck size={14} /> Vérification Real Worn
+                      </p>
+                      <div className="flex gap-2 overflow-x-auto pb-3">
+                        {p.verification_images.map((url: string, i: number) => (
+                          <img key={i} src={url} alt="" className="h-28 w-28 object-cover rounded-2xl border border-emerald-500/30 cursor-pointer flex-shrink-0" onClick={() => setSelectedImage(url)} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-                  <h3 className="font-semibold line-clamp-2 text-lg mb-2">{p.title}</h3>
+                  <div className="p-5 flex-1 flex flex-col">
+                    <Link href={`/creators/${p.profiles?.username}`} className="text-rose-400 hover:underline text-sm mb-1">
+                      @{p.profiles?.username || 'inconnu'}
+                    </Link>
+                    <h3 className="font-semibold line-clamp-2 text-lg mb-2">{p.title}</h3>
 
-                  <div className="flex gap-4 text-sm text-zinc-400 mb-3">
-                    {p.size && <span>Taille : <strong>{p.size}</strong></span>}
-                    {p.shoe_size && <span>Pointure : <strong>{p.shoe_size}</strong></span>}
-                  </div>
+                    <div className="flex gap-4 text-sm text-zinc-400 mb-3">
+                      {p.size && <span>Taille : <strong>{p.size}</strong></span>}
+                      {p.shoe_size && <span>Pointure : <strong>{p.shoe_size}</strong></span>}
+                    </div>
 
-                  <p className="text-sm text-zinc-400 line-clamp-4 flex-1">
-                    {p.description || p.story || "Aucune description"}
-                  </p>
+                    <p className="text-sm text-zinc-400 line-clamp-5 flex-1">
+                      {p.description || p.story || "Aucune description"}
+                    </p>
 
-                  <div className="text-3xl font-bold text-rose-400 mt-4">
-                    {p.price} €
-                  </div>
+                    <div className="text-3xl font-bold text-rose-400 mt-4">
+                      {p.price} €
+                    </div>
 
-                  <div className="flex gap-3 mt-6">
-                    <button onClick={() => approveProduct(p.id)} className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-2xl font-medium flex items-center justify-center gap-2">
-                      <CheckCircle size={18} /> Approuver
-                    </button>
-                    <button onClick={() => rejectProduct(p.id)} className="flex-1 bg-red-600 hover:bg-red-500 py-3.5 rounded-2xl font-medium flex items-center justify-center gap-2">
-                      <XCircle size={18} /> Refuser
-                    </button>
+                    <div className="flex gap-3 mt-6">
+                      <button onClick={() => approveProduct(p.id)} className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-2xl font-medium flex items-center justify-center gap-2">
+                        <CheckCircle size={18} /> Approuver
+                      </button>
+                      <button onClick={() => rejectProduct(p.id)} className="flex-1 bg-red-600 hover:bg-red-500 py-3.5 rounded-2xl font-medium flex items-center justify-center gap-2">
+                        <XCircle size={18} /> Refuser
+                      </button>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ==================== PHOTOS EN ATTENTE ==================== */}
+        {activeTab === 'photos' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {pendingPhotos.length === 0 ? (
+              <p className="text-zinc-500 text-xl">Aucune photo en attente de validation.</p>
+            ) : (
+              pendingPhotos.map((p) => (
+                <div key={p.id} className="bg-zinc-900 rounded-3xl p-8">
+                  <h3 className="font-semibold text-xl mb-6">@{p.username}</h3>
+
+                  {p.avatar_pending_url && (
+                    <div className="mb-12">
+                      <p className="text-pink-400 mb-4">Photo de profil</p>
+                      <img src={p.avatar_pending_url} className="w-48 h-48 rounded-2xl object-cover mb-6" />
+                      <div className="flex gap-4">
+                        <button onClick={() => handlePhotoAction(p.id, 'avatar', 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl">✅ Valider</button>
+                        <button onClick={() => handlePhotoAction(p.id, 'avatar', 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-2xl">❌ Refuser</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {p.banner_pending_url && (
+                    <div>
+                      <p className="text-pink-400 mb-4">Photo de couverture</p>
+                      <img src={p.banner_pending_url} className="w-full h-64 object-cover rounded-2xl mb-6" />
+                      <div className="flex gap-4">
+                        <button onClick={() => handlePhotoAction(p.id, 'banner', 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl">✅ Valider</button>
+                        <button onClick={() => handlePhotoAction(p.id, 'banner', 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-2xl">❌ Refuser</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* ==================== COMMENTAIRES REFUSÉS ==================== */}
+        {activeTab === 'reviews' && (
+          <div className="space-y-6">
+            {refusedReviews.length === 0 ? (
+              <p className="text-zinc-500 text-lg">Aucun commentaire refusé pour le moment.</p>
+            ) : (
+              refusedReviews.map(review => (
+                <div key={review.id} className="bg-zinc-900 rounded-3xl p-8">
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <Link href={`/creators/${review.creator_id}`} className="font-semibold text-xl hover:text-pink-400">
+                        Créatrice
+                      </Link>
+                    </div>
+                    <div className="flex gap-3">
+                      <button onClick={() => forcePublishReview(review.id)} className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-2xl text-sm font-medium">
+                        Publier quand même
+                      </button>
+                      <button onClick={() => ignoreReview(review.id)} className="bg-zinc-700 hover:bg-zinc-600 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2">
+                        <Trash2 size={16} /> Ignorer
+                      </button>
+                    </div>
+                  </div>
+                  <p className="italic text-lg mb-4">"{review.comment}"</p>
+                  <p className="text-sm text-zinc-500">- {review.reviewer_name || 'Client anonyme'}</p>
+                  <button onClick={() => setSelectedReview(review)} className="mt-6 text-pink-400 hover:text-pink-300 flex items-center gap-2 font-medium">
+                    <MessageCircle size={20} /> Envoyer un message à la créatrice
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* ==================== SIGNALEMENTS ==================== */}
+        {activeTab === 'reports' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold">Signalements ({reports.length})</h2>
+              <select value={reportFilter} onChange={(e) => setReportFilter(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-2 text-sm">
+                <option value="pending">En attente</option>
+                <option value="reviewed">Traités</option>
+                <option value="dismissed">Ignorés</option>
+                <option value="all">Tous</option>
+              </select>
+            </div>
+
+            {reports.length === 0 ? (
+              <p className="text-zinc-500 text-xl">Aucun signalement pour le moment.</p>
+            ) : (
+              <div className="space-y-8">
+                {reports.map((report) => (
+                  <div key={report.id} className="bg-zinc-900 rounded-3xl p-8">
+                    <div className="flex justify-between mb-6">
+                      <Link href={`/creators/${report.creator?.username}`} className="text-xl font-semibold hover:text-pink-400">
+                        @{report.creator?.username}
+                      </Link>
+                      <span className="bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-sm">
+                        Signalement
+                      </span>
+                    </div>
+                    <p className="italic text-zinc-300">"{report.reason}"</p>
+                    <p className="text-xs text-zinc-500 mt-3">
+                      {new Date(report.created_at).toLocaleString('fr-FR')}
+                    </p>
+                    <div className="mt-6 flex gap-3">
+                      <button onClick={() => markReportAsReviewed(report.id)} className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
+                        <CheckCircle size={16} /> Marquer comme traité
+                      </button>
+                      <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">Ignorer</button>
+                      <button onClick={() => deleteReport(report.id)} className="bg-red-600 hover:bg-red-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
+                        <Trash2 size={16} /> Supprimer
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
+        )}
 
-          {pendingProducts.length === 0 && !loading && (
-            <p className="text-center text-zinc-400 py-20 text-lg">Aucun produit en attente.</p>
-          )}
-        </div>
-      )}
-
-      {/* Modal d'agrandissement d'image */}
-      {selectedImage && (
-        <div 
-          className="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-4" 
-          onClick={() => setSelectedImage(null)}
-        >
-          <div className="relative max-w-5xl max-h-[90vh]">
-            <img src={selectedImage} alt="Agrandie" className="max-h-[90vh] rounded-3xl shadow-2xl" />
-            <button 
-              onClick={() => setSelectedImage(null)} 
-              className="absolute -top-4 -right-4 bg-zinc-900 hover:bg-red-600 text-white p-4 rounded-full text-xl"
-            >
-              ✕
-            </button>
+        {/* TOAST */}
+        {toast && (
+          <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+            {toast.type === 'success' && <CheckCircle size={22} />}
+            <span className="font-medium">{toast.message}</span>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Toast */}
-      {toast && (
-        <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 text-white ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
-          <span className="font-medium">{toast.message}</span>
-        </div>
-      )}
+        {/* Modal Image */}
+        {selectedImage && (
+          <div className="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
+            <div className="relative max-w-5xl max-h-[90vh]">
+              <img src={selectedImage} alt="Agrandie" className="max-h-[90vh] rounded-3xl" />
+              <button onClick={() => setSelectedImage(null)} className="absolute -top-4 -right-4 bg-black/70 hover:bg-red-600 text-white p-4 rounded-full text-xl">✕</button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
