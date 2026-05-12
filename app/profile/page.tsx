@@ -22,9 +22,11 @@ export default function ProfilePage() {
     }
   }, [user, isCreator, loading, router]);
 
-  // Synchronisation de l'avatar
+  // Synchronisation avatar
   useEffect(() => {
-    setAvatarUrl(profile?.avatar_url || null);
+    if (profile?.avatar_url) {
+      setAvatarUrl(profile.avatar_url);
+    }
   }, [profile]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +40,7 @@ export default function ProfilePage() {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
 
-      // Upload dans le bucket avatars
+      // Upload
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, { upsert: true });
@@ -49,7 +51,7 @@ export default function ProfilePage() {
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Mise à jour du profil
+      // Mise à jour base
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -57,21 +59,23 @@ export default function ProfilePage() {
 
       if (updateError) throw updateError;
 
-      // Mise à jour locale + refresh global
+      // Mise à jour immédiate + refresh context
       setAvatarUrl(publicUrl);
-      await refreshProfile();        // Important : rafraîchit tout le context
+      await refreshProfile();   // Force refresh
 
-      setToast({ message: "✅ Photo de profil mise à jour avec succès !", type: 'success' });
+      setToast({ message: "✅ Photo mise à jour avec succès !", type: 'success' });
 
-    } catch (error: any) {
-      console.error(error);
+    } catch (err: any) {
+      console.error(err);
       setToast({ message: "❌ Erreur lors de l'upload", type: 'error' });
     } finally {
       setUploading(false);
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center">Chargement...</div>;
+  if (loading) {
+    return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">Chargement...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-20">
@@ -128,12 +132,10 @@ export default function ProfilePage() {
               <Heart className="w-8 h-8 text-rose-400" />
               <span>Mes Favoris</span>
             </button>
-
             <button onClick={() => router.push('/orders')} className="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl flex flex-col items-center gap-3">
               <Package className="w-8 h-8 text-rose-400" />
               <span>Mes Commandes</span>
             </button>
-
             <button className="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl flex flex-col items-center gap-3">
               <Settings className="w-8 h-8 text-rose-400" />
               <span>Paramètres</span>
