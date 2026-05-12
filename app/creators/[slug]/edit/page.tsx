@@ -20,7 +20,6 @@ export default function CreatorEditPage() {
   const [size, setSize] = useState('');
   const [shoeSize, setShoeSize] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; link?: string } | null>(null);
-  const [dismissRejected, setDismissRejected] = useState(false);
 
   const availableSalesBadges = [10, 50, 100, 500];
   const availableFrames = [
@@ -71,10 +70,15 @@ export default function CreatorEditPage() {
   // Condition stricte : uniquement si refusé
   const hasRejectedPhoto = profile?.avatar_status === 'rejected' || profile?.banner_status === 'rejected';
 
+  // Gestion persistante du bandeau avec localStorage
+  const dismissedKey = user ? `dismissed_rejected_banner_${user.id}` : '';
+  const isDismissed = user && localStorage.getItem(dismissedKey) === 'true';
+
   const dismissRejectedBanner = () => {
-    setDismissRejected(true);
     if (user) {
-      localStorage.setItem(`dismissed_rejected_${user.id}`, 'true');
+      localStorage.setItem(dismissedKey, 'true');
+      // Force refresh pour cacher immédiatement
+      window.location.reload();
     }
   };
 
@@ -149,7 +153,8 @@ export default function CreatorEditPage() {
 
     setToast({ message: `📸 Photo de ${type} envoyée en attente`, type: 'success' });
     loadData();
-    setDismissRejected(false); // Réactive le bandeau pour une nouvelle soumission
+    // On réactive le bandeau pour une nouvelle soumission
+    if (user) localStorage.removeItem(dismissedKey);
   };
 
   if (!user || !profile) {
@@ -168,8 +173,8 @@ export default function CreatorEditPage() {
           <div className="w-[140px] flex-shrink-0" />
         </div>
 
-        {/* BANDEAU ROUGE - UNIQUEMENT SI REFUSÉ */}
-        {hasRejectedPhoto && !dismissRejected && (
+        {/* BANDEAU ROUGE UNIQUEMENT SI REFUSÉ ET NON DISMISS */}
+        {hasRejectedPhoto && !isDismissed && (
           <div className="mb-8 bg-red-900/30 border border-red-600 rounded-3xl p-5 flex items-start gap-4">
             <AlertTriangle className="text-red-500 mt-0.5" size={24} />
             <div className="flex-1">
