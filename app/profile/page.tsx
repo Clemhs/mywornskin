@@ -22,11 +22,9 @@ export default function ProfilePage() {
     }
   }, [user, isCreator, loading, router]);
 
-  // Synchronisation robuste de l'avatar
+  // Synchronisation robuste
   useEffect(() => {
-    if (profile?.avatar_url) {
-      setAvatarUrl(profile.avatar_url);
-    }
+    setAvatarUrl(profile?.avatar_url || null);
   }, [profile]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +38,6 @@ export default function ProfilePage() {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
 
-      // Upload
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, { upsert: true });
@@ -51,21 +48,18 @@ export default function ProfilePage() {
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Mise à jour base
-      const { error: updateError } = await supabase
+      await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
         .eq('id', user.id);
 
-      if (updateError) throw updateError;
-
-      // Mise à jour immédiate + force refresh
+      // Mise à jour immédiate + refresh global
       setAvatarUrl(publicUrl);
-      await refreshProfile();   // Très important
+      await refreshProfile();        // Force le context à recharger
 
-      setToast({ message: "✅ Photo de profil mise à jour avec succès !", type: 'success' });
+      setToast({ message: "✅ Photo mise à jour avec succès !", type: 'success' });
 
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       setToast({ message: "❌ Erreur lors de l'upload", type: 'error' });
     } finally {
@@ -74,7 +68,7 @@ export default function ProfilePage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">Chargement du profil...</div>;
+    return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">Chargement...</div>;
   }
 
   return (
@@ -90,10 +84,8 @@ export default function ProfilePage() {
                   <img 
                     src={avatarUrl} 
                     alt="Avatar" 
-                    className="w-full h-full object-cover" 
-                    onError={(e) => {
-                      e.currentTarget.src = '/default-avatar.png';
-                    }}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.src = '/default-avatar.png'; }}
                   />
                 ) : (
                   <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
@@ -133,7 +125,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Navigation */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12">
             <button onClick={() => router.push('/profile/favorites')} className="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl flex flex-col items-center gap-3">
               <Heart className="w-8 h-8 text-rose-400" />
