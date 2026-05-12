@@ -112,11 +112,51 @@ export default function AdminPage() {
     return counts;
   }, [refusedReviews]);
 
+  const filteredAndSortedReports = useMemo(() => {
+    let result = [...reports];
+
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim();
+      result = result.filter(report => 
+        report.reason?.toLowerCase().includes(term) ||
+        report.creator?.username?.toLowerCase().includes(term)
+      );
+    }
+
+    if (reportFilter !== 'all') {
+      result = result.filter(r => r.status === reportFilter);
+    }
+
+    if (sortBy === 'newest') result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    else if (sortBy === 'oldest') result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    else if (sortBy === 'most') {
+      const countMap: { [key: string]: number } = {};
+      result.forEach(r => countMap[r.creator_id] = (countMap[r.creator_id] || 0) + 1);
+      result.sort((a, b) => (countMap[b.creator_id] || 0) - (countMap[a.creator_id] || 0));
+    }
+
+    return result;
+  }, [reports, searchTerm, reportFilter, sortBy]);
+
+  const reportsByCreator = useMemo(() => {
+    const grouped: any = {};
+    filteredAndSortedReports.forEach(report => {
+      const key = report.creator_id;
+      if (!grouped[key]) {
+        grouped[key] = { creator: report.creator, count: 0, reports: [] };
+      }
+      grouped[key].count++;
+      grouped[key].reports.push(report);
+    });
+    return Object.values(grouped);
+  }, [filteredAndSortedReports]);
+
   const handleRefresh = () => {
     setRefreshKey(k => k + 1);
     showToast("✅ Toutes les données ont été rafraîchies");
   };
 
+  // ==================== ACTIONS ====================
   const approveProduct = async (id: string) => {
     const { error } = await supabase.from('products').update({ status: 'approved' }).eq('id', id);
     if (error) showToast("Erreur", "error");
@@ -292,10 +332,8 @@ export default function AdminPage() {
                       @{p.profiles?.username || 'inconnu'}
                     </Link>
 
-                    <div className="space-y-4 text-sm text-zinc-400 mt-2">
-                      <div>
-                        <span className="font-medium text-zinc-300">Type d'article :</span> {p.category || 'Non renseigné'}
-                      </div>
+                    <div className="space-y-4 text-sm text-zinc-400 mt-3">
+                      <div><span className="font-medium text-zinc-300">Type d'article :</span> {p.category || 'Non renseigné'}</div>
                       <div>
                         <span className="font-medium text-zinc-300">Titre :</span>
                         <p className="break-words mt-1">{p.title}</p>
@@ -318,20 +356,14 @@ export default function AdminPage() {
                       )}
 
                       {p.video_url && (
-                        <button 
-                          onClick={() => setPlayingVideo(p.video_url)}
-                          className="flex items-center gap-2 text-pink-400 hover:text-pink-300 text-sm mt-2"
-                        >
+                        <button onClick={() => setPlayingVideo(p.video_url)} className="flex items-center gap-2 text-pink-400 hover:text-pink-300 text-sm">
                           <Play size={16} /> Voir la vidéo
                         </button>
                       )}
 
                       {p.voice_url && (
                         <button 
-                          onClick={() => {
-                            const audio = new Audio(p.voice_url);
-                            audio.play();
-                          }}
+                          onClick={() => { const audio = new Audio(p.voice_url); audio.play(); }}
                           className="flex items-center gap-2 text-pink-400 hover:text-pink-300 text-sm"
                         >
                           🎤 Écouter le message vocal
@@ -358,7 +390,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Les autres onglets restent identiques à ton code original (non modifiés) */}
+        {/* ==================== AUTRES ONGLETS (inchangés) ==================== */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
@@ -366,9 +398,11 @@ export default function AdminPage() {
             ) : (
               pendingPhotos.map((p) => (
                 <div key={p.id} className="bg-zinc-900 rounded-3xl p-8">
-                  <h3 className="font-semibold text-xl mb-6">@{p.username}</h3>
+                  <Link href={`/creators/${p.username}`} className="font-semibold text-xl hover:text-pink-400">
+                    @{p.username}
+                  </Link>
                   {p.avatar_pending_url && (
-                    <div className="mb-12">
+                    <div className="mb-12 mt-6">
                       <p className="text-pink-400 mb-4">Photo de profil</p>
                       <img src={p.avatar_pending_url} className="w-48 h-48 rounded-2xl object-cover mb-6" />
                       <div className="flex gap-4">
