@@ -35,6 +35,10 @@ export default function CreatorEditPage() {
     const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).single();
 
     if (prof) {
+      console.log("🔍 Profil chargé :", { 
+        avatar_status: prof.avatar_status, 
+        banner_status: prof.banner_status 
+      });
       setProfile(prof);
       setSalesBadge(prof.sales_badge);
       setFrame(prof.frame);
@@ -167,7 +171,7 @@ export default function CreatorEditPage() {
           <div className="w-[140px] flex-shrink-0" />
         </div>
 
-        {/* BANDEAU ROUGE - UNIQUEMENT SI REFUSÉ */}
+        {/* BANDEAU ROUGE - SEULEMENT SI REFUSÉ */}
         {hasRejectedPhoto && !dismissRejected && (
           <div className="mb-8 bg-red-900/30 border border-red-600 rounded-3xl p-5 flex items-start gap-4">
             <AlertTriangle className="text-red-500 mt-0.5" size={24} />
