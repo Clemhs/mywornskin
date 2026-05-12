@@ -85,10 +85,7 @@ export default function AdminPage() {
     if (activeTab === 'messages') {
       const { data } = await supabase
         .from('messages')
-        .select(`
-          *,
-          sender:profiles!sender_id (username)
-        `)
+        .select(`*, sender:profiles!sender_id (username)`)
         .eq('receiver_id', ADMIN_ID)
         .order('created_at', { ascending: false });
       setAdminMessages(data || []);
@@ -105,12 +102,21 @@ export default function AdminPage() {
     loadData();
   }, [activeTab, refreshKey, searchTerm, sortBy]);
 
+  // === Memo pour les refus ===
+  const creatorRefusalCounts = useMemo(() => {
+    const counts: { [key: string]: number } = {};
+    refusedReviews.forEach(r => {
+      counts[r.creator_id] = (counts[r.creator_id] || 0) + 1;
+    });
+    return counts;
+  }, [refusedReviews]);
+
   const handleRefresh = () => {
     setRefreshKey(k => k + 1);
     showToast("✅ Toutes les données ont été rafraîchies");
   };
 
-  // === ACTIONS ===
+  // ==================== ACTIONS ====================
   const approveProduct = async (id: string) => {
     const { error } = await supabase.from('products').update({ status: 'approved' }).eq('id', id);
     if (error) showToast("Erreur", "error");
@@ -176,9 +182,8 @@ export default function AdminPage() {
       admin_message: adminReply,
     });
 
-    if (error) {
-      showToast("Erreur lors de l'envoi", "error");
-    } else {
+    if (error) showToast("Erreur lors de l'envoi", "error");
+    else {
       showToast("✅ Message envoyé à la créatrice");
       setAdminReply("");
       setSelectedReview(null);
@@ -324,7 +329,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ==================== PHOTOS EN ATTENTE (nom cliquable) ==================== */}
+        {/* PHOTOS EN ATTENTE - Nom cliquable */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
@@ -363,7 +368,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ==================== COMMENTAIRES REFUSÉS ==================== */}
+        {/* COMMENTAIRES REFUSÉS */}
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             {refusedReviews.length === 0 ? (
@@ -403,7 +408,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ==================== MESSAGES REÇUS ==================== */}
+        {/* MESSAGES */}
         {activeTab === 'messages' && (
           <div className="space-y-6">
             {adminMessages.length === 0 ? (
@@ -426,7 +431,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ==================== SIGNALEMENTS ==================== */}
+        {/* SIGNALEMENTS */}
         {activeTab === 'reports' && (
           <div>
             <div className="flex flex-col md:flex-row gap-4 mb-8">
@@ -457,31 +462,20 @@ export default function AdminPage() {
               <p className="text-zinc-500 text-xl py-12">Aucun signalement pour le moment.</p>
             ) : (
               <div className="space-y-8">
-                {reportsByCreator.map((group: any) => (
-                  <div key={group.creator.id} className="bg-zinc-900 rounded-3xl p-8">
-                    <div className="flex justify-between mb-6">
-                      <Link href={`/creators/${group.creator.username}`} className="text-xl font-semibold hover:text-pink-400">
-                        @{group.creator.username}
+                {reports.map((report) => (
+                  <div key={report.id} className="bg-zinc-900 rounded-3xl p-8">
+                    <div className="flex justify-between mb-4">
+                      <Link href={`/creators/${report.creator?.username}`} className="text-xl font-semibold hover:text-pink-400">
+                        @{report.creator?.username}
                       </Link>
-                      <span className="bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-sm font-medium">
-                        {group.count} signalement{group.count > 1 ? 's' : ''}
-                      </span>
+                      <span className="text-xs text-zinc-500">{new Date(report.created_at).toLocaleString('fr-FR')}</span>
                     </div>
-                    <div className="space-y-4">
-                      {group.reports.map((report: any) => (
-                        <div key={report.id} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
-                          <p className="italic text-zinc-300">"{report.reason}"</p>
-                          <p className="text-xs text-zinc-500 mt-3">
-                            {new Date(report.created_at).toLocaleString('fr-FR')}
-                          </p>
-                          <div className="mt-6 flex gap-3">
-                            <button onClick={() => markReportAsReviewed(report.id)} className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
-                              <CheckCircle size={16} /> Marquer comme traité
-                            </button>
-                            <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">Ignorer</button>
-                          </div>
-                        </div>
-                      ))}
+                    <p className="italic text-zinc-300">"{report.reason}"</p>
+                    <div className="mt-6 flex gap-3">
+                      <button onClick={() => markReportAsReviewed(report.id)} className="bg-green-600 hover:bg-green-500 px-5 py-2.5 rounded-2xl text-sm flex items-center gap-2">
+                        <CheckCircle size={16} /> Marquer comme traité
+                      </button>
+                      <button onClick={() => dismissReport(report.id)} className="bg-zinc-700 hover:bg-zinc-600 px-5 py-2.5 rounded-2xl text-sm">Ignorer</button>
                     </div>
                   </div>
                 ))}
@@ -490,7 +484,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MODAL ENVOYER MESSAGE */}
+        {/* MODALS */}
         {selectedReview && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200]">
             <div className="bg-zinc-900 rounded-3xl w-full max-w-lg p-8">
@@ -520,7 +514,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* TOAST */}
         {toast && (
           <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
             {toast.type === 'success' && <CheckCircle size={22} />}
@@ -528,7 +521,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MODAL IMAGE AGRANDIE */}
         {selectedImage && (
           <div className="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
             <div className="relative max-w-5xl max-h-[90vh]">
