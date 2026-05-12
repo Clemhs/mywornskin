@@ -1,20 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { User, LogOut, Plus, MessageCircle, ShoppingCart, Heart } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Plus, MessageCircle, ShoppingCart, Heart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function Header() {
   const pathname = usePathname();
-  const { user, isCreator, logout, isLoggedIn, profile } = useAuth(); // profile ajouté
+  const router = useRouter();
+  const { user, isCreator, logout, isLoggedIn, profile } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>('/default-avatar.png');
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Mise à jour de l'avatar dès que le profile change
+  // Mise à jour de l'avatar
   useEffect(() => {
     if (profile?.avatar_url) {
       setAvatarUrl(profile.avatar_url);
@@ -23,9 +24,18 @@ export default function Header() {
     }
   }, [profile, user]);
 
+  // Déconnexion améliorée
   const handleLogout = async () => {
-    await logout();
     setMenuOpen(false);
+    
+    try {
+      await logout();
+      router.push('/login');           // Redirection explicite
+    } catch (err) {
+      console.error("Erreur logout:", err);
+      // Fallback en cas de problème
+      window.location.href = '/login';
+    }
   };
 
   return (
