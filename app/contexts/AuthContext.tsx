@@ -86,9 +86,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string, 
     password: string, 
     username?: string,
-    isCreatorAccount: boolean = false   // ← Nouveau paramètre
+    isCreatorAccount: boolean = false   // false = client, true = créatrice
   ): Promise<boolean> => {
-    // Inscription
+    // 1. Inscription Auth
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
-    // Création automatique du profil
+    // 2. Création automatique du profil
     if (data.user) {
       const { error: profileError } = await supabase
         .from('profiles')
