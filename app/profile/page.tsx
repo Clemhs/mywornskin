@@ -8,21 +8,21 @@ import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, profile, isCreator, loading } = useAuth();
+  const { user, profile, isCreator, loading, refreshProfile } = useAuth();
   const supabase = createClient();
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  // Redirection si pas connecté ou si créatrice
+  // Redirection si créatrice ou non connecté
   useEffect(() => {
     if (!loading && (!user || isCreator)) {
       router.push(isCreator ? '/creators/me' : '/login');
     }
   }, [user, isCreator, loading, router]);
 
-  // Charger l'avatar
+  // Mise à jour de l'avatar affiché
   useEffect(() => {
     if (profile?.avatar_url) {
       setAvatarUrl(profile.avatar_url);
@@ -50,7 +50,7 @@ export default function ProfilePage() {
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Mettre à jour le profil
+      // Mise à jour dans la base
       await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -58,9 +58,13 @@ export default function ProfilePage() {
 
       setAvatarUrl(publicUrl);
       setToast({ message: "✅ Photo de profil mise à jour !", type: 'success' });
+
+      // Rafraîchir le context global pour mettre à jour le Header
+      await refreshProfile();
+
     } catch (error) {
-      setToast({ message: "❌ Erreur lors de l'upload", type: 'error' });
       console.error(error);
+      setToast({ message: "❌ Erreur lors de l'upload de la photo", type: 'error' });
     } finally {
       setUploading(false);
     }
@@ -101,7 +105,7 @@ export default function ProfilePage() {
               </label>
             </div>
 
-            {/* Infos utilisateur */}
+            {/* Informations */}
             <div className="flex-1 pt-2">
               <h2 className="text-3xl font-semibold">
                 {profile?.full_name || user?.user_metadata?.full_name || 'Client'}
