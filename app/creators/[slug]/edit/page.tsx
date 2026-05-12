@@ -66,6 +66,8 @@ export default function CreatorEditPage() {
     }
   }, [toast]);
 
+  const closeToast = () => setToast(null);
+
   const hasRejectedPhoto = profile?.avatar_status === 'rejected' || profile?.banner_status === 'rejected';
 
   const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
