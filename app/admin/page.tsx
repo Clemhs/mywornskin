@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ShieldCheck, Image as ImageIcon, AlertTriangle, MessageCircle, Flag, CheckCircle, XCircle, Search, X } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { ShieldCheck, Image as ImageIcon, AlertTriangle, MessageCircle, Flag, CheckCircle, XCircle, Search } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
@@ -16,9 +16,10 @@ export default function AdminPage() {
   // Products
   const [pendingProducts, setPendingProducts] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [selectedCreator, setSelectedCreator] = useState<string>(''); // Filtre par créatrice
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
+
+  const [loading, setLoading] = useState(false);
 
   // Modal image
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -30,47 +31,57 @@ export default function AdminPage() {
     setTimeout(() => setToast(null), 2800);
   };
 
-  const loadProducts = async (reset = false) => {
-    const currentPage = reset ? 0 : page;
-    setLoadingMore(true);
+  const loadProducts = async () => {
+    setLoading(true);
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('products')
       .select(`
         id, title, description, price, size, shoe_size, images, verification_images, status, created_at, creator_id,
         profiles:creator_id (username, full_name)
       `)
-      .eq('status', 'pending')
-      .ilike('title', `%${searchTerm}%`)
-      .order('created_at', { ascending: false })
-      .range(currentPage * 12, currentPage * 12 + 11);
+      .eq('status', 'pending');
+
+    if (searchTerm) {
+      query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+    }
+
+    if (selectedCreator) {
+      query = query.eq('creator_id', selectedCreator);
+    }
+
+    const { data, error } = await query
+      .order('created_at', { ascending: sortBy === 'newest' });
 
     if (error) console.error(error);
-    else {
-      if (reset) {
-        setPendingProducts(data || []);
-      } else {
-        setPendingProducts(prev => [...prev, ...(data || [])]);
-      }
-      setHasMore((data?.length || 0) === 12);
-      setPage(currentPage + 1);
-    }
-    setLoadingMore(false);
+    else setPendingProducts(data || []);
+
+    setLoading(false);
   };
 
   useEffect(() => {
     if (activeTab === 'products') {
-      setPage(0);
-      loadProducts(true);
+      loadProducts();
     }
-  }, [activeTab, searchTerm]);
+  }, [activeTab, searchTerm, selectedCreator, sortBy]);
+
+  // Récupérer la liste unique des créatrices pour le filtre
+  const creators = useMemo(() => {
+    const unique = new Map();
+    pendingProducts.forEach(p => {
+      if (p.profiles) {
+        unique.set(p.creator_id, p.profiles);
+      }
+    });
+    return Array.from(unique.values());
+  }, [pendingProducts]);
 
   const approveProduct = async (id: string) => {
     const { error } = await supabase.from('products').update({ status: 'approved' }).eq('id', id);
     if (error) showToast("Erreur", "error");
     else {
       showToast("Produit approuvé ✅");
-      setPendingProducts(prev => prev.filter(p => p.id !== id));
+      loadProducts();
     }
   };
 
@@ -79,7 +90,7 @@ export default function AdminPage() {
     if (error) showToast("Erreur", "error");
     else {
       showToast("Produit refusé");
-      setPendingProducts(prev => prev.filter(p => p.id !== id));
+      loadProducts();
     }
   };
 
@@ -113,6 +124,7 @@ export default function AdminPage() {
       {activeTab === 'products' && (
         <div>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
+            {/* Recherche */}
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
               <input
@@ -123,6 +135,30 @@ export default function AdminPage() {
                 className="w-full bg-zinc-900 border border-zinc-700 rounded-3xl pl-11 py-3 focus:outline-none focus:border-rose-500"
               />
             </div>
+
+            {/* Filtre par créatrice */}
+            <select
+              value={selectedCreator}
+              onChange={(e) => setSelectedCreator(e.target.value)}
+              className="bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-3 text-sm min-w-[220px]"
+            >
+              <option value="">Toutes les créatrices</option>
+              {creators.map((c: any) => (
+                <option key={c.id} value={c.id}>
+                  @{c.username} - {c.full_name}
+                </option>
+              ))}
+            </select>
+
+            {/* Tri */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest')}
+              className="bg-zinc-900 border border-zinc-700 rounded-3xl px-5 py-3 text-sm"
+            >
+              <option value="newest">Plus récents</option>
+              <option value="oldest">Plus anciens</option>
+            </select>
           </div>
 
           <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
@@ -136,13 +172,13 @@ export default function AdminPage() {
                 {/* Photos publiques */}
                 <div className="p-4">
                   <p className="text-xs text-zinc-400 mb-2">Photos publiques</p>
-                  <div className="flex gap-2 overflow-x-auto pb-3 snap-x">
+                  <div className="flex gap-2 overflow-x-auto pb-3">
                     {p.images?.map((url: string, i: number) => (
                       <img
                         key={i}
                         src={url}
                         alt="public"
-                        className="h-28 w-28 object-cover rounded-2xl cursor-pointer flex-shrink-0 snap-center hover:scale-105 transition"
+                        className="h-28 w-28 object-cover rounded-2xl cursor-pointer flex-shrink-0 hover:scale-105 transition"
                         onClick={() => setSelectedImage(url)}
                       />
                     ))}
@@ -170,7 +206,10 @@ export default function AdminPage() {
                 )}
 
                 <div className="p-5 flex-1 flex flex-col">
-                  <Link href={`/creators/${p.profiles?.username}`} className="text-rose-400 hover:underline text-sm mb-1">
+                  <Link 
+                    href={`/creators/${p.profiles?.username}`} 
+                    className="text-rose-400 hover:underline text-sm mb-1"
+                  >
                     @{p.profiles?.username || 'inconnu'}
                   </Link>
 
@@ -202,30 +241,24 @@ export default function AdminPage() {
             ))}
           </div>
 
-          {hasMore && (
-            <div className="flex justify-center mt-10">
-              <button
-                onClick={() => loadProducts(false)}
-                disabled={loadingMore}
-                className="px-8 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-3xl font-medium disabled:opacity-50"
-              >
-                {loadingMore ? "Chargement..." : "Charger plus"}
-              </button>
-            </div>
-          )}
-
-          {pendingProducts.length === 0 && (
-            <p className="text-center text-zinc-400 py-20">Aucun produit en attente.</p>
+          {pendingProducts.length === 0 && !loading && (
+            <p className="text-center text-zinc-400 py-20 text-lg">Aucun produit en attente.</p>
           )}
         </div>
       )}
 
-      {/* Modal Image */}
+      {/* Modal d'agrandissement d'image */}
       {selectedImage && (
-        <div className="fixed inset-0 bg-black/90 z-[200] flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
+        <div 
+          className="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-4" 
+          onClick={() => setSelectedImage(null)}
+        >
           <div className="relative max-w-5xl max-h-[90vh]">
-            <img src={selectedImage} alt="Agrandie" className="max-h-[90vh] rounded-3xl" />
-            <button onClick={() => setSelectedImage(null)} className="absolute top-4 right-4 bg-black/70 hover:bg-black text-white p-3 rounded-full">
+            <img src={selectedImage} alt="Agrandie" className="max-h-[90vh] rounded-3xl shadow-2xl" />
+            <button 
+              onClick={() => setSelectedImage(null)} 
+              className="absolute -top-4 -right-4 bg-zinc-900 hover:bg-red-600 text-white p-4 rounded-full text-xl"
+            >
               ✕
             </button>
           </div>
