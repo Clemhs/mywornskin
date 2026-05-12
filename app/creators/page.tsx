@@ -17,8 +17,8 @@ export default function CreatorsPage() {
   const [selectedShoeSize, setSelectedShoeSize] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'top' | 'new'>('all');
 
-  // Hook avec typage explicite + fallback sécurisé
-  const { data: creatorsData = [], loading, error } = useSupabaseQuery<any[]>(async (sb) => {
+  // Requête stabilisée
+  const { data: creators = [], loading } = useSupabaseQuery<any[]>(async (sb) => {
     return sb
       .from('profiles')
       .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size')
@@ -26,11 +26,8 @@ export default function CreatorsPage() {
       .order('created_at', { ascending: false });
   });
 
-  // Sécurité supplémentaire
-  const creators = creatorsData || [];
-
   const filteredCreators = useMemo(() => {
-    return creators.filter(creator => {
+    return creators.filter((creator: any) => {
       const matchesSearch = 
         !searchTerm || 
         (creator.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -48,10 +45,10 @@ export default function CreatorsPage() {
     });
   }, [creators, searchTerm, selectedCountry, selectedCity, selectedSize, selectedShoeSize, activeFilter]);
 
-  const countries = [...new Set(creators.map(c => c.country).filter(Boolean))];
-  const cities = [...new Set(creators.map(c => c.city).filter(Boolean))];
-  const sizes = [...new Set(creators.map(c => c.size).filter(Boolean))];
-  const shoeSizes = [...new Set(creators.map(c => c.shoe_size).filter(Boolean))];
+  const countries = useMemo(() => [...new Set(creators.map((c: any) => c.country).filter(Boolean))], [creators]);
+  const cities = useMemo(() => [...new Set(creators.map((c: any) => c.city).filter(Boolean))], [creators]);
+  const sizes = useMemo(() => [...new Set(creators.map((c: any) => c.size).filter(Boolean))], [creators]);
+  const shoeSizes = useMemo(() => [...new Set(creators.map((c: any) => c.shoe_size).filter(Boolean))], [creators]);
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20 pb-20">
@@ -123,7 +120,7 @@ export default function CreatorsPage() {
           </p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
-            {filteredCreators.map((creator) => (
+            {filteredCreators.map((creator: any) => (
               <Link
                 key={creator.username}
                 href={`/creators/${creator.username}`}
