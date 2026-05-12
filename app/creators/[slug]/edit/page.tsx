@@ -61,11 +61,10 @@ export default function CreatorEditPage() {
 
     const dismissedKey = `dismissed_rejected_toast_${user.id}`;
 
-    const hasRejected = 
-      profile.avatar_status === 'rejected' || 
-      profile.banner_status === 'rejected';
+    const avatarRejected = profile.avatar_status === 'rejected';
+    const bannerRejected = profile.banner_status === 'rejected';
 
-    if (hasRejected && !localStorage.getItem(dismissedKey)) {
+    if ((avatarRejected || bannerRejected) && !localStorage.getItem(dismissedKey)) {
       setToast({
         message: "Une de vos photos a été refusée par l'équipe.",
         type: 'error',
