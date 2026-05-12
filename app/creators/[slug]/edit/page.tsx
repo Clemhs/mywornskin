@@ -61,15 +61,15 @@ export default function CreatorEditPage() {
 
     const dismissedKey = `dismissed_rejected_toast_${user.id}`;
 
-    const hasRejectedPhoto = 
+    const hasRejected = 
       profile.avatar_status === 'rejected' || 
       profile.banner_status === 'rejected';
 
-    if (hasRejectedPhoto && !localStorage.getItem(dismissedKey)) {
-      setToast({ 
-        message: "Une de vos photos a été refusée par l'équipe", 
-        type: 'error', 
-        link: "/guidelines" 
+    if (hasRejected && !localStorage.getItem(dismissedKey)) {
+      setToast({
+        message: "Une de vos photos a été refusée par l'équipe.",
+        type: 'error',
+        link: "/guidelines"
       });
     }
   }, [profile, user]);
@@ -183,11 +183,15 @@ export default function CreatorEditPage() {
 
         {/* TOAST PHOTO REFUSÉE */}
         {toast && (
-          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl text-base shadow-2xl flex items-center gap-3 min-w-[460px]
+          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3.5 rounded-2xl text-base shadow-2xl flex items-center gap-3 min-w-[460px]
             ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'} text-white`}>
             <span>{toast.message}</span>
-            {toast.link && <Link href={toast.link} className="underline text-sm ml-2">Voir les guidelines →</Link>}
-            <button onClick={closeToast} className="ml-auto p-1 hover:bg-white/20 rounded-full">
+            {toast.link && (
+              <Link href={toast.link} className="underline text-sm ml-2 hover:no-underline">
+                Guidelines →
+              </Link>
+            )}
+            <button onClick={closeToast} className="ml-auto p-1 hover:bg-white/20 rounded-full transition">
               <X size={18} />
             </button>
           </div>
