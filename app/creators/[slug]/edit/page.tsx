@@ -67,19 +67,15 @@ export default function CreatorEditPage() {
 
   const closeToast = () => setToast(null);
 
-  // Condition stricte : uniquement si refusé
   const hasRejectedPhoto = profile?.avatar_status === 'rejected' || profile?.banner_status === 'rejected';
 
-  // Gestion persistante du bandeau avec localStorage
-  const dismissedKey = user ? `dismissed_rejected_banner_${user.id}` : '';
+  // Gestion persistante du bandeau
+  const dismissedKey = user ? `dismissed_rejected_${user.id}` : '';
   const isDismissed = user && localStorage.getItem(dismissedKey) === 'true';
 
   const dismissRejectedBanner = () => {
-    if (user) {
-      localStorage.setItem(dismissedKey, 'true');
-      // Force refresh pour cacher immédiatement
-      window.location.reload();
-    }
+    if (user) localStorage.setItem(dismissedKey, 'true');
+    window.location.reload(); // refresh pour cacher immédiatement
   };
 
   const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
@@ -153,7 +149,7 @@ export default function CreatorEditPage() {
 
     setToast({ message: `📸 Photo de ${type} envoyée en attente`, type: 'success' });
     loadData();
-    // On réactive le bandeau pour une nouvelle soumission
+    // Réactive le bandeau pour une nouvelle photo
     if (user) localStorage.removeItem(dismissedKey);
   };
 
@@ -173,7 +169,7 @@ export default function CreatorEditPage() {
           <div className="w-[140px] flex-shrink-0" />
         </div>
 
-        {/* BANDEAU ROUGE UNIQUEMENT SI REFUSÉ ET NON DISMISS */}
+        {/* BANDEAU ROUGE - UNIQUEMENT SI REFUSÉ ET NON DISMISS */}
         {hasRejectedPhoto && !isDismissed && (
           <div className="mb-8 bg-red-900/30 border border-red-600 rounded-3xl p-5 flex items-start gap-4">
             <AlertTriangle className="text-red-500 mt-0.5" size={24} />
@@ -257,7 +253,7 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* COLONNE DROITE */}
+          {/* COLONNE DROITE - TOUT LE RESTE DE TA PAGE */}
           <div className="lg:col-span-7 space-y-10">
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
