@@ -131,7 +131,12 @@ export default function AdminPage() {
     const mainField = type === 'avatar' ? 'avatar_url' : 'banner_url';
     const statusField = type === 'avatar' ? 'avatar_status' : 'banner_status';
 
-    const { data: profile } = await supabase.from('profiles').select(pendingField).eq('id', profileId).single();
+    // Correction TypeScript : on sélectionne les deux champs possibles
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('avatar_pending_url, banner_pending_url')
+      .eq('id', profileId)
+      .single();
 
     if (action === 'approved' && profile?.[pendingField]) {
       await supabase.from('profiles').update({
@@ -145,6 +150,7 @@ export default function AdminPage() {
         [statusField]: 'rejected'
       }).eq('id', profileId);
     }
+
     loadData();
     showToast(action === 'approved' ? "✅ Photo validée" : "❌ Photo refusée");
   };
@@ -221,7 +227,7 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* ==================== PRODUITS ==================== */}
+        {/* PRODUITS EN ATTENTE */}
         {activeTab === 'products' && (
           <div>
             <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -248,7 +254,6 @@ export default function AdminPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {pendingProducts.map((p) => (
                 <div key={p.id} className="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 flex flex-col">
-                  {/* Photos publiques */}
                   <div className="p-4">
                     <p className="text-xs text-zinc-400 mb-2">Photos publiques</p>
                     <div className="flex gap-2 overflow-x-auto pb-3">
@@ -258,7 +263,6 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* Vérification Real Worn */}
                   {p.verification_images?.length > 0 && (
                     <div className="px-4 pb-4">
                       <p className="text-xs text-emerald-400 flex items-center gap-1 mb-2">
@@ -311,7 +315,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ==================== PHOTOS EN ATTENTE ==================== */}
+        {/* PHOTOS EN ATTENTE */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
@@ -322,6 +326,7 @@ export default function AdminPage() {
                   <Link href={`/creators/${p.username}`} className="font-semibold text-xl hover:text-pink-400">
                     @{p.username}
                   </Link>
+
                   {p.avatar_pending_url && (
                     <div className="mt-6">
                       <p className="text-pink-400 mb-4">Photo de profil</p>
@@ -332,6 +337,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                   )}
+
                   {p.banner_pending_url && (
                     <div className="mt-10">
                       <p className="text-pink-400 mb-4">Photo de couverture</p>
@@ -348,7 +354,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ==================== COMMENTAIRES REFUSÉS ==================== */}
+        {/* COMMENTAIRES REFUSÉS */}
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             {refusedReviews.length === 0 ? (
@@ -379,7 +385,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ==================== MESSAGES ==================== */}
+        {/* MESSAGES */}
         {activeTab === 'messages' && (
           <div className="space-y-6">
             {adminMessages.length === 0 ? (
@@ -402,7 +408,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ==================== SIGNALEMENTS ==================== */}
+        {/* SIGNALEMENTS */}
         {activeTab === 'reports' && (
           <div>
             <div className="flex flex-col md:flex-row gap-4 mb-8">
@@ -455,7 +461,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MODALS */}
+        {/* MODALS & TOAST */}
         {selectedReview && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200]">
             <div className="bg-zinc-900 rounded-3xl w-full max-w-lg p-8">
