@@ -167,7 +167,7 @@ export default function AdminPage() {
     showToast("✅ Toutes les données ont été rafraîchies", "success");
   };
 
-  // === ACTIONS (tes fonctions originales) ===
+  // ACTIONS
   const approveProduct = async (id: string) => {
     const { error } = await supabase.from('products').update({ status: 'approved' }).eq('id', id);
     if (error) showToast("Erreur", "error");
@@ -276,34 +276,19 @@ export default function AdminPage() {
 
         {/* Onglets modifiés */}
         <div className="flex flex-wrap gap-2 border-b border-zinc-800 pb-4 mb-10">
-          <button 
-            onClick={() => setActiveTab('products')} 
-            className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap transition ${activeTab === 'products' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
-          >
+          <button onClick={() => setActiveTab('products')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'products' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <ShieldCheck size={22} /> Produits en attente ({pendingProducts.length})
           </button>
-          <button 
-            onClick={() => setActiveTab('photos')} 
-            className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap transition ${activeTab === 'photos' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
-          >
+          <button onClick={() => setActiveTab('photos')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'photos' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <ImageIcon size={22} /> Photos en attente ({pendingPhotos.length})
           </button>
-          <button 
-            onClick={() => setActiveTab('reviews')} 
-            className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap transition ${activeTab === 'reviews' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
-          >
+          <button onClick={() => setActiveTab('reviews')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'reviews' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <AlertTriangle size={22} /> Commentaires refusés ({refusedReviews.length})
           </button>
-          <button 
-            onClick={() => setActiveTab('messages')} 
-            className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap transition ${activeTab === 'messages' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
-          >
+          <button onClick={() => setActiveTab('messages')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'messages' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <MessageCircle size={22} /> Messages reçus ({adminMessages.length})
           </button>
-          <button 
-            onClick={() => setActiveTab('reports')} 
-            className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap relative transition ${activeTab === 'reports' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}
-          >
+          <button onClick={() => setActiveTab('reports')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap relative ${activeTab === 'reports' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <Flag size={22} /> Signalements
             {pendingReportsCount > 0 && (
               <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
@@ -313,9 +298,7 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* ==================== TOUT TON CODE ORIGINAL CI-DESSOUS (inchangé) ==================== */}
-
-        {/* Produits en attente */}
+        {/* PRODUITS EN ATTENTE - Description complète */}
         {activeTab === 'products' && (
           <div>
             <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -375,11 +358,20 @@ export default function AdminPage() {
                       {p.shoe_size && <span>Pointure : <strong>{p.shoe_size}</strong></span>}
                     </div>
 
-                    <p className="text-sm text-zinc-400 line-clamp-5 flex-1">
-                      {p.description || p.story || "Aucune description"}
-                    </p>
+                    {/* Description et Histoire visibles en entier */}
+                    <div className="text-sm text-zinc-400 mb-4 max-h-60 overflow-y-auto">
+                      <p className="font-medium text-zinc-300 mb-1">Description :</p>
+                      <p>{p.description || "Aucune description"}</p>
+                    </div>
 
-                    <div className="text-3xl font-bold text-rose-400 mt-4">
+                    {p.story && (
+                      <div className="text-sm text-zinc-400 mb-6 max-h-60 overflow-y-auto">
+                        <p className="font-medium text-zinc-300 mb-1">Histoire intime :</p>
+                        <p>{p.story}</p>
+                      </div>
+                    )}
+
+                    <div className="text-3xl font-bold text-rose-400 mt-auto">
                       {p.price} €
                     </div>
 
@@ -398,7 +390,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* PHOTOS EN ATTENTE */}
+        {/* PHOTOS EN ATTENTE - Nom cliquable */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
@@ -406,9 +398,11 @@ export default function AdminPage() {
             ) : (
               pendingPhotos.map((p) => (
                 <div key={p.id} className="bg-zinc-900 rounded-3xl p-8">
-                  <h3 className="font-semibold text-xl mb-6">@{p.username}</h3>
+                  <Link href={`/creators/${p.username}`} className="font-semibold text-xl hover:text-pink-400">
+                    @{p.username}
+                  </Link>
                   {p.avatar_pending_url && (
-                    <div className="mb-12">
+                    <div className="mb-12 mt-6">
                       <p className="text-pink-400 mb-4">Photo de profil</p>
                       <img src={p.avatar_pending_url} className="w-48 h-48 rounded-2xl object-cover mb-6" />
                       <div className="flex gap-4">
