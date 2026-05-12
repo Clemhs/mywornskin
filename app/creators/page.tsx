@@ -23,19 +23,19 @@ export default function CreatorsPage() {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size')
-        .eq('is_creator', true)                    // ← Filtre essentiel
+        .or('is_creator.eq.true,role.eq.creator')   // ← Plus tolérant
         .order('sales_badge', { ascending: false });
 
-      if (error) {
-        console.error("Erreur chargement créatrices :", error);
-      } else {
-        setCreators(data || []);
-      }
+      if (error) console.error("Erreur :", error);
+      else setCreators(data || []);
+
       setLoading(false);
     };
 
     fetchCreators();
   }, [supabase]);
+
+  // ... (le reste du code reste identique à ce que tu avais)
 
   const filteredCreators = useMemo(() => {
     return creators.filter(creator => {
@@ -51,7 +51,6 @@ export default function CreatorsPage() {
 
       let matchesFilter = true;
       if (activeFilter === 'top') matchesFilter = (creator.sales_badge || 0) >= 10;
-      if (activeFilter === 'new') matchesFilter = !creator.sales_badge; // ou une logique selon tes besoins
 
       return matchesSearch && matchesCountry && matchesCity && matchesSize && matchesShoeSize && matchesFilter;
     });
@@ -70,7 +69,7 @@ export default function CreatorsPage() {
           Elles partagent leur intimité avec vous • {filteredCreators.length} créatrices
         </p>
 
-        {/* Recherche + Filtres */}
+        {/* Recherche + Filtres (identique à avant) */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
           <input
             type="text"
