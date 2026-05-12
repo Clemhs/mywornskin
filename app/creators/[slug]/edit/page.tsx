@@ -187,6 +187,20 @@ export default function CreatorEditPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Notification Guidelines */}
+              {(isAvatarRejected || isBannerRejected) && (
+                <div className="mt-4 p-4 bg-red-900/20 border border-red-700 rounded-2xl flex items-start gap-3">
+                  <AlertTriangle className="text-red-500 mt-0.5" size={22} />
+                  <div>
+                    <p className="font-medium text-red-400">Photo refusée par l’équipe</p>
+                    <p className="text-sm text-zinc-400 mt-1">
+                      Merci de la remplacer en respectant les{' '}
+                      <Link href="/guidelines" className="underline hover:text-red-400">guidelines</Link>.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
