@@ -20,6 +20,7 @@ export default function CreatorEditPage() {
   const [size, setSize] = useState('');
   const [shoeSize, setShoeSize] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; link?: string } | null>(null);
+  const [dismissRejected, setDismissRejected] = useState(false); // Fermeture temporaire
 
   const availableSalesBadges = [10, 50, 100, 500];
   const availableFrames = [
@@ -67,16 +68,7 @@ export default function CreatorEditPage() {
 
   const closeToast = () => setToast(null);
 
-  // ==================== BANDEAU PHOTO REFUSÉE ====================
   const hasRejectedPhoto = profile?.avatar_status === 'rejected' || profile?.banner_status === 'rejected';
-
-  const dismissRejectedBanner = () => {
-    if (user) {
-      localStorage.setItem(`dismissed_rejected_banner_${user.id}`, 'true');
-    }
-  };
-
-  const isBannerDismissed = user ? localStorage.getItem(`dismissed_rejected_banner_${user.id}`) === 'true' : false;
 
   const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
     const { error } = await supabase.from('reviews').update({ status }).eq('id', reviewId);
@@ -167,11 +159,11 @@ export default function CreatorEditPage() {
           <div className="w-[140px] flex-shrink-0" />
         </div>
 
-        {/* BANDEAU PHOTO REFUSÉE */}
-        {hasRejectedPhoto && !isBannerDismissed && (
-          <div className="mb-8 bg-red-900/30 border border-red-600 rounded-3xl p-5 flex items-start gap-4">
+        {/* BANDEAU ROUGE PHOTO REFUSÉE */}
+        {hasRejectedPhoto && !dismissRejected && (
+          <div className="mb-8 bg-red-900/30 border border-red-600 rounded-3xl p-5 flex items-start gap-4 relative">
             <AlertTriangle className="text-red-500 mt-0.5" size={24} />
-            <div className="flex-1">
+            <div className="flex-1 pr-8">
               <p className="font-medium text-red-400">Une ou plusieurs de vos photos ont été refusées par l'équipe.</p>
               <p className="text-sm text-zinc-400 mt-1">Veuillez les remplacer en respectant les guidelines.</p>
             </div>
@@ -183,8 +175,8 @@ export default function CreatorEditPage() {
               Voir les Guidelines →
             </Link>
             <button 
-              onClick={dismissRejectedBanner}
-              className="text-zinc-400 hover:text-white p-1 -mt-1 -mr-1"
+              onClick={() => setDismissRejected(true)}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-white"
             >
               <X size={20} />
             </button>
@@ -251,7 +243,7 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* COLONNE DROITE */}
+          {/* COLONNE DROITE - TOUT LE RESTE */}
           <div className="lg:col-span-7 space-y-10">
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
