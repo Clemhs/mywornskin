@@ -1,14 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import StoryCard from '@/components/StoryCard';
 import { createClient } from '@/lib/supabase/client';
+import { useSupabaseQuery } from '@/hooks/useSupabaseQuery';
 
 export default function ShopPage() {
   const supabase = createClient();
-
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const [activeFilter, setActiveFilter] = useState<'all' | 'story' | 'voice' | 'both'>('all');
   const [selectedSize, setSelectedSize] = useState('');
@@ -20,32 +18,21 @@ export default function ShopPage() {
   const [maxPrice, setMaxPrice] = useState('');
   const [sortOption, setSortOption] = useState<'newest' | 'price-low' | 'price-high'>('newest');
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      console.log("🔄 Début chargement produits...");
+  // Hook robuste pour charger les produits
+  const { data: productsData = [], loading, error } = useSupabaseQuery<any[]>(async (sb) => {
+    return sb
+      .from('products')
+      .select(`
+        *,
+        creator:profiles!creator_id (username, full_name, city, country)
+      `)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+      .limit(100);
+  });
 
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          *,
-          creator:profiles!creator_id (username, full_name, city, country)
-        `)
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (error) {
-        console.error("❌ Erreur Supabase produits :", error);
-      } else {
-        console.log(`✅ Produits chargés : ${data?.length || 0}`);
-        setProducts(data || []);
-      }
-      setLoading(false);
-    };
-
-    fetchProducts();
-  }, [supabase]);
+  // Sécurité supplémentaire
+  const products = productsData || [];
 
   const uniqueSizes = useMemo(() => [...new Set(products.map(p => p.size).filter(Boolean))], [products]);
   const uniqueShoeSizes = useMemo(() => [...new Set(products.map(p => p.shoe_size).filter(Boolean))].sort((a,b) => Number(a)-Number(b)), [products]);
@@ -55,7 +42,6 @@ export default function ShopPage() {
   const filteredProducts = useMemo(() => {
     return products
       .filter(p => {
-        // Correction du filtre "Avec histoire" / "Avec vocal"
         const hasStory = p.has_story === true || !!p.story?.trim();
         const hasVoice = p.has_voice === true || !!p.voice_url;
 
