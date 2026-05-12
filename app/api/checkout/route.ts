@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/shop`,
       metadata: {
-        productIds: JSON.stringify(productIds),   // ← Important pour le webhook
+        productIds: JSON.stringify(productIds || []),
       },
     });
 
