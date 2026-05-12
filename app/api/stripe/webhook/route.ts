@@ -1,13 +1,11 @@
 import Stripe from 'stripe';
-import { createClient } from '@supabase/supabase-js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Client Supabase avec Service Role Key (droits admin)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -28,13 +26,24 @@ export async function POST(req: Request) {
 
     if (productIds.length > 0) {
       for (const productId of productIds) {
-        const { error } = await supabaseAdmin
-          .rpc('increment_sales_count', { p_id: productId });
+        try {
+          const res = await fetch(`${supabaseUrl}/rest/v1/rpc/increment_sales_count`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': supabaseServiceKey,
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+            },
+            body: JSON.stringify({ p_id: productId }),
+          });
 
-        if (error) {
-          console.error(`Erreur incrémentation pour ${productId}:`, error);
-        } else {
-          console.log(`✅ sales_count incrémenté pour produit ${productId}`);
+          if (!res.ok) {
+            console.error(`Erreur RPC pour ${productId}`);
+          } else {
+            console.log(`✅ sales_count incrémenté pour ${productId}`);
+          }
+        } catch (err) {
+          console.error(`Erreur incrémentation ${productId}:`, err);
         }
       }
     }
