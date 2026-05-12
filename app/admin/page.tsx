@@ -1,8 +1,3 @@
-bon alors les produits a valider ca fonctionne, par contre tu as cassé le reste du code qu'on avait travaillé, voici le code complet de la page admin quand la partie signalements, et commentaire étaient validés. les boutons supprimés ne devraient plus apparaitre dans les signalement etc..
-Prends juste la partie signalements et commentaires dans le code que je te donne et rajoute le au dernier code de la page admin que tu viens de me fournir, et ca sera bon.
- 
-
-```
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
