@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { ArrowLeft, Volume2, Heart, Share2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -15,10 +16,7 @@ export default function ProductPage() {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentImage, setCurrentImage] = useState(0);
-
-  // Tarification conditionnelle
-  const [baseDays, setBaseDays] = useState(1); // 1 ou 2
-  const [extraDays, setExtraDays] = useState(0);
+  const [selectedDays, setSelectedDays] = useState(1);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -41,24 +39,18 @@ export default function ProductPage() {
     fetchProduct();
   }, [params.id]);
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-zinc-400">Chargement du produit...</div>;
+  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-zinc-400">Chargement...</div>;
   if (!product) return <div className="min-h-screen bg-black flex items-center justify-center text-rose-400">Produit non trouvé</div>;
 
   const images = product.images || [];
   const isOwner = user?.id === product.creator_id;
 
-  // Calcul du prix total
   const calculateTotal = () => {
     let total = product.price || 45;
-
-    if (baseDays === 2 && product.price2Days) {
-      total = product.price2Days;
+    if (selectedDays === 2 && product.price2Days) total = product.price2Days;
+    if (selectedDays > 2 && product.extraDayPrice) {
+      total = (product.price2Days || total) + (selectedDays - 2) * product.extraDayPrice;
     }
-
-    if (extraDays > 0 && product.extraDayPrice) {
-      total += extraDays * product.extraDayPrice;
-    }
-
     return Math.round(total);
   };
 
@@ -124,61 +116,57 @@ export default function ProductPage() {
             <p className="text-4xl font-light text-rose-400 mt-3">{totalPrice} €</p>
           </div>
 
-          {/* Tarification conditionnelle */}
+          {/* Tarification */}
           <div>
             <p className="text-sm text-zinc-400 mb-3">Durée du port</p>
             <div className="flex flex-wrap gap-3">
-              {/* 1 jour - toujours présent */}
               <button
-                onClick={() => setBaseDays(1)}
-                className={`px-7 py-4 rounded-2xl border text-sm font-medium transition-all ${baseDays === 1 ? 'bg-rose-500 text-black border-rose-500' : 'border-zinc-700 hover:border-zinc-500'}`}
+                onClick={() => setSelectedDays(1)}
+                className={`px-7 py-4 rounded-2xl border text-sm font-medium transition-all ${selectedDays === 1 ? 'bg-rose-500 text-black border-rose-500' : 'border-zinc-700 hover:border-zinc-500'}`}
               >
                 1 jour
               </button>
 
-              {/* 2 jours - seulement si défini */}
               {product.price2Days && (
                 <button
-                  onClick={() => setBaseDays(2)}
-                  className={`px-7 py-4 rounded-2xl border text-sm font-medium transition-all ${baseDays === 2 ? 'bg-rose-500 text-black border-rose-500' : 'border-zinc-700 hover:border-zinc-500'}`}
+                  onClick={() => setSelectedDays(2)}
+                  className={`px-7 py-4 rounded-2xl border text-sm font-medium transition-all ${selectedDays === 2 ? 'bg-rose-500 text-black border-rose-500' : 'border-zinc-700 hover:border-zinc-500'}`}
                 >
                   2 jours
                 </button>
               )}
 
-              {/* Jours supplémentaires - seulement si défini */}
-              {product.extraDayPrice && (
+              {product.extraDayPrice && selectedDays >= 2 && (
                 <div className="flex items-center gap-4 border border-zinc-700 rounded-2xl px-6 py-4">
-                  <button onClick={() => setExtraDays(Math.max(0, extraDays - 1))} className="text-xl w-8 h-8 flex items-center justify-center hover:bg-zinc-800 rounded-xl">-</button>
-                  <span className="font-medium min-w-[24px] text-center">{extraDays}</span>
-                  <button onClick={() => setExtraDays(extraDays + 1)} className="text-xl w-8 h-8 flex items-center justify-center hover:bg-zinc-800 rounded-xl">+</button>
-                  <span className="text-sm text-zinc-400">jours supp.</span>
+                  <button onClick={() => setSelectedDays(Math.max(2, selectedDays - 1))} className="text-xl w-8 h-8 flex items-center justify-center hover:bg-zinc-800 rounded-xl">-</button>
+                  <span className="font-medium min-w-[32px] text-center">{selectedDays} jours</span>
+                  <button onClick={() => setSelectedDays(selectedDays + 1)} className="text-xl w-8 h-8 flex items-center justify-center hover:bg-zinc-800 rounded-xl">+</button>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Créatrice */}
-          <div className="flex items-center gap-4">
+          {/* Créatrice cliquable */}
+          <Link href={`/creators/${product.creator?.username}`} className="flex items-center gap-4 hover:opacity-80 transition">
             <img src={product.creator?.avatar_url} className="w-12 h-12 rounded-full object-cover" />
             <div>
               <p className="font-medium">{product.creator?.full_name}</p>
-              <p className="text-sm text-zinc-500">@{product.creator?.username}</p>
+              <p className="text-sm text-rose-400">@{product.creator?.username}</p>
             </div>
-          </div>
+          </Link>
 
-          {/* Histoire intime - hauteur naturelle */}
+          {/* Histoire intime */}
           <div>
             <h3 className="uppercase text-xs tracking-widest text-zinc-500 mb-3">Histoire intime</h3>
-            <div className="text-zinc-300 leading-relaxed whitespace-pre-wrap">
+            <div className="text-zinc-300 leading-relaxed whitespace-pre-wrap break-words">
               {product.story || "Aucune histoire fournie."}
             </div>
           </div>
 
-          {/* Description - hauteur naturelle */}
+          {/* Description */}
           <div>
             <h3 className="uppercase text-xs tracking-widest text-zinc-500 mb-3">Description</h3>
-            <div className="text-zinc-300 leading-relaxed whitespace-pre-wrap">
+            <div className="text-zinc-300 leading-relaxed whitespace-pre-wrap break-words">
               {product.description || "Aucune description."}
             </div>
           </div>
