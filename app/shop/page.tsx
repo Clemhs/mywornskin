@@ -23,7 +23,7 @@ export default function ShopPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
-      console.log("🔄 Début du chargement des produits...");
+      console.log("🔄 Début chargement produits...");
 
       const { data, error } = await supabase
         .from('products')
@@ -33,7 +33,7 @@ export default function ShopPage() {
         `)
         .eq('status', 'approved')
         .order('created_at', { ascending: false })
-        .limit(100);   // ← Limite pour éviter les gros chargements
+        .limit(100);
 
       if (error) {
         console.error("❌ Erreur Supabase produits :", error);
@@ -55,10 +55,14 @@ export default function ShopPage() {
   const filteredProducts = useMemo(() => {
     return products
       .filter(p => {
+        // Correction du filtre "Avec histoire" / "Avec vocal"
+        const hasStory = p.has_story === true || !!p.story?.trim();
+        const hasVoice = p.has_voice === true || !!p.voice_url;
+
         const storyVoiceMatch = activeFilter === 'all' ||
-          (activeFilter === 'story' && p.has_story) ||
-          (activeFilter === 'voice' && p.has_voice) ||
-          (activeFilter === 'both' && p.has_story && p.has_voice);
+          (activeFilter === 'story' && hasStory) ||
+          (activeFilter === 'voice' && hasVoice) ||
+          (activeFilter === 'both' && hasStory && hasVoice);
 
         const priceMatch = (!minPrice || (p.price || 0) >= Number(minPrice)) &&
                           (!maxPrice || (p.price || 0) <= Number(maxPrice));
@@ -79,7 +83,7 @@ export default function ShopPage() {
       .sort((a, b) => {
         if (sortOption === 'price-low') return (a.price || 0) - (b.price || 0);
         if (sortOption === 'price-high') return (b.price || 0) - (a.price || 0);
-        return 0; // newest déjà géré par la requête
+        return 0;
       });
   }, [products, activeFilter, searchTerm, minPrice, maxPrice, selectedSize, selectedShoeSize, selectedCountry, selectedCity, sortOption]);
 
