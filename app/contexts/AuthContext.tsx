@@ -14,6 +14,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, username?: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;   // ← Nouvelle fonction
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,7 +29,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const supabase = createClient();
 
-  // Charger le profil complet
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
@@ -40,6 +40,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsCreator(data?.is_creator === true || data?.role === 'creator');
   };
 
+  const refreshProfile = async () => {
+    if (user) await fetchProfile(user.id);
+  };
+
   useEffect(() => {
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -48,9 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       setIsLoggedIn(!!session);
 
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      }
+      if (session?.user) await fetchProfile(session.user.id);
       setLoading(false);
     };
 
@@ -80,17 +82,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return !error;
   };
 
-  const register = async (
-    email: string, 
-    password: string, 
-    username?: string
-  ): Promise<boolean> => {
+  const register = async (email: string, password: string, username?: string): Promise<boolean> => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { 
-        data: { username } 
-      }
+      options: { data: { username } }
     });
     return !error;
   };
@@ -112,7 +108,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading, 
         login, 
         register, 
-        logout 
+        logout,
+        refreshProfile   // ← Exposé ici
       }}
     >
       {children}
