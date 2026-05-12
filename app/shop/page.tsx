@@ -1,34 +1,60 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import StoryCard from '@/components/StoryCard';
+import { createClient } from '@/lib/supabase/client';
 
 export default function ShopPage() {
+  const supabase = createClient();
+
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<'all' | 'story' | 'voice' | 'both'>('all');
+  const [selectedShoeSize, setSelectedShoeSize] = useState<string>('');
 
-  // Pour l'instant on simule les produits (on branchera Supabase plus tard)
+  // Récupération des vrais produits depuis Supabase
   useEffect(() => {
-    // Simulation de données
-    const mockProducts = [
-      { id: "1", title: "Culotte en dentelle noire", creator: "Léa Moreau", price: 45, image: "https://picsum.photos/id/1015/600/800", has_story: true, has_voice: true, worn_days: 3 },
-      { id: "2", title: "Bas résille déchirés", creator: "Clara Voss", price: 32, image: "https://picsum.photos/id/201/600/800", has_story: true, has_voice: false, worn_days: 1 },
-      { id: "3", title: "Chemise blanche froissée", creator: "Emma Laurent", price: 68, image: "https://picsum.photos/id/251/600/800", has_story: true, has_voice: true, worn_days: 2 },
-      { id: "4", title: "String rouge passion", creator: "Léa Moreau", price: 28, image: "https://picsum.photos/id/1027/600/800", has_story: true, has_voice: true, worn_days: 4 },
-    ];
+    const fetchProducts = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          id, title, price, image, images, has_story, has_voice, worn_days, 
+          size, shoe_size, category,
+          creator:profiles!creator_id (username, full_name)
+        `)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false });
 
-    setProducts(mockProducts);
-    setLoading(false);
-  }, []);
+      if (error) console.error(error);
+      else setProducts(data || []);
 
-  const filteredProducts = products.filter(product => {
-    if (activeFilter === 'all') return true;
-    if (activeFilter === 'story') return product.has_story === true;
-    if (activeFilter === 'voice') return product.has_voice === true;
-    if (activeFilter === 'both') return product.has_story === true && product.has_voice === true;
-    return true;
-  });
+      setLoading(false);
+    };
+
+    fetchProducts();
+  }, [supabase]);
+
+  // Filtrage
+  const filteredProducts = useMemo(() => {
+    return products.filter(product => {
+      const matchStoryVoice =
+        activeFilter === 'all' ||
+        (activeFilter === 'story' && product.has_story) ||
+        (activeFilter === 'voice' && product.has_voice) ||
+        (activeFilter === 'both' && product.has_story && product.has_voice);
+
+      const matchShoeSize = !selectedShoeSize || product.shoe_size === selectedShoeSize;
+
+      return matchStoryVoice && matchShoeSize;
+    });
+  }, [products, activeFilter, selectedShoeSize]);
+
+  // Liste unique des pointures disponibles
+  const availableShoeSizes = useMemo(() => {
+    const sizes = new Set(products.map(p => p.shoe_size).filter(Boolean));
+    return Array.from(sizes).sort((a, b) => Number(a) - Number(b));
+  }, [products]);
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20">
@@ -38,8 +64,8 @@ export default function ShopPage() {
           Pièces portées avec passion • {filteredProducts.length} pièces
         </p>
 
-        {/* Filtres */}
-        <div className="flex justify-center mb-12">
+        {/* Filtres existants (design inchangé) */}
+        <div className="flex justify-center mb-8">
           <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4">
             {[
               { label: 'Tout', value: 'all' },
@@ -51,8 +77,8 @@ export default function ShopPage() {
                 key={filter.value}
                 onClick={() => setActiveFilter(filter.value as any)}
                 className={`flex-shrink-0 px-6 py-3 rounded-2xl text-sm font-medium transition-all whitespace-nowrap ${
-                  activeFilter === filter.value 
-                    ? 'bg-rose-500 text-white' 
+                  activeFilter === filter.value
+                    ? 'bg-rose-500 text-white'
                     : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'
                 }`}
               >
@@ -61,6 +87,27 @@ export default function ShopPage() {
             ))}
           </div>
         </div>
+
+        {/* Nouveau filtre Pointure */}
+        {availableShoeSizes.length > 0 && (
+          <div className="flex justify-center mb-10">
+            <div className="flex items-center gap-3">
+              <span className="text-zinc-400 text-sm">Pointure :</span>
+              <select
+                value={selectedShoeSize}
+                onChange={(e) => setSelectedShoeSize(e.target.value)}
+                className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-2.5 text-sm focus:outline-none focus:border-rose-500"
+              >
+                <option value="">Toutes</option>
+                {availableShoeSizes.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <p className="text-center text-zinc-400 py-20">Chargement des pièces...</p>
@@ -72,9 +119,10 @@ export default function ShopPage() {
                   key={product.id}
                   id={product.id}
                   title={product.title}
-                  creator={product.creator}
+                  creator={product.creator?.full_name || product.creator?.username || 'Créatrice'}
+                  creatorSlug={product.creator?.username}
                   price={product.price}
-                  image={product.image}
+                  image={product.images?.[0] || product.image}
                   hasStory={product.has_story}
                   hasVoice={product.has_voice}
                   wornDays={product.worn_days}
