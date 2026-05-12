@@ -73,9 +73,7 @@ export default function CreatorEditPage() {
 
   const dismissRejectedBanner = () => {
     setDismissRejected(true);
-    if (user) {
-      localStorage.setItem(`dismissed_rejected_${user.id}`, 'true');
-    }
+    if (user) localStorage.setItem(`dismissed_rejected_${user.id}`, 'true');
   };
 
   const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
@@ -169,7 +167,7 @@ export default function CreatorEditPage() {
           <div className="w-[140px] flex-shrink-0" />
         </div>
 
-        {/* BANDEAU ROUGE - SEULEMENT SI REFUSÉ */}
+        {/* BANDEAU ROUGE - UNIQUEMENT SI REFUSÉ */}
         {hasRejectedPhoto && !dismissRejected && (
           <div className="mb-8 bg-red-900/30 border border-red-600 rounded-3xl p-5 flex items-start gap-4">
             <AlertTriangle className="text-red-500 mt-0.5" size={24} />
