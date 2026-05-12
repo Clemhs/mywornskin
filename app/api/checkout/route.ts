@@ -7,6 +7,10 @@ export async function POST(request: Request) {
   try {
     const { cartItems, productIds } = await request.json();
 
+    if (!cartItems || cartItems.length === 0) {
+      return NextResponse.json({ error: "Panier vide" }, { status: 400 });
+    }
+
     const lineItems = cartItems.map((item: any) => ({
       price_data: {
         currency: 'eur',
@@ -32,7 +36,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: session.url });
   } catch (error: any) {
-    console.error(error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Checkout error:", error);
+    return NextResponse.json({ error: error.message || "Erreur serveur" }, { status: 500 });
   }
 }
