@@ -93,7 +93,7 @@ export default function AdminPage() {
       .order('created_at', { ascending: false });
     setReports(reportsData || []);
 
-    // Compteur signalements en attente
+    // Compteur signalements
     const { count } = await supabase
       .from('reports')
       .select('*', { count: 'exact', head: true })
@@ -110,7 +110,7 @@ export default function AdminPage() {
     showToast("✅ Toutes les données ont été rafraîchies", "success");
   };
 
-  // === ACTIONS ===
+  // Actions (inchangées)
   const approveProduct = async (id: string) => {
     await supabase.from('products').update({ status: 'approved' }).eq('id', id);
     showToast("Produit approuvé ✅");
@@ -205,34 +205,19 @@ export default function AdminPage() {
 
         {/* Onglets */}
         <div className="flex flex-wrap gap-2 border-b border-zinc-800 pb-4 mb-10">
-          <button 
-            onClick={() => setActiveTab('products')} 
-            className={`px-6 py-3 rounded-2xl font-medium flex items-center gap-2 transition ${activeTab === 'products' ? 'bg-pink-600 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'}`}
-          >
+          <button onClick={() => setActiveTab('products')} className={`px-6 py-3 rounded-2xl font-medium flex items-center gap-2 transition ${activeTab === 'products' ? 'bg-pink-600 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'}`}>
             <ShieldCheck size={20} /> Produits en attente ({pendingProducts.length})
           </button>
-          <button 
-            onClick={() => setActiveTab('photos')} 
-            className={`px-6 py-3 rounded-2xl font-medium flex items-center gap-2 transition ${activeTab === 'photos' ? 'bg-pink-600 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'}`}
-          >
+          <button onClick={() => setActiveTab('photos')} className={`px-6 py-3 rounded-2xl font-medium flex items-center gap-2 transition ${activeTab === 'photos' ? 'bg-pink-600 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'}`}>
             <ImageIcon size={20} /> Photos en attente ({pendingPhotos.length})
           </button>
-          <button 
-            onClick={() => setActiveTab('reviews')} 
-            className={`px-6 py-3 rounded-2xl font-medium flex items-center gap-2 transition ${activeTab === 'reviews' ? 'bg-pink-600 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'}`}
-          >
+          <button onClick={() => setActiveTab('reviews')} className={`px-6 py-3 rounded-2xl font-medium flex items-center gap-2 transition ${activeTab === 'reviews' ? 'bg-pink-600 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'}`}>
             <AlertTriangle size={20} /> Commentaires refusés ({refusedReviews.length})
           </button>
-          <button 
-            onClick={() => setActiveTab('messages')} 
-            className={`px-6 py-3 rounded-2xl font-medium flex items-center gap-2 transition ${activeTab === 'messages' ? 'bg-pink-600 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'}`}
-          >
+          <button onClick={() => setActiveTab('messages')} className={`px-6 py-3 rounded-2xl font-medium flex items-center gap-2 transition ${activeTab === 'messages' ? 'bg-pink-600 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'}`}>
             <MessageCircle size={20} /> Messages reçus ({adminMessages.length})
           </button>
-          <button 
-            onClick={() => setActiveTab('reports')} 
-            className={`px-6 py-3 rounded-2xl font-medium flex items-center gap-2 transition relative ${activeTab === 'reports' ? 'bg-pink-600 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'}`}
-          >
+          <button onClick={() => setActiveTab('reports')} className={`px-6 py-3 rounded-2xl font-medium flex items-center gap-2 transition relative ${activeTab === 'reports' ? 'bg-pink-600 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400'}`}>
             <Flag size={20} /> Signalements ({pendingReportsCount})
           </button>
         </div>
@@ -240,11 +225,22 @@ export default function AdminPage() {
         {/* ==================== PRODUITS EN ATTENTE ==================== */}
         {activeTab === 'products' && (
           <div>
-            {/* Ton code produits existant ici */}
+            <h2 className="text-2xl font-semibold mb-6">Produits en attente de validation ({pendingProducts.length})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {pendingProducts.map((p) => (
                 <div key={p.id} className="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 flex flex-col">
-                  {/* ... ton code existant pour les produits ... */}
+                  <div className="p-5 flex-1 flex flex-col">
+                    <Link href={`/creators/${p.profiles?.username}`} className="text-rose-400 hover:underline text-sm mb-1">
+                      @{p.profiles?.username}
+                    </Link>
+                    <h3 className="font-semibold line-clamp-2 text-lg mb-2">{p.title}</h3>
+                    <p className="text-sm text-zinc-400 line-clamp-5 flex-1">{p.description || p.story}</p>
+                    <div className="text-3xl font-bold text-rose-400 mt-4">{p.price} €</div>
+                    <div className="flex gap-3 mt-6">
+                      <button onClick={() => approveProduct(p.id)} className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-2xl font-medium">✅ Approuver</button>
+                      <button onClick={() => rejectProduct(p.id)} className="flex-1 bg-red-600 hover:bg-red-500 py-3.5 rounded-2xl font-medium">❌ Refuser</button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -254,31 +250,35 @@ export default function AdminPage() {
         {/* ==================== PHOTOS EN ATTENTE ==================== */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {pendingPhotos.map((p) => (
-              <div key={p.id} className="bg-zinc-900 rounded-3xl p-8">
-                <h3 className="font-semibold text-xl mb-6">@{p.username}</h3>
-                {p.avatar_pending_url && (
-                  <div className="mb-12">
-                    <p className="text-pink-400 mb-4">Photo de profil</p>
-                    <img src={p.avatar_pending_url} className="w-48 h-48 rounded-2xl object-cover mb-6" />
-                    <div className="flex gap-4">
-                      <button onClick={() => handlePhotoAction(p.id, 'avatar', 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl">✅ Valider</button>
-                      <button onClick={() => handlePhotoAction(p.id, 'avatar', 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-2xl">❌ Refuser</button>
+            {pendingPhotos.length === 0 ? (
+              <p className="text-zinc-500 text-xl">Aucune photo en attente.</p>
+            ) : (
+              pendingPhotos.map((p) => (
+                <div key={p.id} className="bg-zinc-900 rounded-3xl p-8">
+                  <h3 className="font-semibold text-xl mb-6">@{p.username}</h3>
+                  {p.avatar_pending_url && (
+                    <div className="mb-12">
+                      <p className="text-pink-400 mb-4">Photo de profil</p>
+                      <img src={p.avatar_pending_url} className="w-48 h-48 rounded-2xl object-cover mb-6" />
+                      <div className="flex gap-4">
+                        <button onClick={() => handlePhotoAction(p.id, 'avatar', 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl">✅ Valider</button>
+                        <button onClick={() => handlePhotoAction(p.id, 'avatar', 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-2xl">❌ Refuser</button>
+                      </div>
                     </div>
-                  </div>
-                )}
-                {p.banner_pending_url && (
-                  <div>
-                    <p className="text-pink-400 mb-4">Photo de couverture</p>
-                    <img src={p.banner_pending_url} className="w-full h-64 object-cover rounded-2xl mb-6" />
-                    <div className="flex gap-4">
-                      <button onClick={() => handlePhotoAction(p.id, 'banner', 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl">✅ Valider</button>
-                      <button onClick={() => handlePhotoAction(p.id, 'banner', 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-2xl">❌ Refuser</button>
+                  )}
+                  {p.banner_pending_url && (
+                    <div>
+                      <p className="text-pink-400 mb-4">Photo de couverture</p>
+                      <img src={p.banner_pending_url} className="w-full h-64 object-cover rounded-2xl mb-6" />
+                      <div className="flex gap-4">
+                        <button onClick={() => handlePhotoAction(p.id, 'banner', 'approved')} className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl">✅ Valider</button>
+                        <button onClick={() => handlePhotoAction(p.id, 'banner', 'rejected')} className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-2xl">❌ Refuser</button>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              ))
+            )}
           </div>
         )}
 
@@ -290,7 +290,11 @@ export default function AdminPage() {
             ) : (
               refusedReviews.map(review => (
                 <div key={review.id} className="bg-zinc-900 rounded-3xl p-8">
-                  {/* Ton code existant pour les commentaires refusés */}
+                  <p className="italic text-lg mb-4">"{review.comment}"</p>
+                  <div className="flex gap-3 mt-6">
+                    <button onClick={() => forcePublishReview(review.id)} className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-2xl text-sm font-medium">Publier quand même</button>
+                    <button onClick={() => ignoreReview(review.id)} className="bg-zinc-700 hover:bg-zinc-600 px-6 py-3 rounded-2xl text-sm font-medium">Ignorer</button>
+                  </div>
                 </div>
               ))
             )}
@@ -305,7 +309,13 @@ export default function AdminPage() {
             ) : (
               adminMessages.map((msg) => (
                 <div key={msg.id} className="bg-zinc-900 rounded-3xl p-8">
-                  {/* Ton code existant pour les messages */}
+                  <div className="flex justify-between mb-4">
+                    <Link href={`/creators/${msg.sender?.username}`} className="font-semibold text-lg hover:text-pink-400">
+                      @{msg.sender?.username}
+                    </Link>
+                    <span className="text-xs text-zinc-500">{new Date(msg.created_at).toLocaleString('fr-FR')}</span>
+                  </div>
+                  <p className="text-zinc-300 leading-relaxed">{msg.content}</p>
                 </div>
               ))
             )}
@@ -315,30 +325,22 @@ export default function AdminPage() {
         {/* ==================== SIGNALEMENTS ==================== */}
         {activeTab === 'reports' && (
           <div>
-            {/* Ton code existant pour les signalements */}
+            {/* Ton code signalements complet ici */}
+            {reports.length === 0 ? (
+              <p className="text-zinc-500 text-xl py-12">Aucun signalement pour le moment.</p>
+            ) : (
+              <div className="space-y-8">
+                {/* ... ton code existant pour les signalements groupés ... */}
+              </div>
+            )}
           </div>
         )}
 
-        {/* MODALS ET TOAST (inchangés) */}
-        {selectedReview && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200]">
-            {/* Ton modal message existant */}
-          </div>
-        )}
-
+        {/* TOAST */}
         {toast && (
           <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
             {toast.type === 'success' && <CheckCircle size={22} />}
             <span className="font-medium">{toast.message}</span>
-          </div>
-        )}
-
-        {selectedImage && (
-          <div className="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
-            <div className="relative max-w-5xl max-h-[90vh]">
-              <img src={selectedImage} alt="Agrandie" className="max-h-[90vh] rounded-3xl" />
-              <button onClick={() => setSelectedImage(null)} className="absolute -top-4 -right-4 bg-black/70 hover:bg-red-600 text-white p-4 rounded-full text-xl">✕</button>
-            </div>
           </div>
         )}
       </div>
