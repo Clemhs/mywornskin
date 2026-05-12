@@ -20,7 +20,7 @@ export default function CreatorEditPage() {
   const [size, setSize] = useState('');
   const [shoeSize, setShoeSize] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; link?: string } | null>(null);
-  const [dismissRejected, setDismissRejected] = useState(false); // Fermeture temporaire
+  const [dismissRejected, setDismissRejected] = useState(false);
 
   const availableSalesBadges = [10, 50, 100, 500];
   const availableFrames = [
@@ -65,8 +65,6 @@ export default function CreatorEditPage() {
       return () => clearTimeout(timer);
     }
   }, [toast]);
-
-  const closeToast = () => setToast(null);
 
   const hasRejectedPhoto = profile?.avatar_status === 'rejected' || profile?.banner_status === 'rejected';
 
@@ -141,6 +139,7 @@ export default function CreatorEditPage() {
 
     setToast({ message: `📸 Photo de ${type} envoyée en attente`, type: 'success' });
     loadData();
+    setDismissRejected(false); // On réactive le bandeau si nouvelle photo
   };
 
   if (!user || !profile) {
@@ -161,9 +160,9 @@ export default function CreatorEditPage() {
 
         {/* BANDEAU ROUGE PHOTO REFUSÉE */}
         {hasRejectedPhoto && !dismissRejected && (
-          <div className="mb-8 bg-red-900/30 border border-red-600 rounded-3xl p-5 flex items-start gap-4 relative">
+          <div className="mb-8 bg-red-900/30 border border-red-600 rounded-3xl p-5 flex items-start gap-4">
             <AlertTriangle className="text-red-500 mt-0.5" size={24} />
-            <div className="flex-1 pr-8">
+            <div className="flex-1">
               <p className="font-medium text-red-400">Une ou plusieurs de vos photos ont été refusées par l'équipe.</p>
               <p className="text-sm text-zinc-400 mt-1">Veuillez les remplacer en respectant les guidelines.</p>
             </div>
@@ -176,7 +175,7 @@ export default function CreatorEditPage() {
             </Link>
             <button 
               onClick={() => setDismissRejected(true)}
-              className="absolute top-4 right-4 text-zinc-400 hover:text-white"
+              className="text-zinc-400 hover:text-white p-1 -mt-1 -mr-1"
             >
               <X size={20} />
             </button>
@@ -243,7 +242,7 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* COLONNE DROITE - TOUT LE RESTE */}
+          {/* COLONNE DROITE */}
           <div className="lg:col-span-7 space-y-10">
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
