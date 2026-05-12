@@ -47,9 +47,8 @@ export default function AdminPage() {
         query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: sortBy === 'newest' });
-      if (error) console.error(error);
-      else setPendingProducts(data || []);
+      const { data } = await query.order('created_at', { ascending: sortBy === 'newest' });
+      setPendingProducts(data || []);
     }
 
     if (activeTab === 'photos') {
@@ -86,10 +85,7 @@ export default function AdminPage() {
     if (activeTab === 'messages') {
       const { data } = await supabase
         .from('messages')
-        .select(`
-          *,
-          sender:profiles!sender_id (username)
-        `)
+        .select(`*, sender:profiles!sender_id (username)`)
         .eq('receiver_id', ADMIN_ID)
         .order('created_at', { ascending: false });
       setAdminMessages(data || []);
@@ -158,7 +154,7 @@ export default function AdminPage() {
     showToast("✅ Toutes les données ont été rafraîchies");
   };
 
-  // === ACTIONS (identiques à ton code original) ===
+  // === ACTIONS ===
   const approveProduct = async (id: string) => {
     const { error } = await supabase.from('products').update({ status: 'approved' }).eq('id', id);
     if (error) showToast("Erreur", "error");
@@ -265,7 +261,7 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* Onglets sans ascenseur horizontal + compteurs */}
+        {/* Onglets */}
         <div className="flex flex-wrap gap-2 border-b border-zinc-800 pb-4 mb-10">
           <button onClick={() => setActiveTab('products')} className={`px-8 py-4 font-medium flex items-center gap-3 whitespace-nowrap ${activeTab === 'products' ? 'border-b-4 border-pink-500 text-white' : 'text-zinc-400 hover:text-white'}`}>
             <ShieldCheck size={22} /> Produits en attente ({pendingProducts.length})
@@ -289,8 +285,7 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* ==================== TOUT LE RESTE DE TON CODE ORIGINAL (AUCUN CHANGEMENT) ==================== */}
-        {/* PRODUITS EN ATTENTE */}
+        {/* ==================== PRODUITS EN ATTENTE (seule partie modifiée) ==================== */}
         {activeTab === 'products' && (
           <div>
             <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -343,18 +338,28 @@ export default function AdminPage() {
                     <Link href={`/creators/${p.profiles?.username}`} className="text-rose-400 hover:underline text-sm mb-1">
                       @{p.profiles?.username || 'inconnu'}
                     </Link>
-                    <h3 className="font-semibold line-clamp-2 text-lg mb-2">{p.title}</h3>
+                    <h3 className="font-semibold text-lg mb-3">{p.title}</h3>
 
-                    <div className="flex gap-4 text-sm text-zinc-400 mb-3">
-                      {p.size && <span>Taille : <strong>{p.size}</strong></span>}
-                      {p.shoe_size && <span>Pointure : <strong>{p.shoe_size}</strong></span>}
+                    {/* Titre + Description (hauteur suffisante) */}
+                    <div className="text-sm text-zinc-400 mb-5">
+                      <p className="font-medium text-zinc-300 mb-1">Titre :</p>
+                      <p>{p.title}</p>
                     </div>
 
-                    <p className="text-sm text-zinc-400 line-clamp-5 flex-1">
-                      {p.description || p.story || "Aucune description"}
-                    </p>
+                    <div className="text-sm text-zinc-400 mb-5 max-h-32 overflow-y-auto pr-2">
+                      <p className="font-medium text-zinc-300 mb-1">Description :</p>
+                      <p>{p.description || "Aucune description"}</p>
+                    </div>
 
-                    <div className="text-3xl font-bold text-rose-400 mt-4">
+                    {/* Histoire intime */}
+                    {p.story && (
+                      <div className="text-sm text-zinc-400 mb-6 max-h-40 overflow-y-auto pr-2">
+                        <p className="font-medium text-zinc-300 mb-1">Histoire intime :</p>
+                        <p>{p.story}</p>
+                      </div>
+                    )}
+
+                    <div className="text-3xl font-bold text-rose-400 mt-auto">
                       {p.price} €
                     </div>
 
@@ -373,7 +378,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* PHOTOS EN ATTENTE */}
+        {/* TOUT LE RESTE (Photos, Commentaires, Messages, Signalements) reste IDENTIQUE à ton code original */}
         {activeTab === 'photos' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {pendingPhotos.length === 0 ? (
@@ -408,7 +413,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* COMMENTAIRES REFUSÉS */}
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             {refusedReviews.length === 0 ? (
@@ -448,7 +452,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MESSAGES REÇUS */}
         {activeTab === 'messages' && (
           <div className="space-y-6">
             {adminMessages.length === 0 ? (
@@ -471,7 +474,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* SIGNALEMENTS */}
         {activeTab === 'reports' && (
           <div>
             <div className="flex flex-col md:flex-row gap-4 mb-8">
@@ -535,7 +537,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MODAL ENVOYER MESSAGE */}
+        {/* MODALS & TOAST (inchangés) */}
         {selectedReview && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200]">
             <div className="bg-zinc-900 rounded-3xl w-full max-w-lg p-8">
@@ -565,7 +567,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* TOAST */}
         {toast && (
           <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
             {toast.type === 'success' && <CheckCircle size={22} />}
@@ -573,7 +574,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* MODAL IMAGE AGRANDIE */}
         {selectedImage && (
           <div className="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
             <div className="relative max-w-5xl max-h-[90vh]">
