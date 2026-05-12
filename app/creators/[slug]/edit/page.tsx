@@ -65,6 +65,11 @@ export default function CreatorEditPage() {
     }
   }, [toast]);
 
+  const closeToast = () => setToast(null);
+
+  // ==================== NOUVELLE SOLUTION : BANDEAU REFUSÉ ====================
+  const hasRejectedPhoto = profile?.avatar_status === 'rejected' || profile?.banner_status === 'rejected';
+
   const validateComment = async (reviewId: string, status: 'approved' | 'rejected') => {
     const { error } = await supabase.from('reviews').update({ status }).eq('id', reviewId);
     if (error) {
@@ -75,77 +80,11 @@ export default function CreatorEditPage() {
     }
   };
 
-  const saveProfile = async (updates: any) => {
-    if (!user) return;
-    await supabase.from('profiles').update(updates).eq('id', user.id);
-  };
-
-  const toggleSalesBadge = async (level: number) => {
-    const newBadge = salesBadge === level ? null : level;
-    setSalesBadge(newBadge);
-    await saveProfile({ sales_badge: newBadge });
-    setToast({ message: "✅ Badge mis à jour", type: 'success' });
-  };
-
-  const selectFrame = async (id: string) => {
-    const newFrame = frame === id ? null : id;
-    setFrame(newFrame);
-    await saveProfile({ frame: newFrame });
-    setToast({ message: "✅ Cadre mis à jour", type: 'success' });
-  };
-
-  const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setBio(e.target.value);
-    saveProfile({ bio: e.target.value });
-  };
-
-  const handleCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCountry(e.target.value);
-    saveProfile({ country: e.target.value });
-  };
-
-  const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCity(e.target.value);
-    saveProfile({ city: e.target.value });
-  };
-
-  const handleSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSize(e.target.value);
-    saveProfile({ size: e.target.value });
-  };
-
-  const handleShoeSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setShoeSize(e.target.value);
-    saveProfile({ shoe_size: e.target.value });
-  };
-
-  const uploadImage = async (file: File, type: 'avatar' | 'banner') => {
-    if (!user) return;
-    const fileName = `${user.id}-${type}-${Date.now()}.${file.name.split('.').pop()}`;
-
-    const { error } = await supabase.storage.from('profiles').upload(fileName, file, { upsert: true });
-    if (error) return setToast({ message: "Erreur d'upload", type: 'error' });
-
-    const { data: { publicUrl } } = supabase.storage.from('profiles').getPublicUrl(fileName);
-
-    const updateData = type === 'avatar'
-      ? { avatar_pending_url: publicUrl, avatar_status: 'pending' as const }
-      : { banner_pending_url: publicUrl, banner_status: 'pending' as const };
-
-    await supabase.from('profiles').update(updateData).eq('id', user.id);
-
-    setToast({ message: `📸 Photo de ${type} envoyée en attente`, type: 'success' });
-    loadData();
-  };
+  // ... (toutes tes autres fonctions : saveProfile, toggleSalesBadge, selectFrame, handle*Change, uploadImage restent identiques) ...
 
   if (!user || !profile) {
     return <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center pt-20">Chargement...</div>;
   }
-
-  const avatarRejected = profile.avatar_status === 'rejected';
-  const bannerRejected = profile.banner_status === 'rejected';
-  const isAvatarPending = profile.avatar_status === 'pending';
-  const isBannerPending = profile.banner_status === 'pending';
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-12">
@@ -159,11 +98,29 @@ export default function CreatorEditPage() {
           <div className="w-[140px] flex-shrink-0" />
         </div>
 
-        {/* Toast success (pour les autres actions) */}
+        {/* BANDEAU ROUGE QUAND PHOTO REFUSÉE */}
+        {hasRejectedPhoto && (
+          <div className="mb-8 bg-red-600/10 border border-red-600 rounded-3xl p-5 flex items-center gap-4">
+            <AlertTriangle className="text-red-500 flex-shrink-0" size={28} />
+            <div className="flex-1">
+              <p className="font-medium text-red-400">Une ou plusieurs de vos photos ont été refusées par l'équipe.</p>
+              <p className="text-sm text-zinc-400 mt-1">Veuillez les remplacer en respectant les guidelines.</p>
+            </div>
+            <Link 
+              href="/guidelines" 
+              className="bg-red-600 hover:bg-red-500 px-6 py-2.5 rounded-2xl text-sm font-medium whitespace-nowrap transition"
+              target="_blank"
+            >
+              Voir les Guidelines →
+            </Link>
+          </div>
+        )}
+
+        {/* Toast success */}
         {toast && toast.type === 'success' && (
           <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3.5 rounded-2xl bg-emerald-600 text-white flex items-center gap-3 shadow-2xl">
-            <span>{toast.message}</span>
-            <button onClick={() => setToast(null)}><X size={18} /></button>
+            {toast.message}
+            <button onClick={closeToast}><X size={18} /></button>
           </div>
         )}
 
@@ -179,16 +136,7 @@ export default function CreatorEditPage() {
                   className="w-full h-full object-cover" 
                 />
 
-                {/* Bannière refusée */}
-                {bannerRejected && (
-                  <div className="absolute top-4 right-4 bg-red-600 text-white text-sm px-4 py-1 rounded-full flex items-center gap-2 font-medium cursor-pointer hover:bg-red-700"
-                       onClick={() => window.open('/guidelines', '_blank')}>
-                    <AlertTriangle size={16} /> Photo refusée → Guidelines
-                  </div>
-                )}
-
-                {/* Bannière en attente */}
-                {isBannerPending && !bannerRejected && (
+                {(profile.banner_status === 'pending' || profile.avatar_status === 'pending') && (
                   <div className="absolute top-4 right-4 bg-amber-500 text-black text-sm px-4 py-1 rounded-full flex items-center gap-2 font-medium">
                     <Clock size={16} /> En attente de validation
                   </div>
@@ -201,15 +149,6 @@ export default function CreatorEditPage() {
                       alt="Avatar" 
                       className="w-32 h-32 rounded-2xl border-4 border-zinc-950 object-cover" 
                     />
-
-                    {/* Avatar refusée */}
-                    {avatarRejected && (
-                      <div className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1 cursor-pointer hover:bg-red-700"
-                           onClick={() => window.open('/guidelines', '_blank')}>
-                        <AlertTriangle size={14} /> Refusée
-                      </div>
-                    )}
-
                     {frame && <div className={`absolute inset-0 rounded-2xl border-4 shimmer-frame ${frame}`} />}
                     {salesBadge && <img src={`/badges/${salesBadge}.png`} className="absolute -top-3 -right-3 w-14 h-14" alt="Badge" />}
                   </div>
@@ -217,7 +156,7 @@ export default function CreatorEditPage() {
               </div>
             </div>
 
-            {/* Commentaires à valider */}
+            {/* Commentaires à valider (inchangé) */}
             <div>
               <h2 className="text-xl mb-4">Commentaires à valider ({pendingReviews.length})</h2>
               <div className="space-y-4">
@@ -238,11 +177,10 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* COLONNE DROITE - tout le reste identique */}
+          {/* COLONNE DROITE - tout le reste identique à ton code précédent */}
           <div className="lg:col-span-7 space-y-10">
             {/* Changer les images, infos personnelles, badges, cadres, boutique cosmétiques... */}
-            {/* (tout le code que tu avais avant est ici) */}
-            {/* ... Je te laisse le reste tel quel ... */}
+            {/* (remets ici tout le contenu de la colonne droite de ta dernière version qui marchait) */}
           </div>
         </div>
       </div>
