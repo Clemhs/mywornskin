@@ -39,7 +39,7 @@ export async function POST(req: Request) {
           if (res.ok) {
             console.log(`✅ sales_count incrémenté pour ${productId}`);
           } else {
-            console.error(`❌ Erreur pour ${productId}`);
+            console.error(`❌ Erreur pour ${productId} - ${res.status}`);
           }
         } catch (err) {
           console.error(`Erreur réseau pour ${productId}:`, err);
