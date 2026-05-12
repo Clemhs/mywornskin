@@ -18,7 +18,7 @@ export async function POST(request: Request) {
           name: item.title,
           images: item.images ? [item.images[0]] : [],
         },
-        unit_amount: Math.round(item.price * 100),
+        unit_amount: Math.round((item.price || 0) * 100),
       },
       quantity: 1,
     }));
