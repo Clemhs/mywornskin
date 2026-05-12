@@ -68,8 +68,8 @@ export default function CreatorEditPage() {
 
   const closeToast = () => setToast(null);
 
-  // CONDITION TRÈS STRICTE : uniquement quand l'admin a refusé
-  const hasRejectedPhoto = profile?.avatar_status === 'rejected' || profile?.banner_status === 'rejected';
+  // CONDITION TRÈS STRICTE : uniquement si refusé
+  const hasRejectedPhoto = (profile?.avatar_status === 'rejected' || profile?.banner_status === 'rejected');
 
   const dismissRejectedBanner = () => {
     setDismissRejected(true);
@@ -251,7 +251,7 @@ export default function CreatorEditPage() {
             </div>
           </div>
 
-          {/* COLONNE DROITE - TOUT LE RESTE DE TA PAGE */}
+          {/* COLONNE DROITE */}
           <div className="lg:col-span-7 space-y-10">
             <div>
               <h2 className="text-xl mb-4">Changer les images</h2>
