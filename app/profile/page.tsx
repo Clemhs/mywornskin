@@ -15,14 +15,13 @@ export default function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  // Redirection
   useEffect(() => {
     if (!loading && (!user || isCreator)) {
       router.push(isCreator ? '/creators/me' : '/login');
     }
   }, [user, isCreator, loading, router]);
 
-  // Synchronisation avatar
+  // Force sync avec le profile du context
   useEffect(() => {
     setAvatarUrl(profile?.avatar_url || null);
   }, [profile]);
@@ -48,16 +47,14 @@ export default function ProfilePage() {
         .from('avatars')
         .getPublicUrl(fileName);
 
-      const { error: updateError } = await supabase
+      await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
         .eq('id', user.id);
 
-      if (updateError) throw updateError;
-
-      // Mise à jour immédiate + force refresh
+      // Mise à jour immédiate + refresh global
       setAvatarUrl(publicUrl);
-      await refreshProfile();   // Très important
+      await refreshProfile();
 
       setToast({ message: "✅ Photo de profil mise à jour avec succès !", type: 'success' });
 
@@ -69,9 +66,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) {
-    return <div className="min-h-screen bg-zinc-950 flex items-center justify-center">Chargement...</div>;
-  }
+  if (loading) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center">Chargement...</div>;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-20 pb-20">
@@ -122,7 +117,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Navigation */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12">
             <button onClick={() => router.push('/profile/favorites')} className="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl flex flex-col items-center gap-3">
               <Heart className="w-8 h-8 text-rose-400" />
