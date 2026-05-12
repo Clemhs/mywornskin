@@ -24,18 +24,20 @@ export default function BecomeCreatorPage() {
     setLoading(true);
     setError('');
 
+    // true = compte créatrice
     const successRegister = await register(
       formData.email, 
       formData.password, 
-      formData.username
+      formData.username,
+      true
     );
 
     if (successRegister) {
       setSuccess(true);
       
-      // Redirection vers l'édition de profil après inscription
+      // Redirection vers l'édition de profil créatrice
       setTimeout(() => {
-        router.push('/profile/edit');
+        router.push('/creators/me/edit');
       }, 1800);
     } else {
       setError("Impossible de créer le compte. L'email est peut-être déjà utilisé.");
@@ -48,7 +50,7 @@ export default function BecomeCreatorPage() {
     return (
       <main className="min-h-screen bg-zinc-950 text-white flex items-center justify-center pt-20">
         <div className="text-center px-6">
-          <h1 className="text-4xl font-bold mb-4">Compte créé avec succès ! 🎉</h1>
+          <h1 className="text-4xl font-bold mb-4">Compte créatrice créé avec succès ! 🎉</h1>
           <p className="text-zinc-400 mb-8">Redirection vers ton profil...</p>
         </div>
       </main>
