@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getInitialSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoggedIn(!!session);
@@ -71,6 +71,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsCreator(false);
         }
         setLoading(false);
+
+        // === Amélioration globale : Refresh forcé après connexion/déconnexion ===
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+          setTimeout(() => {
+            window.location.reload(); // Force un refresh propre pour éviter les états bloqués
+          }, 400);
+        }
       }
     );
 
@@ -119,12 +126,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
-  // Déconnexion améliorée et robuste
   const logout = async () => {
     try {
       await supabase.auth.signOut({ scope: 'local' });
       
-      // Nettoyage complet des états
       setUser(null);
       setSession(null);
       setProfile(null);
@@ -134,7 +139,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("Déconnexion réussie");
     } catch (error) {
       console.error("Erreur lors de la déconnexion :", error);
-      // Fallback agressif
       window.location.href = '/login';
     }
   };
