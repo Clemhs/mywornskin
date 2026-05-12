@@ -23,6 +23,7 @@ export default function ShopPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
+      console.log("🔄 Début du chargement des produits...");
 
       const { data, error } = await supabase
         .from('products')
@@ -31,11 +32,15 @@ export default function ShopPage() {
           creator:profiles!creator_id (username, full_name, city, country)
         `)
         .eq('status', 'approved')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100);   // ← Limite pour éviter les gros chargements
 
-      if (error) console.error(error);
-      else setProducts(data || []);
-
+      if (error) {
+        console.error("❌ Erreur Supabase produits :", error);
+      } else {
+        console.log(`✅ Produits chargés : ${data?.length || 0}`);
+        setProducts(data || []);
+      }
       setLoading(false);
     };
 
@@ -48,23 +53,35 @@ export default function ShopPage() {
   const uniqueCities = useMemo(() => [...new Set(products.map(p => p.creator?.city).filter(Boolean))], [products]);
 
   const filteredProducts = useMemo(() => {
-    return products.filter(p => {
-      const storyVoiceMatch = activeFilter === 'all' ||
-        (activeFilter === 'story' && p.has_story) ||
-        (activeFilter === 'voice' && p.has_voice) ||
-        (activeFilter === 'both' && p.has_story && p.has_voice);
+    return products
+      .filter(p => {
+        const storyVoiceMatch = activeFilter === 'all' ||
+          (activeFilter === 'story' && p.has_story) ||
+          (activeFilter === 'voice' && p.has_voice) ||
+          (activeFilter === 'both' && p.has_story && p.has_voice);
 
-      const priceMatch = (!minPrice || p.price >= Number(minPrice)) &&
-                        (!maxPrice || p.price <= Number(maxPrice));
+        const priceMatch = (!minPrice || (p.price || 0) >= Number(minPrice)) &&
+                          (!maxPrice || (p.price || 0) <= Number(maxPrice));
 
-      return storyVoiceMatch && 
-             priceMatch &&
-             (!selectedSize || p.size === selectedSize) &&
-             (!selectedShoeSize || p.shoe_size === selectedShoeSize) &&
-             (!selectedCountry || p.creator?.country === selectedCountry) &&
-             (!selectedCity || p.creator?.city === selectedCity);
-    });
-  }, [products, activeFilter, minPrice, maxPrice, selectedSize, selectedShoeSize, selectedCountry, selectedCity]);
+        const searchMatch = !searchTerm || 
+          p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          p.creator?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          p.creator?.username?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        return storyVoiceMatch && 
+               priceMatch && 
+               searchMatch &&
+               (!selectedSize || p.size === selectedSize) &&
+               (!selectedShoeSize || p.shoe_size === selectedShoeSize) &&
+               (!selectedCountry || p.creator?.country === selectedCountry) &&
+               (!selectedCity || p.creator?.city === selectedCity);
+      })
+      .sort((a, b) => {
+        if (sortOption === 'price-low') return (a.price || 0) - (b.price || 0);
+        if (sortOption === 'price-high') return (b.price || 0) - (a.price || 0);
+        return 0; // newest déjà géré par la requête
+      });
+  }, [products, activeFilter, searchTerm, minPrice, maxPrice, selectedSize, selectedShoeSize, selectedCountry, selectedCity, sortOption]);
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20">
@@ -85,11 +102,14 @@ export default function ShopPage() {
           />
         </div>
 
-        {/* Filtres principaux + avancés (identiques) */}
+        {/* Filtres principaux + avancés */}
         <div className="flex justify-center mb-8 gap-2 flex-wrap">
           {['all','story','voice','both'].map(v => (
-            <button key={v} onClick={() => setActiveFilter(v as any)}
-              className={`px-6 py-3 rounded-2xl text-sm font-medium ${activeFilter === v ? 'bg-rose-500 text-white' : 'bg-zinc-900 text-zinc-400'}`}>
+            <button 
+              key={v} 
+              onClick={() => setActiveFilter(v as any)}
+              className={`px-6 py-3 rounded-2xl text-sm font-medium ${activeFilter === v ? 'bg-rose-500 text-white' : 'bg-zinc-900 text-zinc-400'}`}
+            >
               {v === 'all' ? 'Tout' : v === 'story' ? 'Avec histoire' : v === 'voice' ? 'Avec vocal' : 'Histoire + Vocal'}
             </button>
           ))}
@@ -129,14 +149,14 @@ export default function ShopPage() {
         </div>
 
         {loading ? (
-          <p className="text-center text-zinc-400 py-20">Chargement...</p>
+          <p className="text-center text-zinc-400 py-20">Chargement des pièces...</p>
         ) : filteredProducts.length === 0 ? (
           <p className="text-center text-zinc-400 py-20">Aucune pièce trouvée.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
             {filteredProducts.map(product => {
               const isNew = new Date(product.created_at) > new Date(Date.now() - 7*24*60*60*1000);
-              const isBestSeller = (product.sales_count || 0) >= 5;   // tu peux ajuster le seuil
+              const isBestSeller = (product.sales_count || 0) >= 5;
 
               return (
                 <div key={product.id} className="relative">
@@ -146,7 +166,7 @@ export default function ShopPage() {
                     creator={product.creator?.full_name || product.creator?.username || 'Créatrice'}
                     creatorSlug={product.creator?.username}
                     price={product.price}
-                    image={product.images?.[0]}
+                    image={product.images?.[0] || product.image}
                     hasStory={product.has_story}
                     hasVoice={product.has_voice}
                     wornDays={product.worn_days}
