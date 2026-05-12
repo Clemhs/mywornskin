@@ -4,29 +4,53 @@ import Link from 'next/link';
 import { ArrowLeft, Trash2, ShoppingBag } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function CartPage() {
-  const [cartItems, setCartItems] = useState<any[]>([]);
   const router = useRouter();
+  const { user, isCreator, isLoggedIn } = useAuth();
+
+  const [cartItems, setCartItems] = useState<any[]>([]);
+
+  // Redirection si créatrice ou non connecté
+  useEffect(() => {
+    if (isCreator) {
+      router.push('/creators/me');
+    }
+  }, [isCreator, router]);
 
   useEffect(() => {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    setCartItems(cart);
+    const loadCart = () => {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      setCartItems(cart);
+    };
+
+    loadCart();
+
+    // Écouter les modifications du panier
+    window.addEventListener('storage', loadCart);
+    return () => window.removeEventListener('storage', loadCart);
   }, []);
 
-  const removeFromCart = (id: number) => {
+  const removeFromCart = (id: string) => {
     const updatedCart = cartItems.filter(item => item.id !== id);
     setCartItems(updatedCart);
     localStorage.setItem('cart', JSON.stringify(updatedCart));
   };
 
-  const total = cartItems.reduce((sum, item) => sum + item.price, 0);
+  const total = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
 
   const goToCheckout = () => {
     if (cartItems.length > 0) {
       router.push('/checkout');
     }
   };
+
+  // Si non connecté → redirection vers login
+  if (!isLoggedIn) {
+    router.push('/login');
+    return null;
+  }
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20">
@@ -58,7 +82,11 @@ export default function CartPage() {
               {cartItems.map((item) => (
                 <div key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 flex gap-6 items-center">
                   <div className="w-28 h-28 flex-shrink-0 rounded-2xl overflow-hidden">
-                    <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
+                    <img 
+                      src={item.images?.[0] || item.image_url || item.image} 
+                      alt={item.title} 
+                      className="w-full h-full object-cover" 
+                    />
                   </div>
 
                   <div className="flex-1 min-w-0">
