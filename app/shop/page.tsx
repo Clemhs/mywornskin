@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import StoryCard from '@/components/StoryCard';
 import { createClient } from '@/lib/supabase/client';
-import { useSupabaseQuery } from '@/hooks/useSupabaseQuery';
 
 export default function ShopPage() {
   const supabase = createClient();
+
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [activeFilter, setActiveFilter] = useState<'all' | 'story' | 'voice' | 'both'>('all');
   const [selectedSize, setSelectedSize] = useState('');
@@ -18,21 +20,40 @@ export default function ShopPage() {
   const [maxPrice, setMaxPrice] = useState('');
   const [sortOption, setSortOption] = useState<'newest' | 'price-low' | 'price-high'>('newest');
 
-  // Hook robuste pour charger les produits
-  const { data: productsData = [], loading, error } = useSupabaseQuery<any[]>(async (sb) => {
-    return sb
-      .from('products')
-      .select(`
-        *,
-        creator:profiles!creator_id (username, full_name, city, country)
-      `)
-      .eq('status', 'approved')
-      .order('created_at', { ascending: false })
-      .limit(100);
-  });
+  useEffect(() => {
+    let isMounted = true;
 
-  // Sécurité supplémentaire
-  const products = productsData || [];
+    const fetchProducts = async () => {
+      setLoading(true);
+      console.log("🔄 Chargement des produits...");
+
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          creator:profiles!creator_id (username, full_name, city, country)
+        `)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (isMounted) {
+        if (error) {
+          console.error("❌ Erreur produits :", error);
+        } else {
+          console.log(`✅ ${data?.length || 0} produits chargés`);
+          setProducts(data || []);
+        }
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [supabase]);
 
   const uniqueSizes = useMemo(() => [...new Set(products.map(p => p.size).filter(Boolean))], [products]);
   const uniqueShoeSizes = useMemo(() => [...new Set(products.map(p => p.shoe_size).filter(Boolean))].sort((a,b) => Number(a)-Number(b)), [products]);
