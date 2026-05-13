@@ -1,34 +1,63 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Heart } from 'lucide-react';
-import { useSupabaseQuery } from '@/hooks/useSupabaseQuery';
+import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/app/contexts/AuthContext';
 import StoryCard from '@/components/StoryCard';
 
 export default function FavoritesPage() {
   const { user } = useAuth();
+  const supabase = createClient();
 
-  // Hook robuste pour charger les favoris
-  const { data: favoritesData = [], loading, error } = useSupabaseQuery<any[]>(async (sb) => {
-    if (!user) return { data: [], error: null };
+  const [favorites, setFavorites] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    return sb
-      .from('favorites')
-      .select(`
-        *,
-        product:products!product_id (*)
-      `)
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-  });
+  useEffect(() => {
+    let isMounted = true;
 
-  // Sécurité supplémentaire
-  const favorites = favoritesData || [];
+    const fetchFavorites = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      console.log("🔄 Chargement des favoris...");
+
+      const { data, error } = await supabase
+        .from('favorites')
+        .select(`
+          *,
+          product:products!product_id (*)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (isMounted) {
+        if (error) {
+          console.error("❌ Erreur favoris :", error);
+          setError("Impossible de charger vos favoris");
+        } else {
+          console.log(`✅ ${data?.length || 0} favoris chargés`);
+          setFavorites(data || []);
+        }
+        setLoading(false);
+      }
+    };
+
+    fetchFavorites();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user, supabase]);
 
   const filteredFavorites = useMemo(() => {
-    return favorites.filter(fav => fav.product); // Filtre les favoris sans produit
+    return favorites.filter(fav => fav.product);
   }, [favorites]);
 
   if (loading) {
@@ -51,7 +80,7 @@ export default function FavoritesPage() {
 
         {error && (
           <div className="bg-red-900/30 border border-red-600 text-red-400 p-6 rounded-3xl mb-8">
-            Impossible de charger vos favoris
+            {error}
           </div>
         )}
 
