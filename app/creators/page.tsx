@@ -1,15 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Star } from 'lucide-react';
 import CreatorAvatarWithFrame from '@/components/CreatorAvatarWithFrame';
 import { createClient } from '@/lib/supabase/client';
-import { useSupabaseQuery } from '@/hooks/useSupabaseQuery';
 
 export default function CreatorsPage() {
   const supabase = createClient();
 
+  const [creators, setCreators] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
@@ -17,20 +18,39 @@ export default function CreatorsPage() {
   const [selectedShoeSize, setSelectedShoeSize] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'top' | 'new'>('all');
 
-  // Hook avec typage explicite
-  const { data: creatorsData, loading } = useSupabaseQuery<any[]>(async (sb) => {
-    return sb
-      .from('profiles')
-      .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size')
-      .or('is_creator.eq.true,role.eq.creator')
-      .order('created_at', { ascending: false });
-  });
+  useEffect(() => {
+    let isMounted = true;
 
-  // Sécurité stricte
-  const creators = creatorsData ?? [];
+    const fetchCreators = async () => {
+      setLoading(true);
+      console.log("🔄 Chargement des créatrices...");
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size')
+        .or('is_creator.eq.true,role.eq.creator')
+        .order('created_at', { ascending: false });
+
+      if (isMounted) {
+        if (error) {
+          console.error("Erreur :", error);
+        } else {
+          console.log(`✅ ${data?.length || 0} créatrices chargées`);
+          setCreators(data || []);
+        }
+        setLoading(false);
+      }
+    };
+
+    fetchCreators();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [supabase]);
 
   const filteredCreators = useMemo(() => {
-    return creators.filter((creator: any) => {
+    return creators.filter(creator => {
       const matchesSearch = 
         !searchTerm || 
         (creator.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -48,10 +68,10 @@ export default function CreatorsPage() {
     });
   }, [creators, searchTerm, selectedCountry, selectedCity, selectedSize, selectedShoeSize, activeFilter]);
 
-  const countries = useMemo(() => [...new Set(creators.map((c: any) => c.country).filter(Boolean))], [creators]);
-  const cities = useMemo(() => [...new Set(creators.map((c: any) => c.city).filter(Boolean))], [creators]);
-  const sizes = useMemo(() => [...new Set(creators.map((c: any) => c.size).filter(Boolean))], [creators]);
-  const shoeSizes = useMemo(() => [...new Set(creators.map((c: any) => c.shoe_size).filter(Boolean))], [creators]);
+  const countries = useMemo(() => [...new Set(creators.map(c => c.country).filter(Boolean))], [creators]);
+  const cities = useMemo(() => [...new Set(creators.map(c => c.city).filter(Boolean))], [creators]);
+  const sizes = useMemo(() => [...new Set(creators.map(c => c.size).filter(Boolean))], [creators]);
+  const shoeSizes = useMemo(() => [...new Set(creators.map(c => c.shoe_size).filter(Boolean))], [creators]);
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20 pb-20">
@@ -61,7 +81,7 @@ export default function CreatorsPage() {
           Elles partagent leur intimité avec vous • {filteredCreators.length} créatrices
         </p>
 
-        {/* Recherche + Filtres */}
+        {/* Recherche + Filtres (identique) */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
           <input
             type="text"
