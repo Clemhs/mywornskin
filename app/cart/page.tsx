@@ -8,26 +8,27 @@ import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function CartPage() {
   const router = useRouter();
-  const { user, isCreator, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, isCreator } = useAuth();
 
   const [cartItems, setCartItems] = useState<any[]>([]);
 
-  // Redirection si créatrice ou non connecté
+  // Protection : rediriger les créatrices
   useEffect(() => {
     if (isCreator) {
       router.push('/creators/me');
     }
   }, [isCreator, router]);
 
+  // Chargement du panier depuis localStorage
   useEffect(() => {
     const loadCart = () => {
-      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-      setCartItems(cart);
+      const savedCart = localStorage.getItem('cart');
+      setCartItems(savedCart ? JSON.parse(savedCart) : []);
     };
 
     loadCart();
 
-    // Écouter les modifications du panier
+    // Écouter les modifications depuis d'autres onglets
     window.addEventListener('storage', loadCart);
     return () => window.removeEventListener('storage', loadCart);
   }, []);
@@ -46,7 +47,6 @@ export default function CartPage() {
     }
   };
 
-  // Si non connecté → redirection vers login
   if (!isLoggedIn) {
     router.push('/login');
     return null;
@@ -83,7 +83,7 @@ export default function CartPage() {
                 <div key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 flex gap-6 items-center">
                   <div className="w-28 h-28 flex-shrink-0 rounded-2xl overflow-hidden">
                     <img 
-                      src={item.images?.[0] || item.image_url || item.image} 
+                      src={item.images?.[0] || item.image} 
                       alt={item.title} 
                       className="w-full h-full object-cover" 
                     />
@@ -92,7 +92,7 @@ export default function CartPage() {
                   <div className="flex-1 min-w-0">
                     <h3 className="text-xl font-medium truncate">{item.title}</h3>
                     <p className="text-rose-400 mt-1">{item.price} €</p>
-                    <p className="text-sm text-zinc-400 mt-1">par {item.creator_name || 'Créatrice'}</p>
+                    <p className="text-sm text-zinc-400 mt-1">par {item.creator_name || item.creator?.full_name || 'Créatrice'}</p>
                   </div>
 
                   <button 
