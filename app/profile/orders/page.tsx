@@ -12,7 +12,6 @@ export default async function OrdersPage() {
     redirect('/login');
   }
 
-  // Pour le moment : on récupère les commandes (à adapter quand tu auras la table orders)
   const { data: orders, error } = await supabase
     .from('orders')
     .select('*')
@@ -63,16 +62,24 @@ export default async function OrdersPage() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="inline-block px-4 py-1.5 bg-green-500/10 text-green-400 text-sm rounded-full">
-                      {order.status || 'Payée'}
+                    <span className={`inline-block px-4 py-1.5 text-sm rounded-full ${
+                      order.status === 'paid' ? 'bg-green-500/10 text-green-400' : 'bg-amber-500/10 text-amber-400'
+                    }`}>
+                      {order.status === 'paid' ? 'Payée' : order.status}
                     </span>
-                    <p className="text-2xl font-medium mt-2">{order.total_amount} €</p>
+                    <p className="text-2xl font-medium mt-2">{(order.total_amount / 100).toFixed(2)} €</p>
                   </div>
                 </div>
 
                 <div className="text-sm text-zinc-400">
                   {order.items?.length || 0} article(s)
                 </div>
+
+                {order.stripe_session_id && (
+                  <p className="text-xs text-zinc-500 mt-4">
+                    Session Stripe : {order.stripe_session_id}
+                  </p>
+                )}
               </div>
             ))}
           </div>
