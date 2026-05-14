@@ -54,10 +54,14 @@ export default async function CreatorProfile({ params }: { params: Promise<{ slu
                 className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
               />
               
-              {/* Frame shimmer - version pure CSS sans styled-jsx */}
+              {/* Frame shimmer - version Tailwind pure */}
               {creator.frame && (
                 <div 
-                  className={`absolute inset-0 rounded-3xl border-4 ${creator.frame} animate-shimmer`}
+                  className={`absolute inset-0 rounded-3xl border-4 animate-[shimmer_8s_linear_infinite] ${creator.frame}`}
+                  style={{
+                    background: 'linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.9) 50%, transparent 75%)',
+                    backgroundSize: '200% 100%'
+                  }}
                 />
               )}
 
@@ -133,22 +137,6 @@ export default async function CreatorProfile({ params }: { params: Promise<{ slu
           )}
         </div>
       </div>
-
-      {/* Animation shimmer globale */}
-      <style jsx global>{`
-        @keyframes shimmer-frame {
-          0% { background-position: -200% 0; }
-          100% { background-position: 300% 0; }
-        }
-        .animate-shimmer {
-          animation: shimmer-frame 8s linear infinite;
-          background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.9) 50%, transparent 75%);
-          background-size: 200% 100%;
-        }
-        .shimmer-frame.rose { border-color: #f472b6; box-shadow: inset 0 0 35px #f472b6; }
-        .shimmer-frame.silver { border-color: #e2e8f0; box-shadow: inset 0 0 35px #e2e8f0; }
-        .shimmer-frame.gold { border-color: #fbbf24; box-shadow: inset 0 0 35px #fbbf24; }
-      `}</style>
     </div>
   );
 }
