@@ -6,7 +6,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { ArrowLeft, User, Heart, ShoppingBag } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user, isCreator } = useAuth();
+  const { user, isCreator, refreshProfile } = useAuth();
 
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -34,13 +34,19 @@ export default function ProfilePage() {
         if (!res.ok) throw new Error('Failed');
 
         const data = await res.json();
+        
         if (isMounted) {
           setUserProfile(data);
+          
+          // Mise à jour importante : on rafraîchit le contexte global
+          if (refreshProfile) {
+            refreshProfile();
+          }
         }
       } catch (err) {
         console.error(`Tentative ${attempt + 1} échouée`, err);
         if (attempt < 3 && isMounted) {
-          setTimeout(() => fetchProfile(attempt + 1), 800);
+          setTimeout(() => fetchProfile(attempt + 1), 900);
           return;
         }
         if (isMounted) setError("Impossible de charger le profil");
@@ -54,7 +60,7 @@ export default function ProfilePage() {
     return () => {
       isMounted = false;
     };
-  }, [user]);
+  }, [user, refreshProfile]);
 
   if (loading) {
     return (
