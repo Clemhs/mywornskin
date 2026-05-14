@@ -6,7 +6,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { ArrowLeft, User, Heart, ShoppingBag } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user, isCreator, refreshProfile } = useAuth();
+  const { user, isCreator } = useAuth();
 
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -18,7 +18,11 @@ export default function ProfilePage() {
       return;
     }
 
+    let isMounted = true;
+
     const fetchProfile = async (attempt = 0) => {
+      if (!isMounted) return;
+
       setLoading(true);
       setError(null);
 
@@ -27,29 +31,30 @@ export default function ProfilePage() {
           cache: 'no-store' 
         });
 
-        if (!res.ok) throw new Error('Failed to fetch');
+        if (!res.ok) throw new Error('Failed');
 
         const data = await res.json();
-        setUserProfile(data);
-        
-        // Mise à jour du contexte global pour que l'avatar dans le header soit à jour
-        if (refreshProfile) {
-          refreshProfile();
+        if (isMounted) {
+          setUserProfile(data);
         }
       } catch (err) {
         console.error(`Tentative ${attempt + 1} échouée`, err);
-        if (attempt < 3) {
-          setTimeout(() => fetchProfile(attempt + 1), 900);
+        if (attempt < 3 && isMounted) {
+          setTimeout(() => fetchProfile(attempt + 1), 800);
           return;
         }
-        setError("Impossible de charger le profil");
+        if (isMounted) setError("Impossible de charger le profil");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchProfile();
-  }, [user, refreshProfile]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   if (loading) {
     return (
