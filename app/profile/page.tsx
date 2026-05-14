@@ -6,10 +6,11 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { ArrowLeft, User, Heart, ShoppingBag } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user, profile, isCreator, loading: authLoading } = useAuth();
+  const { user, isCreator, loading: authLoading } = useAuth();
 
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -17,15 +18,31 @@ export default function ProfilePage() {
       return;
     }
 
-    const fetchProfile = async () => {
+    const fetchProfile = async (attempt = 0) => {
+      setLoading(true);
+      setError(null);
+
       try {
-        const res = await fetch('/api/profile', { cache: 'no-store' });
+        const res = await fetch('/api/profile', { 
+          cache: 'no-store' 
+        });
+
+        if (!res.ok) throw new Error('Failed to fetch');
+
         const data = await res.json();
         setUserProfile(data);
       } catch (err) {
-        console.error(err);
+        console.error(`Tentative ${attempt + 1} échouée`, err);
+        
+        if (attempt < 3) {
+          setTimeout(() => fetchProfile(attempt + 1), 800);
+          return;
+        }
+        
+        setError("Impossible de charger le profil");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchProfile();
@@ -61,6 +78,12 @@ export default function ProfilePage() {
           </Link>
           <h1 className="text-4xl font-light">Mon Profil</h1>
         </div>
+
+        {error && (
+          <div className="bg-red-900/30 border border-red-600 text-red-400 p-6 rounded-3xl mb-8">
+            {error}
+          </div>
+        )}
 
         <div className="bg-zinc-900 rounded-3xl p-8">
           <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
