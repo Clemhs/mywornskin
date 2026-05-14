@@ -6,7 +6,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { ArrowLeft, User, Heart, ShoppingBag } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user, isCreator } = useAuth();
+  const { user, isCreator, refreshProfile } = useAuth();
 
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -37,6 +37,11 @@ export default function ProfilePage() {
         
         if (isMounted) {
           setUserProfile(data);
+          
+          // Mise à jour sécurisée du header
+          if (refreshProfile) {
+            setTimeout(() => refreshProfile(), 300);   // Petit délai pour éviter le clignotement
+          }
         }
       } catch (err) {
         console.error(`Tentative ${attempt + 1} échouée`, err);
@@ -55,7 +60,7 @@ export default function ProfilePage() {
     return () => {
       isMounted = false;
     };
-  }, [user]);   // ← Pas de refreshProfile ici pour éviter la boucle
+  }, [user, refreshProfile]);
 
   if (loading) {
     return (
