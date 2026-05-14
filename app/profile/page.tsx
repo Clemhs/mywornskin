@@ -1,143 +1,114 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { createClient } from '@/lib/supabase/client';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { ArrowLeft, User, Heart, ShoppingBag } from 'lucide-react';
 
-interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  profile: any | null;
-  isLoggedIn: boolean;
-  isCreator: boolean;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, username?: string, isCreatorAccount?: boolean) => Promise<boolean>;
-  logout: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
-}
+export default function ProfilePage() {
+  const { user, isCreator, refreshProfile } = useAuth();
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isCreator, setIsCreator] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  const supabase = createClient();
-
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    setProfile(data);
-    setIsCreator(data?.is_creator === true || data?.role === 'creator');
-  };
-
-  const refreshProfile = async () => {
-    if (!user) return;
-    await fetchProfile(user.id);
-  };
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoggedIn(!!session);
-
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      }
+    if (!user) {
       setLoading(false);
+      return;
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch('/api/profile', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to fetch');
+
+        const data = await res.json();
+        setUserProfile(data);
+
+        // Mise à jour légère du header
+        if (refreshProfile) {
+          setTimeout(refreshProfile, 800);
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Impossible de charger le profil");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    getInitialSession();
+    fetchProfile();
+  }, [user, refreshProfile]);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsLoggedIn(!!session);
-
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
-          setIsCreator(false);
-        }
-      }
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-white pt-20 flex items-center justify-center">
+        <p className="text-zinc-400">Chargement du profil...</p>
+      </div>
     );
+  }
 
-    return () => subscription.unsubscribe();
-  }, [supabase]);
-
-  const login = async (email: string, password: string): Promise<boolean> => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return !error;
-  };
-
-  const register = async (email: string, password: string, username?: string, isCreatorAccount = false): Promise<boolean> => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { username } }
-    });
-
-    if (error) return false;
-
-    if (data.user) {
-      await supabase.from('profiles').insert({
-        id: data.user.id,
-        username: username || email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ''),
-        full_name: username || (isCreatorAccount ? 'Nouvelle Créatrice' : 'Nouveau Client'),
-        email,
-        role: isCreatorAccount ? 'creator' : 'client',
-        is_creator: isCreatorAccount,
-        avatar_status: 'approved',
-        banner_status: 'pending'
-      });
-    }
-    return true;
-  };
-
-  const logout = async () => {
-    await supabase.auth.signOut({ scope: 'local' });
-    setUser(null);
-    setSession(null);
-    setProfile(null);
-    setIsCreator(false);
-    setIsLoggedIn(false);
-  };
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-white pt-20 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl">Vous devez être connecté</p>
+          <Link href="/login" className="text-rose-500 underline mt-4 inline-block">
+            Se connecter
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      session,
-      profile,
-      isLoggedIn,
-      isCreator,
-      loading,
-      login,
-      register,
-      logout,
-      refreshProfile
-    }}>
-      {children}
-    </AuthContext.Provider>
+    <main className="min-h-screen bg-zinc-950 text-white pt-20 pb-20">
+      <div className="max-w-4xl mx-auto px-6">
+        <div className="flex items-center gap-4 mb-10">
+          <Link href="/" className="flex items-center gap-2 text-zinc-400 hover:text-white">
+            <ArrowLeft size={20} /> Accueil
+          </Link>
+          <h1 className="text-4xl font-light">Mon Profil</h1>
+        </div>
+
+        <div className="bg-zinc-900 rounded-3xl p-8">
+          <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
+            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-zinc-700 flex-shrink-0">
+              <img 
+                src={userProfile?.avatar_url || '/default-avatar.png'} 
+                alt="Avatar" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            <div className="flex-1 text-center md:text-left">
+              <h2 className="text-3xl font-semibold">{userProfile?.full_name || 'Utilisateur'}</h2>
+              <p className="text-rose-400">@{userProfile?.username || user.email}</p>
+              <p className="text-zinc-400 mt-2">{isCreator ? 'Créatrice' : 'Client'}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            <Link href="/profile/favorites" className="bg-zinc-800 hover:bg-zinc-700 transition p-6 rounded-3xl flex flex-col items-center">
+              <Heart className="w-10 h-10 mb-4 text-rose-500" />
+              <span className="font-medium">Mes Favoris</span>
+            </Link>
+
+            <Link href="/profile/orders" className="bg-zinc-800 hover:bg-zinc-700 transition p-6 rounded-3xl flex flex-col items-center">
+              <ShoppingBag className="w-10 h-10 mb-4" />
+              <span className="font-medium">Mes Commandes</span>
+            </Link>
+
+            {isCreator && (
+              <Link href="/sell" className="bg-zinc-800 hover:bg-zinc-700 transition p-6 rounded-3xl flex flex-col items-center">
+                <User className="w-10 h-10 mb-4 text-emerald-500" />
+                <span className="font-medium">Gérer mes produits</span>
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
