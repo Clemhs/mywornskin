@@ -121,11 +121,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await supabase.auth.signOut({ scope: 'local' });
+      
+      // Nettoyage complet
       setUser(null);
       setSession(null);
       setProfile(null);
       setIsCreator(false);
       setIsLoggedIn(false);
+
+      // Redirection forcée
+      window.location.href = '/login';
     } catch (error) {
       console.error("Erreur déconnexion :", error);
       window.location.href = '/login';
