@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Package } from 'lucide-react';
+import { ArrowLeft, Package, Calendar } from 'lucide-react';
 
 export default async function OrdersPage() {
   const supabase = await createClient();
@@ -9,7 +9,7 @@ export default async function OrdersPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const { data: orders, error } = await supabase
+  const { data: orders } = await supabase
     .from('orders')
     .select('*')
     .eq('user_id', user.id)
@@ -25,8 +25,6 @@ export default async function OrdersPage() {
           <h1 className="text-4xl font-light">Mes Commandes</h1>
         </div>
 
-        {error && <div className="bg-red-900/30 p-6 rounded-3xl mb-8 text-red-400">Erreur : {error.message}</div>}
-
         {!orders || orders.length === 0 ? (
           <div className="text-center py-32">
             <Package className="w-24 h-24 mx-auto text-zinc-700 mb-6" />
@@ -36,10 +34,30 @@ export default async function OrdersPage() {
         ) : (
           <div className="space-y-6">
             {orders.map((order: any) => (
-              <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-                <p className="text-sm text-zinc-500">Commande #{order.id.slice(0,8)}</p>
-                <p className="text-3xl font-light mt-2">{(order.amount / 100).toFixed(2)} €</p>
-                <p className="text-sm text-zinc-400 mt-4">{new Date(order.created_at).toLocaleDateString('fr-FR')}</p>
+              <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 hover:border-zinc-600 transition">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-zinc-500">Commande #{order.id.slice(0, 8).toUpperCase()}</p>
+                    <p className="text-3xl font-light mt-2">
+                      {(order.amount / 100).toFixed(2)} €
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="inline-block px-4 py-2 bg-green-500/10 text-green-400 text-sm rounded-full">
+                      Payée
+                    </span>
+                    <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2 justify-end">
+                      <Calendar size={16} />
+                      {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                </div>
+
+                {order.items && Array.isArray(order.items) && (
+                  <div className="mt-6 text-sm text-zinc-400">
+                    {order.items.length} article(s) • {order.stripe_session_id ? 'Payé via Stripe' : ''}
+                  </div>
+                )}
               </div>
             ))}
           </div>
