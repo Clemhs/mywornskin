@@ -6,7 +6,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { ArrowLeft, User, Heart, ShoppingBag } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user, isCreator, loading: authLoading } = useAuth();
+  const { user, isCreator } = useAuth();
 
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -27,18 +27,16 @@ export default function ProfilePage() {
           cache: 'no-store' 
         });
 
-        if (!res.ok) throw new Error('Failed to fetch');
+        if (!res.ok) throw new Error('Failed');
 
         const data = await res.json();
         setUserProfile(data);
       } catch (err) {
         console.error(`Tentative ${attempt + 1} échouée`, err);
-        
         if (attempt < 3) {
-          setTimeout(() => fetchProfile(attempt + 1), 800);
+          setTimeout(() => fetchProfile(attempt + 1), 900);
           return;
         }
-        
         setError("Impossible de charger le profil");
       } finally {
         setLoading(false);
@@ -48,7 +46,7 @@ export default function ProfilePage() {
     fetchProfile();
   }, [user]);
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950 text-white pt-20 flex items-center justify-center">
         <p className="text-zinc-400">Chargement du profil...</p>
