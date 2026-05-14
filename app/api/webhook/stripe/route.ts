@@ -48,7 +48,7 @@ export async function POST(req: Request) {
           const product = products?.find(p => String(p.id) === String(item.price?.metadata?.product_id));
           const creator = product?.creator?.[0];
 
-          return {
+          const result = {
             title: product?.title || item.description || "Produit",
             description: product?.description || "",
             images: product?.images || [],
@@ -57,6 +57,9 @@ export async function POST(req: Request) {
             creator_name: creator?.full_name || "Créatrice",
             creatorSlug: creator?.username || "",
           };
+
+          console.log("📄 Item enrichi :", result);
+          return result;
         }) || [];
       }
 
@@ -70,7 +73,7 @@ export async function POST(req: Request) {
         items: enrichedItems,
       });
 
-      console.log(`🎉 Commande sauvegardée avec ${enrichedItems.length} produits enrichis`);
+      console.log(`🎉 Commande sauvegardée avec ${enrichedItems.length} produits`);
     } catch (err) {
       console.error("💥 Erreur webhook :", err);
     }
