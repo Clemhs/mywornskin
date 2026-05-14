@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Star } from 'lucide-react';
 import CreatorAvatarWithFrame from '@/components/CreatorAvatarWithFrame';
 import { createClient } from '@/lib/supabase/client';
@@ -32,12 +32,15 @@ export default function CreatorsPage() {
   const [selectedShoeSize, setSelectedShoeSize] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'top' | 'new'>('all');
 
-  // Chargement initial côté serveur + fallback client
+  // Chargement initial
   useEffect(() => {
     getCreators().then((data) => {
       setCreators(data);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch((err) => {
+      console.error(err);
+      setLoading(false);
+    });
   }, []);
 
   const filteredCreators = useMemo(() => {
@@ -72,7 +75,7 @@ export default function CreatorsPage() {
           Elles partagent leur intimité avec vous • {filteredCreators.length} créatrices
         </p>
 
-        {/* Recherche + Filtres (identique à avant) */}
+        {/* Recherche + Filtres */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
           <input
             type="text"
