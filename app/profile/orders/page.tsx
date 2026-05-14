@@ -35,7 +35,7 @@ export default async function OrdersPage() {
           <div className="space-y-10">
             {orders.map((order: any) => (
               <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-                <div className="flex justify-between mb-8">
+                <div className="flex justify-between items-start mb-8">
                   <div>
                     <p className="text-sm text-zinc-500">Commande #{order.id.slice(0, 8).toUpperCase()}</p>
                     <p className="text-3xl font-light mt-1">
@@ -53,11 +53,11 @@ export default async function OrdersPage() {
                   </div>
                 </div>
 
-                {/* Produits */}
+                {/* Liste des produits avec enrichissement */}
                 <div className="space-y-6">
                   {(order.items || []).map((item: any, index: number) => (
                     <div key={index} className="flex gap-6 bg-zinc-950 rounded-2xl p-6">
-                      {/* Photo */}
+                      {/* Photo du produit */}
                       <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
                         <img 
                           src={item.image || item.images?.[0] || '/default-avatar.png'} 
@@ -66,26 +66,32 @@ export default async function OrdersPage() {
                         />
                       </div>
 
-                      {/* Infos */}
-                      <div className="flex-1">
-                        <h3 className="text-lg font-medium">{item.title}</h3>
-                        <p className="text-sm text-zinc-400 mt-1 line-clamp-2">
-                          {item.description || "Pas de description"}
+                      {/* Informations détaillées */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-medium leading-tight">{item.title}</h3>
+                        
+                        <p className="text-sm text-zinc-400 mt-2 line-clamp-3">
+                          {item.description || "Pas de description disponible"}
                         </p>
 
                         <div className="mt-4">
-                          <Link 
-                            href={`/creators/${item.creatorSlug || item.creator?.username || '#'}`}
-                            className="text-rose-400 hover:underline text-sm"
-                          >
-                            par {item.creator_name || item.creator?.full_name || 'Créatrice'}
-                          </Link>
+                          {item.creator_name || item.creator?.full_name ? (
+                            <Link 
+                              href={`/creators/${item.creatorSlug || item.creator?.username}`}
+                              className="text-rose-400 hover:underline text-sm inline-flex items-center gap-1"
+                            >
+                              par {item.creator_name || item.creator?.full_name}
+                            </Link>
+                          ) : (
+                            <span className="text-sm text-zinc-500">par Créatrice</span>
+                          )}
                         </div>
                       </div>
 
-                      <div className="text-right text-sm">
+                      {/* Prix et quantité */}
+                      <div className="text-right text-sm whitespace-nowrap">
                         <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
-                        <p className="text-zinc-500">Qté : {item.quantity || 1}</p>
+                        <p className="text-zinc-500 mt-1">Qté : {item.quantity || 1}</p>
                       </div>
                     </div>
                   ))}
