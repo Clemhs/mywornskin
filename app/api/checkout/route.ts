@@ -15,9 +15,7 @@ export async function POST(request: Request) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      return Response.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    if (!user) return Response.json({ error: "Non authentifié" }, { status: 401 });
 
     const line_items = cartItems.map((item: any) => ({
       price_data: {
@@ -25,6 +23,9 @@ export async function POST(request: Request) {
         product_data: {
           name: item.title,
           images: item.images?.[0] ? [item.images[0]] : [],
+          metadata: { 
+            product_id: item.id   // ← Important : on passe le vrai ID du produit
+          },
         },
         unit_amount: Math.round((item.price || 0) * 100),
       },
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cart`,
       metadata: {
-        user_id: user.id,           // ← Important
+        user_id: user.id,
       },
     });
 
