@@ -12,6 +12,10 @@ export async function POST(request: Request) {
       return Response.json({ error: "Panier vide" }, { status: 400 });
     }
 
+    // Récupération de l'utilisateur
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
     const line_items = cartItems.map((item: any) => ({
       price_data: {
         currency: 'eur',
@@ -32,7 +36,7 @@ export async function POST(request: Request) {
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cart`,
       metadata: {
-        user_id: (await createClient()).auth.getUser().then((r) => r.data.user?.id || ''),
+        user_id: user?.id || '',
       },
     });
 
@@ -41,7 +45,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("Erreur Stripe Checkout:", error);
     return Response.json({ 
-      error: error.message || "Erreur lors de la création de la session" 
+      error: error.message || "Erreur lors de la création de la session Stripe" 
     }, { status: 500 });
   }
 }
