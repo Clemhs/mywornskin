@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Package, Calendar } from 'lucide-react';
+import { ArrowLeft, Package, Calendar, CreditCard } from 'lucide-react';
 
 export default async function OrdersPage() {
   const supabase = await createClient();
@@ -32,30 +32,51 @@ export default async function OrdersPage() {
             <p className="text-zinc-400">Vos commandes apparaîtront ici après paiement</p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {orders.map((order: any) => (
-              <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 hover:border-zinc-600 transition">
-                <div className="flex justify-between items-start">
+              <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+                <div className="flex justify-between items-start mb-8">
                   <div>
                     <p className="text-sm text-zinc-500">Commande #{order.id.slice(0, 8).toUpperCase()}</p>
-                    <p className="text-3xl font-light mt-2">
+                    <p className="text-3xl font-light mt-1">
                       {(order.amount / 100).toFixed(2)} €
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="inline-block px-4 py-2 bg-green-500/10 text-green-400 text-sm rounded-full">
+                    <span className="inline-block px-5 py-2 bg-green-500/10 text-green-400 text-sm rounded-2xl">
                       Payée
                     </span>
-                    <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2 justify-end">
+                    <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
                       <Calendar size={16} />
-                      {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                      {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
                     </p>
                   </div>
                 </div>
 
-                {order.items && Array.isArray(order.items) && (
-                  <div className="mt-6 text-sm text-zinc-400">
-                    {order.items.length} article(s) • {order.stripe_session_id ? 'Payé via Stripe' : ''}
+                {/* Détails des articles */}
+                {order.items && Array.isArray(order.items) && order.items.length > 0 && (
+                  <div className="space-y-4 mb-8">
+                    {order.items.map((item: any, index: number) => (
+                      <div key={index} className="flex justify-between items-center border-b border-zinc-800 pb-4 last:border-0 last:pb-0">
+                        <div>
+                          <p className="font-medium">{item.title}</p>
+                          <p className="text-sm text-zinc-500">Quantité : {item.quantity || 1}</p>
+                        </div>
+                        <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Infos Stripe */}
+                {order.stripe_session_id && (
+                  <div className="text-xs text-zinc-500 flex items-center gap-2">
+                    <CreditCard size={14} />
+                    Payé via Stripe • {order.stripe_session_id}
                   </div>
                 )}
               </div>
