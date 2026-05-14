@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    const getInitialSession = async () => {
+    const initAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (mounted) {
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    getInitialSession();
+    initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -77,13 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setProfile(null);
           setIsCreator(false);
-        }
-
-        // Force refresh uniquement après connexion (évite les boucles)
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          setTimeout(() => {
-            if (mounted) window.location.reload();
-          }, 800);
         }
       }
     );
