@@ -16,11 +16,13 @@ export async function POST(req: Request) {
     return Response.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
+  console.log(`🔥 WEBHOOK REÇU - Type: ${event.type}`);
+
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
 
     console.log("💰 Session ID:", session.id);
-    console.log("👤 User ID:", session.metadata?.user_id);
+    console.log("👤 User ID reçu:", session.metadata?.user_id);
 
     try {
       const supabase = await createClient();
@@ -29,7 +31,7 @@ export async function POST(req: Request) {
         .map((item: any) => item.price?.metadata?.product_id)
         .filter(Boolean) || [];
 
-      console.log("📦 Product IDs reçus :", productIds);
+      console.log("📦 Product IDs reçus de Stripe :", productIds);
 
       let enrichedItems: any[] = [];
 
@@ -42,7 +44,7 @@ export async function POST(req: Request) {
           `)
           .in('id', productIds);
 
-        console.log("✅ Produits trouvés :", products?.length || 0);
+        console.log("✅ Produits trouvés dans Supabase :", products?.length || 0);
 
         enrichedItems = session.line_items?.data.map((item: any) => {
           const product = products?.find(p => String(p.id) === String(item.price?.metadata?.product_id));
@@ -63,7 +65,7 @@ export async function POST(req: Request) {
         }) || [];
       }
 
-      await supabase.from('orders').insert({
+      const { error } = await supabase.from('orders').insert({
         user_id: session.metadata?.user_id,
         stripe_session_id: session.id,
         amount: session.amount_total,
@@ -73,9 +75,13 @@ export async function POST(req: Request) {
         items: enrichedItems,
       });
 
-      console.log(`🎉 Commande sauvegardée avec ${enrichedItems.length} produits`);
+      if (error) {
+        console.error("❌ Erreur insertion :", error);
+      } else {
+        console.log(`🎉 NOUVELLE COMMANDE SAUVEGARDÉE avec ${enrichedItems.length} produit(s) !`);
+      }
     } catch (err) {
-      console.error("💥 Erreur webhook :", err);
+      console.error("💥 Erreur générale webhook :", err);
     }
   }
 
