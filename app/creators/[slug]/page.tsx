@@ -54,10 +54,10 @@ export default async function CreatorProfile({ params }: { params: Promise<{ slu
                 className="w-40 h-40 rounded-3xl border-4 border-zinc-950 object-cover" 
               />
               
-              {/* Frame shimmer avec Tailwind + animation CSS */}
+              {/* Frame shimmer - version pure CSS sans styled-jsx */}
               {creator.frame && (
                 <div 
-                  className={`absolute inset-0 rounded-3xl border-4 animate-shimmer ${creator.frame}`}
+                  className={`absolute inset-0 rounded-3xl border-4 ${creator.frame} animate-shimmer`}
                 />
               )}
 
