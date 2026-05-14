@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'; // ← Important : utilise le client SERVER
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET() {
   try {
@@ -8,7 +8,8 @@ export async function GET() {
       .from('profiles')
       .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size')
       .or('is_creator.eq.true,role.eq.creator')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(50);
 
     if (error) {
       console.error("API Creators error:", error);
