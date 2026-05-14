@@ -36,12 +36,10 @@ export default function Header() {
     
     try {
       await logout();
-      // Redirection forcée après déconnexion
-      router.push('/login');
-      router.refresh(); // Force refresh du router
+      // Redirection très agressive
+      window.location.href = '/login';
     } catch (err) {
       console.error("Erreur logout:", err);
-      // Fallback agressif
       window.location.href = '/login';
     }
   };
