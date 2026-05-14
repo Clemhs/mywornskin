@@ -22,12 +22,11 @@ export async function POST(req: Request) {
     try {
       const supabase = await createClient();
 
-      // Récupération des product_id depuis les metadata Stripe
       const productIds = session.line_items?.data
         .map((item: any) => item.price?.metadata?.product_id)
         .filter(Boolean) || [];
 
-      console.log("📦 Product IDs détectés :", productIds);
+      console.log("📦 Product IDs from Stripe :", productIds);
 
       let enrichedItems: any[] = [];
 
@@ -35,16 +34,10 @@ export async function POST(req: Request) {
         const { data: products } = await supabase
           .from('products')
           .select(`
-            id, 
-            title, 
-            description, 
-            images, 
-            price,
+            id, title, description, images, price,
             creator:profiles!creator_id (username, full_name)
           `)
           .in('id', productIds);
-
-        console.log("✅ Produits trouvés :", products?.length);
 
         enrichedItems = session.line_items?.data.map((item: any) => {
           const product = products?.find(p => p.id === item.price?.metadata?.product_id);
@@ -72,7 +65,7 @@ export async function POST(req: Request) {
         items: enrichedItems,
       });
 
-      console.log(`🎉 Commande enrichie sauvegardée avec succès !`);
+      console.log(`🎉 Commande sauvegardée avec ${enrichedItems.length} produit(s) enrichis`);
     } catch (err) {
       console.error("💥 Erreur webhook :", err);
     }
