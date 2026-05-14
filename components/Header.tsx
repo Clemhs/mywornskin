@@ -12,21 +12,12 @@ export default function Header() {
   const { user, isCreator, logout, isLoggedIn, profile } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string>('/default-avatar.png');
-  const [unreadCount, setUnreadCount] = useState(0);
-
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Mise à jour avatar
-  useEffect(() => {
-    if (profile?.avatar_url) {
-      setAvatarUrl(profile.avatar_url);
-    } else if (user) {
-      setAvatarUrl('/default-avatar.png');
-    }
-  }, [profile, user]);
+  // Avatar mis à jour directement depuis le profile (plus fiable)
+  const avatarUrl = profile?.avatar_url || '/default-avatar.png';
 
-  // Click outside to close menu
+  // Click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -38,9 +29,7 @@ export default function Header() {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [menuOpen]);
 
   const handleLogout = async () => {
@@ -93,7 +82,7 @@ export default function Header() {
                 </Link>
               )}
 
-              {/* Menu Profil avec click outside */}
+              {/* Menu Profil */}
               <div className="relative" ref={menuRef}>
                 <button 
                   onClick={() => setMenuOpen(!menuOpen)}
