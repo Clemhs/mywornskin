@@ -33,7 +33,10 @@ export default function CreatorProfile() {
     setError('');
 
     try {
-      const res = await fetch(`/api/creators/${slug}`, { cache: 'no-store' });
+      const res = await fetch(`/api/creators/${slug}`, { 
+        cache: 'no-store',
+        next: { revalidate: 15 }   // Cache léger 15 secondes
+      });
       
       if (!res.ok) {
         throw new Error('Créatrice non trouvée');
@@ -89,8 +92,28 @@ export default function CreatorProfile() {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-zinc-950 pt-32 text-center">Chargement de la créatrice...</div>;
-  if (error || !creator) return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-red-400">{error}</div>;
+  // ==================== SKELETON LOADING ====================
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 pb-20">
+        <div className="h-80 bg-zinc-800 animate-pulse" />
+        <div className="max-w-5xl mx-auto px-6 -mt-16 relative z-10">
+          <div className="flex flex-col md:flex-row gap-8">
+            <div className="w-40 h-40 bg-zinc-800 rounded-3xl animate-pulse" />
+            <div className="pt-6 flex-1 space-y-4">
+              <div className="h-8 bg-zinc-800 rounded w-3/4 animate-pulse" />
+              <div className="h-5 bg-zinc-800 rounded w-1/2 animate-pulse" />
+              <div className="h-24 bg-zinc-800 rounded animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !creator) {
+    return <div className="min-h-screen bg-zinc-950 pt-32 text-center text-red-400">{error}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 pb-20">
