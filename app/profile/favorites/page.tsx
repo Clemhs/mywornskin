@@ -2,68 +2,43 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Heart, RefreshCw } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { ArrowLeft, Heart } from 'lucide-react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import StoryCard from '@/components/StoryCard';
 
 export default function FavoritesPage() {
   const { user } = useAuth();
-  const supabase = createClient();
-
   const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
 
-  const fetchFavorites = async () => {
+  useEffect(() => {
     if (!user) {
       setLoading(false);
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    const fetchFavorites = async () => {
+      setLoading(true);
+      setError(null);
 
-    console.log(`🔄 Chargement favoris (tentative ${retryCount + 1})...`);
-
-    const { data, error } = await supabase
-      .from('favorites')
-      .select(`
-        *,
-        product:products!product_id (*)
-      `)
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error("❌ Erreur favoris :", error);
-      setError("Impossible de charger vos favoris");
-      
-      // Retry automatique jusqu'à 3 fois
-      if (retryCount < 2) {
-        setTimeout(() => {
-          setRetryCount(prev => prev + 1);
-        }, 1200);
+      try {
+        const res = await fetch('/api/favorites', { cache: 'no-store' });
+        const data = await res.json();
+        setFavorites(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setError("Impossible de charger vos favoris");
       }
-    } else {
-      console.log(`✅ ${data?.length || 0} favoris chargés`);
-      setFavorites(data || []);
-    }
-    setLoading(false);
-  };
+      setLoading(false);
+    };
 
-  useEffect(() => {
     fetchFavorites();
-  }, [user, retryCount]);
+  }, [user]);
 
   const filteredFavorites = useMemo(() => {
     return favorites.filter(fav => fav.product);
   }, [favorites]);
-
-  const handleRetry = () => {
-    setRetryCount(prev => prev + 1);
-  };
 
   if (loading) {
     return (
@@ -81,15 +56,11 @@ export default function FavoritesPage() {
             <ArrowLeft size={20} /> Retour
           </Link>
           <h1 className="text-4xl font-light">Mes Favoris</h1>
-          <button onClick={handleRetry} className="ml-auto text-zinc-400 hover:text-white">
-            <RefreshCw size={20} />
-          </button>
         </div>
 
         {error && (
-          <div className="bg-red-900/30 border border-red-600 text-red-400 p-6 rounded-3xl mb-8 flex justify-between items-center">
+          <div className="bg-red-900/30 border border-red-600 text-red-400 p-6 rounded-3xl mb-8">
             {error}
-            <button onClick={handleRetry} className="underline">Réessayer</button>
           </div>
         )}
 
