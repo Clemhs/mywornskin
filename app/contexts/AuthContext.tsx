@@ -72,11 +72,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         setLoading(false);
 
-        // === Amélioration globale pour éviter les chargements infinis ===
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-          setTimeout(() => {
-            window.location.reload();   // Force un refresh propre
-          }, 500);
+        // Force refresh après connexion pour stabiliser la session RLS
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setTimeout(() => window.location.reload(), 800);
         }
       }
     );
@@ -107,20 +105,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (data.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,
-          username: username || email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ''),
-          full_name: username || (isCreatorAccount ? 'Nouvelle Créatrice' : 'Nouveau Client'),
-          email: email,
-          role: isCreatorAccount ? 'creator' : 'client',
-          is_creator: isCreatorAccount,
-          avatar_status: 'approved',
-          banner_status: 'pending'
-        });
-
-      if (profileError) console.error("Erreur création profil :", profileError);
+      await supabase.from('profiles').insert({
+        id: data.user.id,
+        username: username || email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ''),
+        full_name: username || (isCreatorAccount ? 'Nouvelle Créatrice' : 'Nouveau Client'),
+        email,
+        role: isCreatorAccount ? 'creator' : 'client',
+        is_creator: isCreatorAccount,
+        avatar_status: 'approved',
+        banner_status: 'pending'
+      });
     }
 
     return true;
@@ -129,16 +123,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await supabase.auth.signOut({ scope: 'local' });
-      
       setUser(null);
       setSession(null);
       setProfile(null);
       setIsCreator(false);
       setIsLoggedIn(false);
-
-      console.log("Déconnexion réussie");
     } catch (error) {
-      console.error("Erreur lors de la déconnexion :", error);
+      console.error("Erreur déconnexion :", error);
       window.location.href = '/login';
     }
   };
