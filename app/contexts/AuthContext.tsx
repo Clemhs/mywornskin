@@ -45,21 +45,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoggedIn(!!session);
+      if (mounted) {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoggedIn(!!session);
 
-      if (session?.user) await fetchProfile(session.user.id);
-      setLoading(false);
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        }
+        setLoading(false);
+      }
     };
 
     getInitialSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoggedIn(!!session);
@@ -70,16 +78,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile(null);
           setIsCreator(false);
         }
-        setLoading(false);
 
-        // Force refresh après connexion pour stabiliser la session RLS
+        // Force refresh uniquement après connexion (évite les boucles)
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          setTimeout(() => window.location.reload(), 800);
+          setTimeout(() => {
+            if (mounted) window.location.reload();
+          }, 800);
         }
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [supabase]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
