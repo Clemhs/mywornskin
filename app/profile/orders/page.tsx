@@ -32,7 +32,7 @@ export default async function OrdersPage() {
             <p className="text-zinc-400">Vos commandes apparaîtront ici après paiement</p>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-10">
             {orders.map((order: any) => (
               <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
                 <div className="flex justify-between items-start mb-8">
@@ -48,33 +48,54 @@ export default async function OrdersPage() {
                     </span>
                     <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
                       <Calendar size={16} />
-                      {new Date(order.created_at).toLocaleDateString('fr-FR', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      })}
+                      {new Date(order.created_at).toLocaleDateString('fr-FR')}
                     </p>
                   </div>
                 </div>
 
-                {/* Détails des articles */}
+                {/* Liste des produits */}
                 {order.items && Array.isArray(order.items) && order.items.length > 0 && (
-                  <div className="space-y-4 mb-8">
+                  <div className="space-y-6">
                     {order.items.map((item: any, index: number) => (
-                      <div key={index} className="flex justify-between items-center border-b border-zinc-800 pb-4 last:border-0 last:pb-0">
-                        <div>
-                          <p className="font-medium">{item.title}</p>
-                          <p className="text-sm text-zinc-500">Quantité : {item.quantity || 1}</p>
+                      <div key={index} className="flex gap-6 bg-zinc-950 rounded-2xl p-5">
+                        {/* Photo */}
+                        <div className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
+                          <img 
+                            src={item.image || item.images?.[0] || '/default-avatar.png'} 
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
-                        <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
+
+                        {/* Infos produit */}
+                        <div className="flex-1">
+                          <h3 className="text-lg font-medium">{item.title}</h3>
+                          <p className="text-sm text-zinc-400 mt-1 line-clamp-2">
+                            {item.description || "Pas de description disponible"}
+                          </p>
+
+                          <div className="mt-3 flex items-center gap-2">
+                            <Link 
+                              href={`/creators/${item.creatorSlug || item.creator?.username}`}
+                              className="text-rose-400 hover:underline text-sm"
+                            >
+                              par {item.creator_name || item.creator?.full_name || 'Créatrice'}
+                            </Link>
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
+                          <p className="text-xs text-zinc-500">Qté: {item.quantity || 1}</p>
+                        </div>
                       </div>
                     ))}
                   </div>
                 )}
 
-                {/* Infos Stripe */}
+                {/* Infos paiement */}
                 {order.stripe_session_id && (
-                  <div className="text-xs text-zinc-500 flex items-center gap-2">
+                  <div className="mt-8 pt-6 border-t border-zinc-800 text-xs text-zinc-500 flex items-center gap-2">
                     <CreditCard size={14} />
                     Payé via Stripe • {order.stripe_session_id}
                   </div>
