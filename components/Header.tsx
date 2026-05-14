@@ -14,7 +14,6 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Avatar mis à jour directement depuis le profile (plus fiable)
   const avatarUrl = profile?.avatar_url || '/default-avatar.png';
 
   // Click outside
@@ -34,11 +33,15 @@ export default function Header() {
 
   const handleLogout = async () => {
     setMenuOpen(false);
+    
     try {
       await logout();
+      // Redirection forcée après déconnexion
       router.push('/login');
+      router.refresh(); // Force refresh du router
     } catch (err) {
       console.error("Erreur logout:", err);
+      // Fallback agressif
       window.location.href = '/login';
     }
   };
@@ -82,7 +85,6 @@ export default function Header() {
                 </Link>
               )}
 
-              {/* Menu Profil */}
               <div className="relative" ref={menuRef}>
                 <button 
                   onClick={() => setMenuOpen(!menuOpen)}
