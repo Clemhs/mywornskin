@@ -50,6 +50,8 @@ export default function CheckoutPage() {
       }
 
       if (data.url) {
+        // Vider le panier AVANT la redirection
+        localStorage.removeItem('cart');
         window.location.href = data.url;
       } else {
         throw new Error("Aucune URL de paiement reçue");
