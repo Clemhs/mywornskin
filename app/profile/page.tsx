@@ -6,7 +6,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { ArrowLeft, User, Heart, ShoppingBag } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user, isCreator } = useAuth();
+  const { user, isCreator, refreshProfile } = useAuth();
 
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -18,64 +18,34 @@ export default function ProfilePage() {
       return;
     }
 
-    let isMounted = true;
-
-    const fetchProfile = async (attempt = 0) => {
-      if (!isMounted) return;
-
-      setLoading(true);
-      setError(null);
-
+    const fetchProfile = async () => {
       try {
-        const res = await fetch('/api/profile', { 
-          cache: 'no-store' 
-        });
-
-        if (!res.ok) throw new Error('Failed');
-
+        const res = await fetch('/api/profile', { cache: 'no-store' });
         const data = await res.json();
         
-        if (isMounted) {
-          setUserProfile(data);
+        setUserProfile(data);
+        
+        // Mise à jour unique et retardée pour le header
+        if (refreshProfile) {
+          setTimeout(refreshProfile, 600);
         }
       } catch (err) {
-        console.error(`Tentative ${attempt + 1} échouée`, err);
-        if (attempt < 3 && isMounted) {
-          setTimeout(() => fetchProfile(attempt + 1), 1000);
-          return;
-        }
-        if (isMounted) setError("Impossible de charger le profil");
+        console.error(err);
+        setError("Impossible de charger le profil");
       } finally {
-        if (isMounted) setLoading(false);
+        setLoading(false);
       }
     };
 
     fetchProfile();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [user]);
+  }, [user, refreshProfile]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-zinc-950 text-white pt-20 flex items-center justify-center">
-        <p className="text-zinc-400">Chargement du profil...</p>
-      </div>
-    );
+    return <div className="min-h-screen bg-zinc-950 pt-20 flex items-center justify-center text-zinc-400">Chargement...</div>;
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-zinc-950 text-white pt-20 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-xl">Vous devez être connecté</p>
-          <Link href="/login" className="text-rose-500 underline mt-4 inline-block">
-            Se connecter
-          </Link>
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen bg-zinc-950 pt-20 text-center">Connectez-vous</div>;
   }
 
   return (
@@ -87,12 +57,6 @@ export default function ProfilePage() {
           </Link>
           <h1 className="text-4xl font-light">Mon Profil</h1>
         </div>
-
-        {error && (
-          <div className="bg-red-900/30 border border-red-600 text-red-400 p-6 rounded-3xl mb-8">
-            {error}
-          </div>
-        )}
 
         <div className="bg-zinc-900 rounded-3xl p-8">
           <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
@@ -112,18 +76,18 @@ export default function ProfilePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <Link href="/profile/favorites" className="bg-zinc-800 hover:bg-zinc-700 transition p-6 rounded-3xl flex flex-col items-center">
+            <Link href="/profile/favorites" className="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl flex flex-col items-center">
               <Heart className="w-10 h-10 mb-4 text-rose-500" />
               <span className="font-medium">Mes Favoris</span>
             </Link>
 
-            <Link href="/profile/orders" className="bg-zinc-800 hover:bg-zinc-700 transition p-6 rounded-3xl flex flex-col items-center">
+            <Link href="/profile/orders" className="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl flex flex-col items-center">
               <ShoppingBag className="w-10 h-10 mb-4" />
               <span className="font-medium">Mes Commandes</span>
             </Link>
 
             {isCreator && (
-              <Link href="/sell" className="bg-zinc-800 hover:bg-zinc-700 transition p-6 rounded-3xl flex flex-col items-center">
+              <Link href="/sell" className="bg-zinc-800 hover:bg-zinc-700 p-6 rounded-3xl flex flex-col items-center">
                 <User className="w-10 h-10 mb-4 text-emerald-500" />
                 <span className="font-medium">Gérer mes produits</span>
               </Link>
