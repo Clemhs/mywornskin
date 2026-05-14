@@ -24,7 +24,7 @@ export async function POST(request: Request) {
           name: item.title,
           images: item.images?.[0] ? [item.images[0]] : [],
           metadata: { 
-            product_id: String(item.id)   // ← Très important
+            product_id: String(item.id)   // ← Force string
           },
         },
         unit_amount: Math.round((item.price || 0) * 100),
