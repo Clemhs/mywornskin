@@ -47,22 +47,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    const initAuth = async () => {
+    const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
-      if (mounted) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsLoggedIn(!!session);
+      if (!mounted) return;
 
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        }
-        setLoading(false);
-      }
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoggedIn(!!session);
+
+      if (session?.user) await fetchProfile(session.user.id);
+      setLoading(false);
     };
 
-    initAuth();
+    init();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -104,10 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       options: { data: { username } }
     });
 
-    if (error) {
-      console.error("Erreur inscription :", error);
-      return false;
-    }
+    if (error) return false;
 
     if (data.user) {
       await supabase.from('profiles').insert({
@@ -121,7 +115,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         banner_status: 'pending'
       });
     }
-
     return true;
   };
 
@@ -140,20 +133,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        session, 
-        profile,
-        isLoggedIn, 
-        isCreator,
-        loading, 
-        login, 
-        register, 
-        logout,
-        refreshProfile
-      }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      session,
+      profile,
+      isLoggedIn,
+      isCreator,
+      loading,
+      login,
+      register,
+      logout,
+      refreshProfile
+    }}>
       {children}
     </AuthContext.Provider>
   );
