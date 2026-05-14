@@ -21,9 +21,11 @@ export default function CreatorsPage() {
   useEffect(() => {
     let isMounted = true;
 
-    const fetchCreators = async () => {
+    const fetchCreators = async (attempt = 0) => {
+      if (!isMounted) return;
+
       setLoading(true);
-      console.log("🔄 Chargement des créatrices...");
+      console.log(`🔄 Tentative ${attempt + 1}/5 de chargement des créatrices...`);
 
       const { data, error } = await supabase
         .from('profiles')
@@ -32,8 +34,13 @@ export default function CreatorsPage() {
         .order('created_at', { ascending: false });
 
       if (isMounted) {
-        if (error) {
-          console.error("Erreur chargement créatrices :", error);
+        if (error && attempt < 4) {
+          const delay = 800 + attempt * 500;
+          console.warn(`Échec, nouvelle tentative dans ${delay}ms...`);
+          setTimeout(() => fetchCreators(attempt + 1), delay);
+        } else if (error) {
+          console.error("❌ Échec définitif :", error);
+          setCreators([]);
         } else {
           console.log(`✅ ${data?.length || 0} créatrices chargées`);
           setCreators(data || []);
