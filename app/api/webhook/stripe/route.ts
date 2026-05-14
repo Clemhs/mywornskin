@@ -24,37 +24,36 @@ export async function POST(req: Request) {
       const supabase = await createClient();
 
       const productIds = session.line_items?.data
-        .map(item => item.price?.metadata?.product_id)
+        .map((item: any) => item.price?.metadata?.product_id)
         .filter(Boolean) || [];
 
-      let enrichedItems: any[] = session.line_items?.data || [];
+      let enrichedItems: any[] = [];
 
       if (productIds.length > 0) {
         const { data: products } = await supabase
           .from('products')
           .select(`
-            id, 
-            title, 
-            description, 
-            images, 
+            id,
+            title,
+            description,
+            images,
             price,
-            creator_id,
             creator:profiles!creator_id (username, full_name)
           `)
           .in('id', productIds);
 
         enrichedItems = session.line_items?.data.map((item: any) => {
           const product = products?.find(p => p.id === item.price?.metadata?.product_id);
-          const creator = product?.creator?.[0]; // ← Correction ici
+          const creator = product?.creator?.[0];
 
           return {
-            title: product?.title || item.description,
-            description: product?.description,
-            images: product?.images,
-            price: item.price?.unit_amount ? item.price.unit_amount / 100 : item.price,
-            creator_name: creator?.full_name,
-            creatorSlug: creator?.username,
+            title: product?.title || item.description || "Produit",
+            description: product?.description || "",
+            images: product?.images || [],
+            price: item.price?.unit_amount ? item.price.unit_amount / 100 : (item.price || 0),
             quantity: item.quantity || 1,
+            creator_name: creator?.full_name || "Créatrice",
+            creatorSlug: creator?.username,
           };
         }) || [];
       }
