@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function GET() {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();   // ← Important : await ici
 
     const { data, error } = await supabase
       .from('profiles')
@@ -17,8 +17,8 @@ export async function GET() {
     }
 
     return Response.json(data || []);
-  } catch (err) {
+  } catch (err: any) {
     console.error("API Creators catch:", err);
-    return Response.json({ error: "Internal error" }, { status: 500 });
+    return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }
