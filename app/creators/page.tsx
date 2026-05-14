@@ -4,23 +4,6 @@ import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { Star } from 'lucide-react';
 import CreatorAvatarWithFrame from '@/components/CreatorAvatarWithFrame';
-import { createClient } from '@/lib/supabase/client';
-
-async function getCreators() {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size')
-    .or('is_creator.eq.true,role.eq.creator')
-    .order('created_at', { ascending: false })
-    .limit(50);
-
-  if (error) {
-    console.error("Erreur Supabase creators:", error);
-    return [];
-  }
-  return data || [];
-}
 
 export default function CreatorsPage() {
   const [creators, setCreators] = useState<any[]>([]);
@@ -32,15 +15,24 @@ export default function CreatorsPage() {
   const [selectedShoeSize, setSelectedShoeSize] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'top' | 'new'>('all');
 
-  // Chargement initial
   useEffect(() => {
-    getCreators().then((data) => {
-      setCreators(data);
+    const fetchCreators = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch('/api/creators', { 
+          cache: 'no-store',
+          next: { revalidate: 0 }
+        });
+        const data = await res.json();
+        setCreators(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Erreur fetch creators:", err);
+        setCreators([]);
+      }
       setLoading(false);
-    }).catch((err) => {
-      console.error(err);
-      setLoading(false);
-    });
+    };
+
+    fetchCreators();
   }, []);
 
   const filteredCreators = useMemo(() => {
