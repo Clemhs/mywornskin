@@ -1,14 +1,28 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Star } from 'lucide-react';
 import CreatorAvatarWithFrame from '@/components/CreatorAvatarWithFrame';
 import { createClient } from '@/lib/supabase/client';
 
-export default function CreatorsPage() {
+async function getCreators() {
   const supabase = createClient();
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size')
+    .or('is_creator.eq.true,role.eq.creator')
+    .order('created_at', { ascending: false })
+    .limit(50);
 
+  if (error) {
+    console.error("Erreur Supabase creators:", error);
+    return [];
+  }
+  return data || [];
+}
+
+export default function CreatorsPage() {
   const [creators, setCreators] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,43 +32,13 @@ export default function CreatorsPage() {
   const [selectedShoeSize, setSelectedShoeSize] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'top' | 'new'>('all');
 
+  // Chargement initial côté serveur + fallback client
   useEffect(() => {
-    let isMounted = true;
-
-    const fetchCreators = async (attempt = 0) => {
-      if (!isMounted) return;
-
-      setLoading(true);
-      console.log(`🔄 Tentative ${attempt + 1}/5 de chargement des créatrices...`);
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, username, full_name, avatar_url, banner_url, sales_badge, frame, bio, country, city, size, shoe_size')
-        .or('is_creator.eq.true,role.eq.creator')
-        .order('created_at', { ascending: false });
-
-      if (isMounted) {
-        if (error && attempt < 4) {
-          const delay = 800 + attempt * 500;
-          console.warn(`Échec, nouvelle tentative dans ${delay}ms...`);
-          setTimeout(() => fetchCreators(attempt + 1), delay);
-        } else if (error) {
-          console.error("❌ Échec définitif :", error);
-          setCreators([]);
-        } else {
-          console.log(`✅ ${data?.length || 0} créatrices chargées`);
-          setCreators(data || []);
-        }
-        setLoading(false);
-      }
-    };
-
-    fetchCreators();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [supabase]);
+    getCreators().then((data) => {
+      setCreators(data);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, []);
 
   const filteredCreators = useMemo(() => {
     return creators.filter(creator => {
@@ -88,7 +72,7 @@ export default function CreatorsPage() {
           Elles partagent leur intimité avec vous • {filteredCreators.length} créatrices
         </p>
 
-        {/* Recherche + Filtres */}
+        {/* Recherche + Filtres (identique à avant) */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
           <input
             type="text"
