@@ -1,52 +1,34 @@
-'use client';
-
-import { useState, useEffect, useMemo } from 'react';
+import { createClient } from '@/lib/supabase/server';
+import StoryCard from '@/components/StoryCard';
 import Link from 'next/link';
 import { ArrowLeft, Heart } from 'lucide-react';
-import { useAuth } from '@/app/contexts/AuthContext';
-import StoryCard from '@/components/StoryCard';
+import { redirect } from 'next/navigation';
 
-export default function FavoritesPage() {
-  const { user } = useAuth();
-  const [favorites, setFavorites] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default async function FavoritesPage() {
+  const supabase = await createClient();
 
-  useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+  const { data: { user } } = await supabase.auth.getUser();
 
-    const fetchFavorites = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const res = await fetch('/api/favorites', { cache: 'no-store' });
-        const data = await res.json();
-        setFavorites(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error(err);
-        setError("Impossible de charger vos favoris");
-      }
-      setLoading(false);
-    };
-
-    fetchFavorites();
-  }, [user]);
-
-  const filteredFavorites = useMemo(() => {
-    return favorites.filter(fav => fav.product);
-  }, [favorites]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-zinc-950 text-white pt-20 flex items-center justify-center">
-        <p className="text-zinc-400">Chargement de vos favoris...</p>
-      </div>
-    );
+  if (!user) {
+    redirect('/login');
   }
+
+  const { data: favorites, error } = await supabase
+    .from('favorites')
+    .select(`
+      *,
+      product:products!product_id (*, 
+        creator:profiles!creator_id (username, full_name)
+      )
+    `)
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("Erreur favoris:", error);
+  }
+
+  const validFavorites = favorites?.filter(f => f.product) || [];
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20 pb-20">
@@ -58,13 +40,7 @@ export default function FavoritesPage() {
           <h1 className="text-4xl font-light">Mes Favoris</h1>
         </div>
 
-        {error && (
-          <div className="bg-red-900/30 border border-red-600 text-red-400 p-6 rounded-3xl mb-8">
-            {error}
-          </div>
-        )}
-
-        {filteredFavorites.length === 0 ? (
+        {validFavorites.length === 0 ? (
           <div className="text-center py-32">
             <Heart className="w-16 h-16 mx-auto text-zinc-700 mb-6" />
             <p className="text-xl text-zinc-400">Vous n’avez aucun favori pour le moment</p>
@@ -74,7 +50,7 @@ export default function FavoritesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-            {filteredFavorites.map((fav) => {
+            {validFavorites.map((fav) => {
               const p = fav.product;
               if (!p) return null;
 
