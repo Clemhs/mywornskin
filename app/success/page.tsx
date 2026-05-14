@@ -1,14 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import Header from '@/components/Header';
 import { CheckCircle } from 'lucide-react';
 
 export default function SuccessPage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20">
-      <Header />
-      
       <div className="max-w-md mx-auto px-6 pt-32 text-center pb-20">
         <CheckCircle className="w-24 h-24 text-green-400 mx-auto mb-8" />
         
@@ -24,6 +21,13 @@ export default function SuccessPage() {
           className="block w-full py-5 bg-rose-500 hover:bg-rose-600 rounded-3xl text-lg font-medium transition-all"
         >
           Retour à la boutique
+        </Link>
+
+        <Link 
+          href="/profile/orders"
+          className="block w-full py-5 mt-4 border border-zinc-700 hover:bg-zinc-900 rounded-3xl text-lg font-medium transition-all"
+        >
+          Voir mes commandes
         </Link>
       </div>
     </main>
