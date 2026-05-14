@@ -1,17 +1,26 @@
 'use client';
 
-import Header from '@/components/Header';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function CheckoutPage() {
+  const router = useRouter();
+  const { isLoggedIn } = useAuth();
+
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
+    if (!isLoggedIn) {
+      router.push('/login');
+      return;
+    }
+
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     setCartItems(cart);
-  }, []);
+  }, [isLoggedIn, router]);
 
   const total = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
 
@@ -30,7 +39,7 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           cartItems,
-          productIds: cartItems.map(item => item.id)   // ← Important pour le webhook
+          productIds: cartItems.map(item => item.id)
         }),
       });
 
@@ -55,8 +64,6 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20">
-      <Header />
-
       <div className="max-w-2xl mx-auto px-6 pb-20">
         <h1 className="text-4xl font-light mb-10">Passer à la commande</h1>
 
@@ -85,11 +92,15 @@ export default function CheckoutPage() {
 
         <button 
           onClick={handleStripeCheckout}
-          disabled={loading}
+          disabled={loading || cartItems.length === 0}
           className="w-full py-7 bg-white text-black font-semibold text-xl rounded-3xl hover:bg-rose-400 hover:text-white transition-all disabled:opacity-70"
         >
           {loading ? "Connexion à Stripe..." : "Payer avec Stripe"}
         </button>
+
+        <p className="text-center text-xs text-zinc-500 mt-6">
+          Paiement sécurisé • Livraison discrète
+        </p>
       </div>
     </main>
   );
