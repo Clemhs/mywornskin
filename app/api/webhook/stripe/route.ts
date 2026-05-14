@@ -26,8 +26,6 @@ export async function POST(req: Request) {
         .map((item: any) => item.price?.metadata?.product_id)
         .filter(Boolean) || [];
 
-      console.log("📦 Product IDs from Stripe:", productIds);
-
       let enrichedItems: any[] = [];
 
       if (productIds.length > 0) {
@@ -42,8 +40,6 @@ export async function POST(req: Request) {
             creator:profiles!creator_id (username, full_name)
           `)
           .in('id', productIds);
-
-        console.log("✅ Produits trouvés :", products?.length || 0);
 
         enrichedItems = session.line_items?.data.map((item: any) => {
           const product = products?.find(p => p.id === item.price?.metadata?.product_id);
@@ -62,7 +58,7 @@ export async function POST(req: Request) {
         }) || [];
       }
 
-      const { error } = await supabase.from('orders').insert({
+      await supabase.from('orders').insert({
         user_id: session.metadata?.user_id,
         stripe_session_id: session.id,
         amount: session.amount_total,
@@ -72,11 +68,9 @@ export async function POST(req: Request) {
         items: enrichedItems,
       });
 
-      if (error) console.error("❌ Insert error:", error);
-      else console.log(`🎉 Commande sauvegardée avec ${enrichedItems.length} produit(s) enrichis`);
-
+      console.log(`✅ Commande sauvegardée avec ${enrichedItems.length} produit(s) enrichis`);
     } catch (err) {
-      console.error("💥 Erreur webhook:", err);
+      console.error("💥 Erreur webhook :", err);
     }
   }
 
