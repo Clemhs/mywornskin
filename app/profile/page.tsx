@@ -1,66 +1,24 @@
-'use client';
-
-import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/app/contexts/AuthContext';
 import { ArrowLeft, User, Heart, ShoppingBag } from 'lucide-react';
 
-export default function ProfilePage() {
-  const { user, isCreator, refreshProfile } = useAuth();
+export default async function ProfilePage() {
+  const supabase = await createClient();
 
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch('/api/profile', { cache: 'no-store' });
-        if (!res.ok) throw new Error('Failed to fetch');
-
-        const data = await res.json();
-        setUserProfile(data);
-
-        // Mise à jour légère du header
-        if (refreshProfile) {
-          setTimeout(refreshProfile, 800);
-        }
-      } catch (err) {
-        console.error(err);
-        setError("Impossible de charger le profil");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, [user, refreshProfile]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-zinc-950 text-white pt-20 flex items-center justify-center">
-        <p className="text-zinc-400">Chargement du profil...</p>
-      </div>
-    );
-  }
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-zinc-950 text-white pt-20 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-xl">Vous devez être connecté</p>
-          <Link href="/login" className="text-rose-500 underline mt-4 inline-block">
-            Se connecter
-          </Link>
-        </div>
-      </div>
-    );
+    redirect('/login');
   }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  const isCreator = profile?.role === 'creator' || profile?.is_creator === true;
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20 pb-20">
@@ -76,15 +34,15 @@ export default function ProfilePage() {
           <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-zinc-700 flex-shrink-0">
               <img 
-                src={userProfile?.avatar_url || '/default-avatar.png'} 
+                src={profile?.avatar_url || '/default-avatar.png'} 
                 alt="Avatar" 
                 className="w-full h-full object-cover"
               />
             </div>
 
             <div className="flex-1 text-center md:text-left">
-              <h2 className="text-3xl font-semibold">{userProfile?.full_name || 'Utilisateur'}</h2>
-              <p className="text-rose-400">@{userProfile?.username || user.email}</p>
+              <h2 className="text-3xl font-semibold">{profile?.full_name || 'Utilisateur'}</h2>
+              <p className="text-rose-400">@{profile?.username || user.email}</p>
               <p className="text-zinc-400 mt-2">{isCreator ? 'Créatrice' : 'Client'}</p>
             </div>
           </div>
