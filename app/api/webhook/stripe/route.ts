@@ -26,7 +26,7 @@ export async function POST(req: Request) {
         .map((item: any) => item.price?.metadata?.product_id)
         .filter(Boolean) || [];
 
-      console.log("📦 Product IDs from Stripe :", productIds);
+      console.log("📦 Product IDs from Stripe:", productIds);
 
       let enrichedItems: any[] = [];
 
@@ -34,16 +34,23 @@ export async function POST(req: Request) {
         const { data: products } = await supabase
           .from('products')
           .select(`
-            id, title, description, images, price,
+            id, 
+            title, 
+            description, 
+            images, 
+            price,
             creator:profiles!creator_id (username, full_name)
           `)
           .in('id', productIds);
+
+        console.log("✅ Produits trouvés :", products?.length || 0);
 
         enrichedItems = session.line_items?.data.map((item: any) => {
           const product = products?.find(p => p.id === item.price?.metadata?.product_id);
           const creator = product?.creator?.[0];
 
           return {
+            id: product?.id,
             title: product?.title || item.description || "Produit",
             description: product?.description || "",
             images: product?.images || [],
@@ -55,7 +62,7 @@ export async function POST(req: Request) {
         }) || [];
       }
 
-      await supabase.from('orders').insert({
+      const { error } = await supabase.from('orders').insert({
         user_id: session.metadata?.user_id,
         stripe_session_id: session.id,
         amount: session.amount_total,
@@ -65,9 +72,11 @@ export async function POST(req: Request) {
         items: enrichedItems,
       });
 
-      console.log(`🎉 Commande sauvegardée avec ${enrichedItems.length} produit(s) enrichis`);
+      if (error) console.error("❌ Insert error:", error);
+      else console.log(`🎉 Commande sauvegardée avec ${enrichedItems.length} produit(s) enrichis`);
+
     } catch (err) {
-      console.error("💥 Erreur webhook :", err);
+      console.error("💥 Erreur webhook:", err);
     }
   }
 
