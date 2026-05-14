@@ -5,7 +5,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(request: Request) {
   try {
-    const { cartItems, productIds } = await request.json();
+    const body = await request.json();
+    const { cartItems } = body;
 
     if (!cartItems || cartItems.length === 0) {
       return Response.json({ error: "Panier vide" }, { status: 400 });
@@ -16,12 +17,10 @@ export async function POST(request: Request) {
         currency: 'eur',
         product_data: {
           name: item.title,
-          images: item.images ? [item.images[0]] : [],
-          metadata: {
-            product_id: item.id,
-          },
+          images: item.images && item.images.length > 0 ? [item.images[0]] : [],
+          metadata: { product_id: item.id },
         },
-        unit_amount: Math.round(item.price * 100),
+        unit_amount: Math.round((item.price || 0) * 100),
       },
       quantity: 1,
     }));
@@ -33,8 +32,7 @@ export async function POST(request: Request) {
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cart`,
       metadata: {
-        user_id: (await createClient()).auth.getUser().then(r => r.data.user?.id || ''),
-        product_ids: productIds?.join(',') || '',
+        user_id: (await createClient()).auth.getUser().then((r) => r.data.user?.id || ''),
       },
     });
 
@@ -43,7 +41,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("Erreur Stripe Checkout:", error);
     return Response.json({ 
-      error: error.message || "Erreur lors de la création de la session Stripe" 
+      error: error.message || "Erreur lors de la création de la session" 
     }, { status: 500 });
   }
 }
