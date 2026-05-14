@@ -23,13 +23,11 @@ export async function POST(req: Request) {
     try {
       const supabase = await createClient();
 
-      // Récupérer les IDs des produits
       const productIds = session.line_items?.data
         .map(item => item.price?.metadata?.product_id)
         .filter(Boolean) || [];
 
-      // Récupérer les vraies infos des produits
-      let enrichedItems = session.line_items?.data || [];
+      let enrichedItems: any[] = session.line_items?.data || [];
 
       if (productIds.length > 0) {
         const { data: products } = await supabase
@@ -45,16 +43,18 @@ export async function POST(req: Request) {
           `)
           .in('id', productIds);
 
-        // Enrichir les items avec les vraies données
         enrichedItems = session.line_items?.data.map((item: any) => {
           const product = products?.find(p => p.id === item.price?.metadata?.product_id);
+          const creator = product?.creator?.[0]; // ← Correction ici
+
           return {
-            ...item,
             title: product?.title || item.description,
             description: product?.description,
             images: product?.images,
-            creator_name: product?.creator?.full_name,
-            creatorSlug: product?.creator?.username,
+            price: item.price?.unit_amount ? item.price.unit_amount / 100 : item.price,
+            creator_name: creator?.full_name,
+            creatorSlug: creator?.username,
+            quantity: item.quantity || 1,
           };
         }) || [];
       }
@@ -69,9 +69,9 @@ export async function POST(req: Request) {
         items: enrichedItems,
       });
 
-      console.log(`✅ Commande complète sauvegardée : ${session.id}`);
+      console.log(`✅ Commande enrichie sauvegardée : ${session.id}`);
     } catch (err) {
-      console.error("Erreur sauvegarde commande :", err);
+      console.error("Erreur sauvegarde :", err);
     }
   }
 
