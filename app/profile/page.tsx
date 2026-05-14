@@ -6,7 +6,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { ArrowLeft, User, Heart, ShoppingBag } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user, isCreator } = useAuth();
+  const { user, isCreator, refreshProfile } = useAuth();
 
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -27,10 +27,15 @@ export default function ProfilePage() {
           cache: 'no-store' 
         });
 
-        if (!res.ok) throw new Error('Failed');
+        if (!res.ok) throw new Error('Failed to fetch');
 
         const data = await res.json();
         setUserProfile(data);
+        
+        // Mise à jour du contexte global pour que l'avatar dans le header soit à jour
+        if (refreshProfile) {
+          refreshProfile();
+        }
       } catch (err) {
         console.error(`Tentative ${attempt + 1} échouée`, err);
         if (attempt < 3) {
@@ -44,7 +49,7 @@ export default function ProfilePage() {
     };
 
     fetchProfile();
-  }, [user]);
+  }, [user, refreshProfile]);
 
   if (loading) {
     return (
