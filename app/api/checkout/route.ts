@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return Response.json({ error: "Utilisateur non authentifié" }, { status: 401 });
+      return Response.json({ error: "Non authentifié" }, { status: 401 });
     }
 
     const line_items = cartItems.map((item: any) => ({
@@ -24,8 +24,7 @@ export async function POST(request: Request) {
         currency: 'eur',
         product_data: {
           name: item.title,
-          images: item.images && item.images.length > 0 ? [item.images[0]] : [],
-          metadata: { product_id: item.id },
+          images: item.images?.[0] ? [item.images[0]] : [],
         },
         unit_amount: Math.round((item.price || 0) * 100),
       },
@@ -39,16 +38,14 @@ export async function POST(request: Request) {
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cart`,
       metadata: {
-        user_id: user.id,
+        user_id: user.id,           // ← Important
       },
     });
 
     return Response.json({ url: session.url });
 
   } catch (error: any) {
-    console.error("Erreur Stripe Checkout:", error);
-    return Response.json({ 
-      error: error.message || "Erreur lors de la création de la session" 
-    }, { status: 500 });
+    console.error("Checkout error:", error);
+    return Response.json({ error: error.message }, { status: 500 });
   }
 }
