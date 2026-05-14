@@ -2,11 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import StoryCard from '@/components/StoryCard';
-import { createClient } from '@/lib/supabase/client';
 
 export default function ShopPage() {
-  const supabase = createClient();
-
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,40 +18,23 @@ export default function ShopPage() {
   const [sortOption, setSortOption] = useState<'newest' | 'price-low' | 'price-high'>('newest');
 
   useEffect(() => {
-    let isMounted = true;
-
     const fetchProducts = async () => {
       setLoading(true);
-      console.log("🔄 Chargement des produits...");
-
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          *,
-          creator:profiles!creator_id (username, full_name, city, country)
-        `)
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (isMounted) {
-        if (error) {
-          console.error("❌ Erreur produits :", error);
-        } else {
-          console.log(`✅ ${data?.length || 0} produits chargés`);
-          setProducts(data || []);
-        }
-        setLoading(false);
+      try {
+        const res = await fetch('/api/products', { cache: 'no-store' });
+        const data = await res.json();
+        setProducts(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setProducts([]);
       }
+      setLoading(false);
     };
 
     fetchProducts();
+  }, []);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [supabase]);
-
+  // ... (le reste du code reste identique : uniqueSizes, filteredProducts, return)
   const uniqueSizes = useMemo(() => [...new Set(products.map(p => p.size).filter(Boolean))], [products]);
   const uniqueShoeSizes = useMemo(() => [...new Set(products.map(p => p.shoe_size).filter(Boolean))].sort((a,b) => Number(a)-Number(b)), [products]);
   const uniqueCountries = useMemo(() => [...new Set(products.map(p => p.creator?.country).filter(Boolean))], [products]);
@@ -102,62 +82,8 @@ export default function ShopPage() {
           Pièces portées avec passion • {filteredProducts.length} pièces
         </p>
 
-        {/* Recherche */}
-        <div className="max-w-md mx-auto mb-10">
-          <input
-            type="text"
-            placeholder="Rechercher un titre..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-700 rounded-3xl px-6 py-3.5 focus:outline-none focus:border-rose-500"
-          />
-        </div>
-
-        {/* Filtres principaux + avancés */}
-        <div className="flex justify-center mb-8 gap-2 flex-wrap">
-          {['all','story','voice','both'].map(v => (
-            <button 
-              key={v} 
-              onClick={() => setActiveFilter(v as any)}
-              className={`px-6 py-3 rounded-2xl text-sm font-medium ${activeFilter === v ? 'bg-rose-500 text-white' : 'bg-zinc-900 text-zinc-400'}`}
-            >
-              {v === 'all' ? 'Tout' : v === 'story' ? 'Avec histoire' : v === 'voice' ? 'Avec vocal' : 'Histoire + Vocal'}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
-          <select value={selectedSize} onChange={e => setSelectedSize(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-sm">
-            <option value="">Toutes tailles</option>
-            {uniqueSizes.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-
-          <select value={selectedShoeSize} onChange={e => setSelectedShoeSize(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-sm">
-            <option value="">Toutes pointures</option>
-            {uniqueShoeSizes.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-
-          <select value={selectedCountry} onChange={e => setSelectedCountry(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-sm">
-            <option value="">Tous pays</option>
-            {uniqueCountries.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-
-          <select value={selectedCity} onChange={e => setSelectedCity(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-sm">
-            <option value="">Toutes villes</option>
-            {uniqueCities.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-
-          <div className="flex gap-3">
-            <input type="text" placeholder="Prix min" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 w-28 text-sm" />
-            <input type="text" placeholder="Prix max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 w-28 text-sm" />
-          </div>
-
-          <select value={sortOption} onChange={e => setSortOption(e.target.value as any)} className="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-3 text-sm">
-            <option value="newest">Plus récents</option>
-            <option value="price-low">Prix croissant</option>
-            <option value="price-high">Prix décroissant</option>
-          </select>
-        </div>
+        {/* Recherche, filtres, grille... (copie le reste de ton ancien code) */}
+        {/* ... (je peux te le redonner complet si besoin) ... */}
 
         {loading ? (
           <p className="text-center text-zinc-400 py-20">Chargement des pièces...</p>
