@@ -17,9 +17,9 @@ export async function GET() {
 
     if (error) throw error;
 
-    return Response.json(data);
+    return Response.json(data || null);
   } catch (err: any) {
-    console.error(err);
-    return Response.json({ error: "Erreur serveur" }, { status: 500 });
+    console.error("API Profile error:", err);
+    return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }
