@@ -12,9 +12,42 @@ export default function ProductClient({ product }: { product: any }) {
   const [currentImage, setCurrentImage] = useState(0);
   const [selectedDays, setSelectedDays] = useState(1);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
 
   const totalPrice = (product.price || 0) * selectedDays;
   const isOwner = user && product.creator_id === user.id;
+
+  const addToCart = () => {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+
+    const existingItem = cart.findIndex((item: any) => item.id === product.id);
+
+    const cartItem = {
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      images: product.images,
+      creator_name: product.creator?.full_name,
+      creatorSlug: product.creator?.username,
+      worn_days: selectedDays,
+      has_story: !!product.story,
+      has_voice: !!product.voice_url
+    };
+
+    if (existingItem !== -1) {
+      // Mise à jour quantité si déjà présent
+      cart[existingItem].quantity = (cart[existingItem].quantity || 1) + 1;
+    } else {
+      cart.push(cartItem);
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+
+    setAddedToCart(true);
+    
+    // Message de confirmation
+    setTimeout(() => setAddedToCart(false), 2000);
+  };
 
   return (
     <main className="min-h-screen bg-zinc-950 pb-20">
@@ -97,8 +130,11 @@ export default function ProductClient({ product }: { product: any }) {
             </div>
 
             {!isOwner ? (
-              <button className="mt-12 w-full py-7 bg-white text-black font-semibold text-xl rounded-3xl hover:bg-rose-400 hover:text-white transition-all">
-                Ajouter au panier — {totalPrice} €
+              <button 
+                onClick={addToCart}
+                className="mt-12 w-full py-7 bg-white text-black font-semibold text-xl rounded-3xl hover:bg-rose-400 hover:text-white transition-all flex items-center justify-center gap-3"
+              >
+                {addedToCart ? "✅ Ajouté au panier !" : `Ajouter au panier — ${totalPrice} €`}
               </button>
             ) : (
               <p className="text-center py-8 text-zinc-500">Ceci est votre propre produit</p>
