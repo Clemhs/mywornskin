@@ -18,6 +18,8 @@ export async function POST(req: Request) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
+    console.log("💰 Session ID:", session.id);
+    console.log("👤 User ID:", session.metadata?.user_id);
 
     try {
       const supabase = await createClient();
@@ -26,27 +28,26 @@ export async function POST(req: Request) {
         .map((item: any) => item.price?.metadata?.product_id)
         .filter(Boolean) || [];
 
+      console.log("📦 Product IDs reçus de Stripe :", productIds);
+
       let enrichedItems: any[] = [];
 
       if (productIds.length > 0) {
         const { data: products } = await supabase
           .from('products')
           .select(`
-            id, 
-            title, 
-            description, 
-            images, 
-            price,
+            id, title, description, images, price,
             creator:profiles!creator_id (username, full_name)
           `)
           .in('id', productIds);
 
+        console.log("✅ Produits trouvés dans Supabase :", products?.length || 0);
+
         enrichedItems = session.line_items?.data.map((item: any) => {
-          const product = products?.find(p => p.id === item.price?.metadata?.product_id);
+          const product = products?.find(p => String(p.id) === String(item.price?.metadata?.product_id));
           const creator = product?.creator?.[0];
 
           return {
-            id: product?.id,
             title: product?.title || item.description || "Produit",
             description: product?.description || "",
             images: product?.images || [],
@@ -68,7 +69,7 @@ export async function POST(req: Request) {
         items: enrichedItems,
       });
 
-      console.log(`✅ Commande sauvegardée avec ${enrichedItems.length} produit(s) enrichis`);
+      console.log(`🎉 Commande sauvegardée avec ${enrichedItems.length} item(s) enrichis`);
     } catch (err) {
       console.error("💥 Erreur webhook :", err);
     }
