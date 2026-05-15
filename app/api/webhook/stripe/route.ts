@@ -22,25 +22,27 @@ export async function POST(req: Request) {
     try {
       const supabase = await createClient();
 
-      // Récupération forcée des line_items
+      // Récupération détaillée des line_items
       const lineItemsData = await stripe.checkout.sessions.listLineItems(session.id);
 
       const enrichedItems = lineItemsData.data.map((item: any) => ({
         title: item.description || "Produit",
         price: item.price?.unit_amount ? item.price.unit_amount / 100 : 0,
         quantity: item.quantity || 1,
-        images: [],
+        images: [], // temporaire
       }));
+
+      const productId = lineItemsData.data[0]?.price?.metadata?.product_id || null;
 
       const { error } = await supabase.from('orders').insert({
         user_id: session.metadata?.user_id,
-        product_id: lineItemsData.data[0]?.price?.metadata?.product_id || null,
+        product_id: productId,
         stripe_session_id: session.id,
         amount: session.amount_total,
         status: 'paid',
         customer_email: session.customer_email,
         customer_name: session.customer_details?.name || '',
-        items: enrichedItems,
+        items: enrichedItems.length > 0 ? enrichedItems : [{ title: "Produit", price: session.amount_total / 100, quantity: 1 }],
       });
 
       if (error) {
