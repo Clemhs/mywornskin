@@ -11,10 +11,7 @@ export default async function OrdersPage() {
 
   const { data: orders } = await supabase
     .from('orders')
-    .select(`
-      *,
-      items
-    `)
+    .select('*')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
@@ -56,11 +53,9 @@ export default async function OrdersPage() {
                   </div>
                 </div>
 
-                {/* Liste des produits */}
                 <div className="space-y-6">
                   {(order.items || []).map((item: any, index: number) => (
                     <div key={index} className="flex gap-6 bg-zinc-950 rounded-2xl p-6">
-                      {/* Photo */}
                       <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
                         <img 
                           src={item.images?.[0] || '/default-avatar.png'} 
@@ -69,29 +64,16 @@ export default async function OrdersPage() {
                         />
                       </div>
 
-                      {/* Infos */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-medium leading-tight">{item.title}</h3>
-                        
+                        <h3 className="text-lg font-medium">{item.title}</h3>
                         <p className="text-sm text-zinc-400 mt-2 line-clamp-3">
                           {item.description || "Pas de description disponible"}
                         </p>
-
-                        <div className="mt-4">
-                          {item.creator_name ? (
-                            <Link 
-                              href={`/creators/${item.creatorSlug}`}
-                              className="text-rose-400 hover:underline text-sm inline-flex items-center gap-1"
-                            >
-                              par {item.creator_name}
-                            </Link>
-                          ) : (
-                            <span className="text-sm text-zinc-500">par Créatrice</span>
-                          )}
-                        </div>
+                        <p className="text-sm text-rose-400 mt-3">
+                          par {item.creator_name || "Créatrice"}
+                        </p>
                       </div>
 
-                      {/* Prix */}
                       <div className="text-right text-sm whitespace-nowrap">
                         <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
                         <p className="text-zinc-500 mt-1">Qté : {item.quantity || 1}</p>
@@ -100,10 +82,8 @@ export default async function OrdersPage() {
                   ))}
                 </div>
 
-                {/* Infos paiement */}
                 {order.stripe_session_id && (
-                  <div className="mt-8 pt-6 border-t border-zinc-800 text-xs text-zinc-500 flex items-center gap-2">
-                    <CreditCard size={14} />
+                  <div className="mt-8 pt-6 border-t border-zinc-800 text-xs text-zinc-500">
                     Payé via Stripe • {order.stripe_session_id}
                   </div>
                 )}
