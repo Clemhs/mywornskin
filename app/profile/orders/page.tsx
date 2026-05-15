@@ -15,6 +15,35 @@ export default async function OrdersPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
+  // Enrichissement des produits pour chaque commande
+  const enrichedOrders = await Promise.all(
+    (orders || []).map(async (order: any) => {
+      const items = order.items || [];
+      const enrichedItems = await Promise.all(
+        items.map(async (item: any) => {
+          if (!item.title) return item;
+
+          // On essaie de récupérer le vrai produit via le titre ou un fallback
+          const { data: product } = await supabase
+            .from('products')
+            .select('title, description, images, creator:profiles!creator_id (full_name, username)')
+            .eq('title', item.title)
+            .single();
+
+          return {
+            ...item,
+            description: product?.description || item.description || "Pas de description disponible",
+            images: product?.images || item.images || [],
+            creator_name: product?.creator?.[0]?.full_name || "Créatrice",
+            creatorSlug: product?.creator?.[0]?.username || "",
+          };
+        })
+      );
+
+      return { ...order, items: enrichedItems };
+    })
+  );
+
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20 pb-20">
       <div className="max-w-4xl mx-auto px-6">
@@ -25,7 +54,7 @@ export default async function OrdersPage() {
           <h1 className="text-4xl font-light">Mes Commandes</h1>
         </div>
 
-        {!orders || orders.length === 0 ? (
+        {!enrichedOrders || enrichedOrders.length === 0 ? (
           <div className="text-center py-32">
             <Package className="w-24 h-24 mx-auto text-zinc-700 mb-6" />
             <h2 className="text-3xl font-light mb-4">Aucune commande pour le moment</h2>
@@ -33,7 +62,7 @@ export default async function OrdersPage() {
           </div>
         ) : (
           <div className="space-y-10">
-            {orders.map((order: any) => (
+            {enrichedOrders.map((order: any) => (
               <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
                 <div className="flex justify-between items-start mb-8">
                   <div>
@@ -56,6 +85,7 @@ export default async function OrdersPage() {
                 <div className="space-y-6">
                   {(order.items || []).map((item: any, index: number) => (
                     <div key={index} className="flex gap-6 bg-zinc-950 rounded-2xl p-6">
+                      {/* Photo */}
                       <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
                         <img 
                           src={item.images?.[0] || '/default-avatar.png'} 
@@ -64,6 +94,7 @@ export default async function OrdersPage() {
                         />
                       </div>
 
+                      {/* Infos */}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-medium">{item.title}</h3>
                         <p className="text-sm text-zinc-400 mt-2 line-clamp-3">
@@ -74,6 +105,7 @@ export default async function OrdersPage() {
                         </p>
                       </div>
 
+                      {/* Prix */}
                       <div className="text-right text-sm whitespace-nowrap">
                         <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
                         <p className="text-zinc-500 mt-1">Qté : {item.quantity || 1}</p>
