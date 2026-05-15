@@ -22,20 +22,17 @@ export async function POST(req: Request) {
     try {
       const supabase = await createClient();
 
-      // Récupérer les vrais line_items (Stripe ne les envoie pas toujours dans l'event)
-      const sessionWithLineItems = await stripe.checkout.sessions.retrieve(session.id, {
-        expand: ['line_items.data.price.product']
-      });
+      // Récupération complète des line_items
+      const lineItemsResponse = await stripe.checkout.sessions.listLineItems(session.id);
+      const lineItems = lineItemsResponse.data || [];
 
-      const lineItems = sessionWithLineItems.line_items?.data || [];
+      console.log(`📦 ${lineItems.length} line item(s) récupérés`);
 
-      // Enrichissement complet
       const enrichedItems = lineItems.map((item: any) => ({
-        title: item.description || item.price?.product?.name || "Produit",
+        title: item.description || "Produit",
         price: item.price?.unit_amount ? item.price.unit_amount / 100 : 0,
         quantity: item.quantity || 1,
-        images: item.price?.product?.images || [],
-        description: "", // on peut enrichir plus tard
+        images: [], // on peut enrichir plus tard via product_id
       }));
 
       const productId = lineItems[0]?.price?.metadata?.product_id || null;
@@ -51,11 +48,9 @@ export async function POST(req: Request) {
         items: enrichedItems,
       });
 
-      if (error) {
-        console.error("❌ Erreur insert:", error);
-      } else {
-        console.log(`🎉 Commande créée avec ${enrichedItems.length} item(s)`);
-      }
+      if (error) console.error("❌ Insert error:", error);
+      else console.log(`🎉 Commande sauvegardée avec ${enrichedItems.length} item(s)`);
+
     } catch (err) {
       console.error("💥 Erreur webhook:", err);
     }
