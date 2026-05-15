@@ -21,20 +21,26 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
 
-    console.log("💰 Paiement réussi - Session:", session.id);
+    console.log("💰 Session ID:", session.id);
     console.log("👤 User ID:", session.metadata?.user_id);
 
     try {
       const supabase = await createClient();
 
-      const items = (session.line_items?.data || []).map((item: any) => ({
+      const lineItems = session.line_items?.data || [];
+
+      const items = lineItems.map((item: any) => ({
         title: item.description || "Produit",
         price: item.price?.unit_amount ? item.price.unit_amount / 100 : 0,
         quantity: item.quantity || 1,
       }));
 
+      // On prend le premier product_id (ou un fallback)
+      const productId = lineItems[0]?.price?.metadata?.product_id || 1;
+
       const { error } = await supabase.from('orders').insert({
         user_id: session.metadata?.user_id,
+        product_id: productId,                    // ← Correction ici
         stripe_session_id: session.id,
         amount: session.amount_total,
         status: 'paid',
