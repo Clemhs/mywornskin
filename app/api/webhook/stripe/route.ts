@@ -22,17 +22,20 @@ export async function POST(req: Request) {
     try {
       const supabase = await createClient();
 
-      // Récupération complète des line_items
-      const lineItemsResponse = await stripe.checkout.sessions.listLineItems(session.id);
-      const lineItems = lineItemsResponse.data || [];
+      // Récupération complète + détaillée des line_items
+      const sessionExpanded = await stripe.checkout.sessions.retrieve(session.id, {
+        expand: ['line_items.data.price.product']
+      });
 
-      console.log(`📦 ${lineItems.length} line item(s) récupérés`);
+      const lineItems = sessionExpanded.line_items?.data || [];
+
+      console.log(`📦 ${lineItems.length} article(s) trouvé(s)`);
 
       const enrichedItems = lineItems.map((item: any) => ({
-        title: item.description || "Produit",
+        title: item.description || item.price?.product?.name || "Produit",
         price: item.price?.unit_amount ? item.price.unit_amount / 100 : 0,
         quantity: item.quantity || 1,
-        images: [], // on peut enrichir plus tard via product_id
+        images: item.price?.product?.images || [],
       }));
 
       const productId = lineItems[0]?.price?.metadata?.product_id || null;
@@ -48,9 +51,11 @@ export async function POST(req: Request) {
         items: enrichedItems,
       });
 
-      if (error) console.error("❌ Insert error:", error);
-      else console.log(`🎉 Commande sauvegardée avec ${enrichedItems.length} item(s)`);
-
+      if (error) {
+        console.error("❌ Erreur Supabase:", error);
+      } else {
+        console.log(`🎉 COMMANDE ENRICHIE SAUVEGARDÉE (${enrichedItems.length} item)`);
+      }
     } catch (err) {
       console.error("💥 Erreur webhook:", err);
     }
