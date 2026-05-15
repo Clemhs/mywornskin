@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Volume2, Heart, Share2 } from 'lucide-react';
+import { ArrowLeft, Heart, Share2 } from 'lucide-react';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function ProductClient({ product }: { product: any }) {
@@ -14,28 +14,34 @@ export default function ProductClient({ product }: { product: any }) {
   const [isFavorited, setIsFavorited] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
 
-  const totalPrice = (product.price || 0) * selectedDays;
+  // Correction du prix selon la durée
+  const currentPrice = selectedDays === 1 
+    ? (product.price || 0) 
+    : (product.price_2days || (product.price || 0) * 2);
+
+  const totalPrice = currentPrice;
+
   const isOwner = user && product.creator_id === user.id;
 
   const addToCart = () => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
-    const existingItem = cart.findIndex((item: any) => item.id === product.id);
-
     const cartItem = {
       id: product.id,
       title: product.title,
-      price: product.price,
+      price: currentPrice,                    // ← Prix correct selon durée
       images: product.images,
       creator_name: product.creator?.full_name,
       creatorSlug: product.creator?.username,
       worn_days: selectedDays,
       has_story: !!product.story,
-      has_voice: !!product.voice_url
+      has_voice: !!product.voice_url,
+      duration: selectedDays === 1 ? '1 journée' : '2 journées'
     };
 
+    const existingItem = cart.findIndex((item: any) => item.id === product.id);
+
     if (existingItem !== -1) {
-      // Mise à jour quantité si déjà présent
       cart[existingItem].quantity = (cart[existingItem].quantity || 1) + 1;
     } else {
       cart.push(cartItem);
@@ -44,8 +50,6 @@ export default function ProductClient({ product }: { product: any }) {
     localStorage.setItem('cart', JSON.stringify(cart));
 
     setAddedToCart(true);
-    
-    // Message de confirmation
     setTimeout(() => setAddedToCart(false), 2000);
   };
 
@@ -59,7 +63,7 @@ export default function ProductClient({ product }: { product: any }) {
           </button>
 
           <div className="flex items-center gap-4">
-            <button className="p-2 hover:text-rose-400">
+            <button className="p-2 hover:text-rose-400" onClick={() => setIsFavorited(!isFavorited)}>
               <Heart size={22} className={isFavorited ? "fill-current text-rose-500" : ""} />
             </button>
             <button className="p-2 hover:text-rose-400">
