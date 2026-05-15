@@ -11,7 +11,6 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(body, signature, endpointSecret);
-    console.log(`🔥 WEBHOOK REÇU - ${event.type}`);
   } catch (err: any) {
     console.error("❌ Signature error:", err.message);
     return Response.json({ error: 'Invalid signature' }, { status: 400 });
@@ -20,27 +19,61 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
 
-    console.log("📦 Session:", session.id);
-    console.log("💰 Montant:", session.amount_total);
-    console.log("👤 User ID:", session.metadata?.user_id);
-
     try {
       const supabase = await createClient();
 
       const lineItemsData = await stripe.checkout.sessions.listLineItems(session.id);
       const lineItems = lineItemsData.data || [];
 
-      const productId = lineItems[0]?.price?.metadata?.product_id || null;
+      const productIds = lineItems
+        .map((item: any) => item.price?.metadata?.product_id)
+        .filter(Boolean);
 
-      const enrichedItems = lineItems.map((item: any) => ({
-        title: item.description || "Produit",
-        price: item.price?.unit_amount ? item.price.unit_amount / 100 : 0,
-        quantity: item.quantity || 1,
-      }));
+      let enrichedItems: any[] = [];
+
+      if (productIds.length > 0) {
+        const { data: products } = await supabase
+          .from('products')
+          .select(`
+            id, title, description, images,
+            creator:profiles!creator_id (full_name, username)
+          `)
+          .in('id', productIds);
+
+        enrichedItems = lineItems.map((item: any) => {
+          const product = products?.find(p => String(p.id) === String(item.price?.metadata?.product_id));
+          const creator = product?.creator?.[0];
+
+          return {
+            title: product?.title || item.description || "Produit",
+            description: product?.description || "Pas de description disponible",
+            images: product?.images || [],
+            price: item.price?.unit_amount ? item.price.unit_amount / 100 : 0,
+            quantity: item.quantity || 1,
+            creator_name: creator?.full_name || "Créatrice",
+            creatorSlug: creator?.username || "",
+          };
+        });
+      }
+
+      // Fallback si rien n'est trouvé
+      if (enrichedItems.length === 0) {
+        enrichedItems = [{
+          title: "Produit",
+          description: "Pas de description disponible",
+          images: [],
+          price: session.amount_total ? session.amount_total / 100 : 0,
+          quantity: 1,
+          creator_name: "Créatrice",
+          creatorSlug: "",
+        }];
+      }
+
+      const productId = productIds[0] || null;
 
       const { error } = await supabase.from('orders').insert({
         user_id: session.metadata?.user_id,
-        product_id: productId || 1,           // fallback obligatoire
+        product_id: productId,
         stripe_session_id: session.id,
         amount: session.amount_total || 0,
         status: 'paid',
@@ -49,11 +82,9 @@ export async function POST(req: Request) {
         items: enrichedItems,
       });
 
-      if (error) {
-        console.error("❌ INSERT ERROR:", error);
-      } else {
-        console.log("✅ COMMANDE ENREGISTRÉE !");
-      }
+      if (error) console.error("❌ INSERT ERROR:", error);
+      else console.log(`✅ COMMANDE ENREGISTRÉE avec ${enrichedItems.length} article(s) enrichi(s)`);
+
     } catch (err: any) {
       console.error("💥 Erreur webhook:", err);
     }
