@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   try {
     event = stripe.webhooks.constructEvent(body, signature, endpointSecret);
   } catch (err: any) {
-    console.error("❌ Signature error:", err.message);
+    console.error("Signature failed:", err.message);
     return Response.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
@@ -22,37 +22,31 @@ export async function POST(req: Request) {
     try {
       const supabase = await createClient();
 
-      const lineItemsData = await stripe.checkout.sessions.listLineItems(session.id);
-
-      const enrichedItems = lineItemsData.data.map((item: any) => ({
-        title: item.description || "Produit",
-        price: item.price?.unit_amount ? item.price.unit_amount / 100 : 0,
-        quantity: item.quantity || 1,
-        images: [],
-      }));
-
-      const productId = lineItemsData.data[0]?.price?.metadata?.product_id || null;
+      // Version ultra-simple pour tester
+      const items = [{
+        title: session.metadata?.product_title || "Produit commandé",
+        price: (session.amount_total || 0) / 100,
+        quantity: 1,
+      }];
 
       const { error } = await supabase.from('orders').insert({
         user_id: session.metadata?.user_id,
-        product_id: productId,
+        product_id: session.metadata?.product_id || null,
         stripe_session_id: session.id,
-        amount: session.amount_total || 0,
+        amount: session.amount_total,
         status: 'paid',
         customer_email: session.customer_email,
         customer_name: session.customer_details?.name || '',
-        items: enrichedItems.length > 0 
-          ? enrichedItems 
-          : [{ title: "Produit", price: (session.amount_total || 0) / 100, quantity: 1 }],
+        items: items,
       });
 
       if (error) {
-        console.error("❌ Insert error:", error);
+        console.error("Insert error:", error);
       } else {
-        console.log(`🎉 Commande sauvegardée avec ${enrichedItems.length} item(s)`);
+        console.log("✅ Commande créée avec succès (version simple)");
       }
     } catch (err) {
-      console.error("💥 Erreur webhook:", err);
+      console.error("Webhook error:", err);
     }
   }
 
