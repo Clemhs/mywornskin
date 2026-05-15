@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(body, signature, endpointSecret);
-    console.log(`🔥 WEBHOOK REÇU - ${event.type}`);
+    console.log(`🔥 WEBHOOK REÇU`);
   } catch (err: any) {
     console.error("❌ Signature error:", err.message);
     return Response.json({ error: 'Invalid signature' }, { status: 400 });
@@ -20,35 +20,71 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
 
-    console.log("📦 Session ID:", session.id);
-    console.log("💰 Montant:", session.amount_total);
-
     try {
       const supabase = await createClient();
 
-      // Récupération simple des articles
       const lineItemsData = await stripe.checkout.sessions.listLineItems(session.id);
-      const items = lineItemsData.data.map((item: any) => ({
-        title: item.description || "Produit",
-        price: item.price?.unit_amount ? item.price.unit_amount / 100 : 0,
-        quantity: item.quantity || 1,
-      }));
+      const lineItems = lineItemsData.data || [];
+
+      const productIds = lineItems
+        .map((item: any) => item.price?.metadata?.product_id)
+        .filter(Boolean);
+
+      let enrichedItems: any[] = [];
+
+      if (productIds.length > 0) {
+        const { data: products } = await supabase
+          .from('products')
+          .select(`
+            id, 
+            title, 
+            description, 
+            images,
+            creator:profiles!creator_id (full_name, username)
+          `)
+          .in('id', productIds);
+
+        console.log(`🛍️ ${products?.length || 0} produit(s) trouvé(s) dans Supabase`);
+
+        enrichedItems = lineItems.map((item: any) => {
+          const product = products?.find(p => String(p.id) === String(item.price?.metadata?.product_id));
+          const creator = product?.creator?.[0];
+
+          return {
+            title: product?.title || item.description || "Produit",
+            description: product?.description || "Pas de description disponible",
+            images: product?.images || [],
+            price: item.price?.unit_amount ? item.price.unit_amount / 100 : 0,
+            quantity: item.quantity || 1,
+            creator_name: creator?.full_name || "Créatrice",
+            creatorSlug: creator?.username || "",
+          };
+        });
+      }
 
       const { error } = await supabase.from('orders').insert({
         user_id: session.metadata?.user_id,
-        product_id: 1,                    // fallback obligatoire pour éviter l'erreur
+        product_id: productIds[0] || null,
         stripe_session_id: session.id,
         amount: session.amount_total || 0,
         status: 'paid',
         customer_email: session.customer_email,
         customer_name: session.customer_details?.name || '',
-        items: items.length > 0 ? items : [{ title: "Commande Stripe", price: session.amount_total ? session.amount_total / 100 : 0, quantity: 1 }]
+        items: enrichedItems.length > 0 ? enrichedItems : [{
+          title: "Produit",
+          description: "Pas de description disponible",
+          images: [],
+          price: session.amount_total ? session.amount_total / 100 : 0,
+          quantity: 1,
+          creator_name: "Créatrice",
+          creatorSlug: "",
+        }]
       });
 
       if (error) {
         console.error("❌ INSERT ERROR:", error);
       } else {
-        console.log("✅ COMMANDE ENREGISTRÉE AVEC SUCCÈS");
+        console.log(`✅ COMMANDE ENREGISTRÉE avec ${enrichedItems.length} article(s) enrichi(s)`);
       }
     } catch (err: any) {
       console.error("💥 Erreur webhook:", err);
