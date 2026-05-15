@@ -11,7 +11,10 @@ export default async function OrdersPage() {
 
   const { data: orders } = await supabase
     .from('orders')
-    .select('*')
+    .select(`
+      *,
+      items
+    `)
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
@@ -53,20 +56,20 @@ export default async function OrdersPage() {
                   </div>
                 </div>
 
-                {/* Liste des produits avec enrichissement */}
+                {/* Liste des produits */}
                 <div className="space-y-6">
                   {(order.items || []).map((item: any, index: number) => (
                     <div key={index} className="flex gap-6 bg-zinc-950 rounded-2xl p-6">
-                      {/* Photo du produit */}
+                      {/* Photo */}
                       <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
                         <img 
-                          src={item.image || item.images?.[0] || '/default-avatar.png'} 
+                          src={item.images?.[0] || '/default-avatar.png'} 
                           alt={item.title}
                           className="w-full h-full object-cover"
                         />
                       </div>
 
-                      {/* Informations détaillées */}
+                      {/* Infos */}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-medium leading-tight">{item.title}</h3>
                         
@@ -75,12 +78,12 @@ export default async function OrdersPage() {
                         </p>
 
                         <div className="mt-4">
-                          {item.creator_name || item.creator?.full_name ? (
+                          {item.creator_name ? (
                             <Link 
-                              href={`/creators/${item.creatorSlug || item.creator?.username}`}
+                              href={`/creators/${item.creatorSlug}`}
                               className="text-rose-400 hover:underline text-sm inline-flex items-center gap-1"
                             >
-                              par {item.creator_name || item.creator?.full_name}
+                              par {item.creator_name}
                             </Link>
                           ) : (
                             <span className="text-sm text-zinc-500">par Créatrice</span>
@@ -88,7 +91,7 @@ export default async function OrdersPage() {
                         </div>
                       </div>
 
-                      {/* Prix et quantité */}
+                      {/* Prix */}
                       <div className="text-right text-sm whitespace-nowrap">
                         <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
                         <p className="text-zinc-500 mt-1">Qté : {item.quantity || 1}</p>
