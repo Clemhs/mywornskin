@@ -12,11 +12,31 @@ export default function Header() {
   const { user, isCreator, logout, isLoggedIn, profile } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const avatarUrl = profile?.avatar_url || '/default-avatar.png';
 
-  // Click outside
+  // Mise à jour du compteur du panier
+  useEffect(() => {
+    const updateCartCount = () => {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      setCartCount(cart.length);
+    };
+
+    updateCartCount();
+
+    // Mise à jour en temps réel
+    window.addEventListener('storage', updateCartCount);
+    const interval = setInterval(updateCartCount, 800); // Vérification régulière
+
+    return () => {
+      window.removeEventListener('storage', updateCartCount);
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Click outside menu
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -33,10 +53,8 @@ export default function Header() {
 
   const handleLogout = async () => {
     setMenuOpen(false);
-    
     try {
       await logout();
-      // Redirection très agressive
       window.location.href = '/login';
     } catch (err) {
       console.error("Erreur logout:", err);
@@ -80,6 +98,11 @@ export default function Header() {
               ) : (
                 <Link href="/cart" className="relative p-2 hover:bg-zinc-900 rounded-xl transition-colors">
                   <ShoppingCart className="w-5 h-5" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
                 </Link>
               )}
 
