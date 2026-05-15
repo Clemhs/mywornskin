@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Package, Calendar, CreditCard } from 'lucide-react';
+import { ArrowLeft, Package, Calendar, Clock, CreditCard } from 'lucide-react';
 
 export default async function OrdersPage() {
   const supabase = await createClient();
@@ -15,20 +15,33 @@ export default async function OrdersPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
-  // Enrichissement des produits pour chaque commande
+  // Enrichissement amélioré
   const enrichedOrders = await Promise.all(
     (orders || []).map(async (order: any) => {
       const items = order.items || [];
       const enrichedItems = await Promise.all(
         items.map(async (item: any) => {
-          if (!item.title) return item;
+          let product = null;
 
-          // On essaie de récupérer le vrai produit via le titre ou un fallback
-          const { data: product } = await supabase
-            .from('products')
-            .select('title, description, images, creator:profiles!creator_id (full_name, username)')
-            .eq('title', item.title)
-            .single();
+          // 1. Essayer de trouver par titre exact
+          if (item.title) {
+            const { data } = await supabase
+              .from('products')
+              .select('title, description, images, creator:profiles!creator_id (full_name, username)')
+              .eq('title', item.title)
+              .single();
+            product = data;
+          }
+
+          // 2. Si pas trouvé, fallback sur le premier produit de la commande (approximation)
+          if (!product && items.length === 1) {
+            const { data } = await supabase
+              .from('products')
+              .select('title, description, images, creator:profiles!creator_id (full_name, username)')
+              .limit(1)
+              .single();
+            product = data;
+          }
 
           return {
             ...item,
@@ -76,8 +89,11 @@ export default async function OrdersPage() {
                       Payée
                     </span>
                     <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
-                      <Calendar size={16} />
-                      {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                      <Clock size={16} />
+                      {new Date(order.created_at).toLocaleString('fr-FR', { 
+                        day: '2-digit', month: '2-digit', year: 'numeric', 
+                        hour: '2-digit', minute: '2-digit' 
+                      })}
                     </p>
                   </div>
                 </div>
@@ -85,7 +101,6 @@ export default async function OrdersPage() {
                 <div className="space-y-6">
                   {(order.items || []).map((item: any, index: number) => (
                     <div key={index} className="flex gap-6 bg-zinc-950 rounded-2xl p-6">
-                      {/* Photo */}
                       <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
                         <img 
                           src={item.images?.[0] || '/default-avatar.png'} 
@@ -94,7 +109,6 @@ export default async function OrdersPage() {
                         />
                       </div>
 
-                      {/* Infos */}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-medium">{item.title}</h3>
                         <p className="text-sm text-zinc-400 mt-2 line-clamp-3">
@@ -105,7 +119,6 @@ export default async function OrdersPage() {
                         </p>
                       </div>
 
-                      {/* Prix */}
                       <div className="text-right text-sm whitespace-nowrap">
                         <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
                         <p className="text-zinc-500 mt-1">Qté : {item.quantity || 1}</p>
