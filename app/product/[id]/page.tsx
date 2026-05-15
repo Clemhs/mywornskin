@@ -7,7 +7,6 @@ export default function ProductClient({ product }: { product: any }) {
   const [selectedDuration, setSelectedDuration] = useState<'1j' | '2j'>('1j');
 
   const price = selectedDuration === '1j' ? 45 : 75;
-  const durationLabel = selectedDuration === '1j' ? '1 journée' : '2 journées';
 
   const handleAddToCart = () => {
     const cartItem = {
@@ -19,16 +18,14 @@ export default function ProductClient({ product }: { product: any }) {
       creator_name: product.creator?.full_name || product.creator?.username,
       creatorSlug: product.creator?.username,
       quantity: 1,
-      duration: durationLabel,
+      duration: selectedDuration === '1j' ? '1 journée' : '2 journées',
     };
 
-    // Système simple avec localStorage (fonctionne partout)
     const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
     currentCart.push(cartItem);
     localStorage.setItem('cart', JSON.stringify(currentCart));
 
-    alert('✅ Produit ajouté au panier !');
-    // Tu peux aussi faire un toast plus joli plus tard
+    alert(`✅ Ajouté au panier : ${product.title} - ${price}€`);
   };
 
   return (
@@ -46,7 +43,7 @@ export default function ProductClient({ product }: { product: any }) {
           </div>
 
           <div className="flex gap-4 mt-6">
-            {product.images?.map((img: string, i: number) => (
+            {product.images?.slice(0, 5).map((img: string, i: number) => (
               <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-zinc-700">
                 <Image src={img} alt="" fill className="object-cover" />
               </div>
@@ -54,11 +51,11 @@ export default function ProductClient({ product }: { product: any }) {
           </div>
         </div>
 
-        {/* Contenu */}
+        {/* Infos */}
         <div className="space-y-8">
           <div>
             <h1 className="text-4xl font-light">{product.title}</h1>
-            <p className="text-rose-400 mt-2">
+            <p className="text-rose-400 mt-3 text-lg">
               par {product.creator?.full_name || product.creator?.username || 'Créatrice'}
             </p>
           </div>
@@ -70,20 +67,15 @@ export default function ProductClient({ product }: { product: any }) {
               <button
                 onClick={() => setSelectedDuration('1j')}
                 className={`flex-1 py-4 rounded-2xl border transition-all ${
-                  selectedDuration === '1j' 
-                    ? 'border-rose-500 bg-rose-500/10 text-white' 
-                    : 'border-zinc-700 hover:border-zinc-600'
+                  selectedDuration === '1j' ? 'border-rose-500 bg-rose-500/10' : 'border-zinc-700'
                 }`}
               >
                 1 journée — 45 €
               </button>
-
               <button
                 onClick={() => setSelectedDuration('2j')}
                 className={`flex-1 py-4 rounded-2xl border transition-all ${
-                  selectedDuration === '2j' 
-                    ? 'border-rose-500 bg-rose-500/10 text-white' 
-                    : 'border-zinc-700 hover:border-zinc-600'
+                  selectedDuration === '2j' ? 'border-rose-500 bg-rose-500/10' : 'border-zinc-700'
                 }`}
               >
                 2 journées — 75 €
@@ -91,22 +83,18 @@ export default function ProductClient({ product }: { product: any }) {
             </div>
           </div>
 
-          {/* Histoire & Description */}
-          <div className="space-y-6 text-zinc-300">
-            <div>
-              <p className="uppercase text-xs tracking-widest text-zinc-500 mb-2">HISTOIRE INTIME</p>
-              <p>{product.histoire_intime || 'Aucune histoire intime renseignée.'}</p>
-            </div>
+          {/* Description */}
+          <div className="space-y-6">
             <div>
               <p className="uppercase text-xs tracking-widest text-zinc-500 mb-2">DESCRIPTION</p>
-              <p>{product.description}</p>
+              <p className="text-zinc-300 leading-relaxed">{product.description}</p>
             </div>
           </div>
 
-          {/* Bouton Panier */}
+          {/* Bouton */}
           <button
             onClick={handleAddToCart}
-            className="w-full py-5 bg-white text-black rounded-2xl text-xl font-medium hover:bg-zinc-200 transition-all"
+            className="w-full py-5 bg-white text-black rounded-2xl text-xl font-medium hover:bg-zinc-100 transition"
           >
             Ajouter au panier — {price} €
           </button>
