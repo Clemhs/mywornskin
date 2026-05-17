@@ -71,11 +71,15 @@ export default async function OrdersPage() {
                         href={productLink}
                         className="flex gap-6 bg-zinc-950 rounded-2xl p-6 hover:bg-zinc-900 transition-all group"
                       >
-                        {/* Photo - Version qui marchait */}
+                        {/* Photo avec plusieurs fallbacks */}
                         <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
                           <img 
-                            src={item.images?.[0] || '/default-avatar.png'} 
-                            alt={item.title}
+                            src={
+                              item.images?.[0] || 
+                              item.image || 
+                              '/default-avatar.png'
+                            } 
+                            alt={item.title || "Produit"}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                           />
                         </div>
