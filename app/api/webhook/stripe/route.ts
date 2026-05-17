@@ -19,11 +19,31 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
 
+    console.log("📦 Session ID:", session.id);
+    console.log("🔑 Metadata user_id:", session.metadata?.user_id);
+
     try {
       const supabase = await createClient();
 
       const lineItemsData = await stripe.checkout.sessions.listLineItems(session.id);
-      const items = lineItemsData.data.map((item: any) => ({
+      const lineItems = lineItemsData.data || [];
+
+      console.log(`🛍️ ${lineItems.length} line item(s)`);
+
+      let productId: any = null;
+      if (lineItems.length > 0) {
+        const item = lineItems[0];
+        console.log("📋 Line Item:", JSON.stringify(item, null, 2));
+
+        productId = 
+          item.price?.metadata?.product_id ||
+          (item.price?.product as any)?.metadata?.product_id ||
+          null;
+      }
+
+      console.log("🆔 Product ID extrait :", productId);
+
+      const items = lineItems.map((item: any) => ({
         title: item.description || "Produit",
         price: item.price?.unit_amount ? item.price.unit_amount / 100 : 0,
         quantity: item.quantity || 1,
@@ -31,20 +51,18 @@ export async function POST(req: Request) {
 
       const { error } = await supabase.from('orders').insert({
         user_id: session.metadata?.user_id,
-        product_id: 1,                    // fallback qui marche
+        product_id: productId || null,
         stripe_session_id: session.id,
         amount: session.amount_total || 0,
         status: 'paid',
         customer_email: session.customer_email,
         customer_name: session.customer_details?.name || '',
-        items: items.length > 0 ? items : [{ title: "Produit", price: session.amount_total ? session.amount_total / 100 : 0, quantity: 1 }]
+        items: items
       });
 
-      if (error) {
-        console.error("❌ INSERT ERROR:", error);
-      } else {
-        console.log("✅ COMMANDE ENREGISTRÉE (stable)");
-      }
+      if (error) console.error("❌ INSERT ERROR:", error);
+      else console.log("✅ COMMANDE ENREGISTRÉE avec product_id =", productId);
+
     } catch (err: any) {
       console.error("💥 Erreur webhook:", err);
     }
