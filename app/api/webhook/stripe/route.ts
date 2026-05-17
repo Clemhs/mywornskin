@@ -26,24 +26,18 @@ export async function POST(req: Request) {
       const lineItems = lineItemsData.data || [];
 
       // Extraction sécurisée du product_id
-      let productId: string | number | null = null;
+      let productId: any = null;
       if (lineItems.length > 0) {
-        const firstItem = lineItems[0];
-        
-        // Plusieurs façons possibles selon Stripe
-        productId = 
-          (firstItem.price?.metadata as any)?.product_id ||
-          (typeof firstItem.price?.product === 'object' 
-            ? (firstItem.price.product as any)?.metadata?.product_id 
-            : null) ||
-          null;
+        const item = lineItems[0];
+        productId = item.price?.metadata?.product_id 
+                 || (item.price?.product as any)?.metadata?.product_id 
+                 || null;
       }
 
       const items = lineItems.map((item: any) => ({
         title: item.description || "Produit",
         price: item.price?.unit_amount ? item.price.unit_amount / 100 : 0,
         quantity: item.quantity || 1,
-        images: [],
       }));
 
       const { error } = await supabase.from('orders').insert({
@@ -60,11 +54,10 @@ export async function POST(req: Request) {
       if (error) {
         console.error("❌ INSERT ERROR:", error);
       } else {
-        console.log(`✅ Commande enregistrée - product_id = ${productId}`);
+        console.log(`✅ COMMANDE ENREGISTRÉE avec succès (product_id: ${productId})`);
       }
-
     } catch (err: any) {
-      console.error("💥 Erreur webhook:", err);
+      console.error("💥 Erreur générale webhook:", err);
     }
   }
 
