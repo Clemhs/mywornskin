@@ -15,7 +15,7 @@ export default async function OrdersPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
-  // Enrichissement
+  // Enrichissement amélioré
   const enrichedOrders = await Promise.all(
     (orders || []).map(async (order: any) => {
       const items = order.items || [];
@@ -23,16 +23,21 @@ export default async function OrdersPage() {
         items.map(async (item: any) => {
           let product = null;
 
+          // 1. Essayer de trouver par titre exact
           if (item.title) {
             const { data } = await supabase
               .from('products')
-              .select(`
-                title, 
-                description, 
-                images,
-                creator:profiles!creator_id (full_name, username)
-              `)
-              .ilike('title', `%${item.title.substring(0, 30)}%`)
+              .select('title, description, images, creator:profiles!creator_id (full_name, username)')
+              .eq('title', item.title)
+              .single();
+            product = data;
+          }
+
+          // 2. Si pas trouvé, fallback sur le premier produit de la commande (approximation)
+          if (!product && items.length === 1) {
+            const { data } = await supabase
+              .from('products')
+              .select('title, description, images, creator:profiles!creator_id (full_name, username)')
               .limit(1)
               .single();
             product = data;
@@ -40,7 +45,6 @@ export default async function OrdersPage() {
 
           return {
             ...item,
-            title: product?.title || item.title || "Produit",
             description: product?.description || item.description || "Pas de description disponible",
             images: product?.images || item.images || [],
             creator_name: product?.creator?.[0]?.full_name || "Créatrice",
@@ -86,7 +90,10 @@ export default async function OrdersPage() {
                     </span>
                     <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
                       <Clock size={16} />
-                      {new Date(order.created_at).toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}
+                      {new Date(order.created_at).toLocaleString('fr-FR', { 
+                        day: '2-digit', month: '2-digit', year: 'numeric', 
+                        hour: '2-digit', minute: '2-digit' 
+                      })}
                     </p>
                   </div>
                 </div>
@@ -107,14 +114,9 @@ export default async function OrdersPage() {
                         <p className="text-sm text-zinc-400 mt-2 line-clamp-3">
                           {item.description || "Pas de description disponible"}
                         </p>
-                        {item.creatorSlug && (
-                          <Link 
-                            href={`/creators/${item.creatorSlug}`}
-                            className="text-rose-400 hover:underline text-sm mt-2 inline-block"
-                          >
-                            par {item.creator_name || "Créatrice"}
-                          </Link>
-                        )}
+                        <p className="text-sm text-rose-400 mt-3">
+                          par {item.creator_name || "Créatrice"}
+                        </p>
                       </div>
 
                       <div className="text-right text-sm whitespace-nowrap">
