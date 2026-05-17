@@ -34,7 +34,6 @@ export default async function OrdersPage() {
         ) : (
           <div className="space-y-10">
             {orders.map((order: any) => {
-              // On prend le vrai product_id s'il existe, sinon fallback
               const productId = order.product_id || 1;
               const productLink = `/product/${productId}`;
 
@@ -54,9 +53,7 @@ export default async function OrdersPage() {
                       <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
                         <Clock size={16} />
                         {new Date(order.created_at).toLocaleString('fr-FR', { 
-                          timeZone: 'Europe/Paris',
-                          day: '2-digit', month: '2-digit', year: 'numeric', 
-                          hour: '2-digit', minute: '2-digit' 
+                          timeZone: 'Europe/Paris' 
                         })}
                       </p>
                     </div>
@@ -71,7 +68,7 @@ export default async function OrdersPage() {
                       >
                         <div className="flex justify-between items-center">
                           <div className="flex-1">
-                            <h3 className="text-lg font-medium group-hover:text-rose-400 transition-colors">
+                            <h3 className="text-lg font-medium group-hover:text-rose-400">
                               {item.title || "Produit"}
                             </h3>
                             <p className="text-sm text-zinc-400 mt-1">
