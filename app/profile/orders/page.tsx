@@ -62,8 +62,7 @@ export default async function OrdersPage() {
 
                 <div className="space-y-6">
                   {(order.items || []).map((item: any, index: number) => {
-                    // Lien vers le produit (priorité à product_id, sinon fallback)
-                    const productId = order.product_id || item.product_id || 1;
+                    const productId = order.product_id || 1;
                     const productLink = `/product/${productId}`;
 
                     return (
@@ -72,7 +71,7 @@ export default async function OrdersPage() {
                         href={productLink}
                         className="flex gap-6 bg-zinc-950 rounded-2xl p-6 hover:bg-zinc-900 transition-all group"
                       >
-                        {/* Photo */}
+                        {/* Photo - Version qui marchait */}
                         <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
                           <img 
                             src={item.images?.[0] || '/default-avatar.png'} 
@@ -89,12 +88,12 @@ export default async function OrdersPage() {
                           <p className="text-sm text-zinc-400 mt-2 line-clamp-3">
                             {item.description || ""}
                           </p>
-                          <p className="text-rose-400 text-sm mt-3 inline-flex items-center gap-1 group-hover:underline">
+                          <p className="text-rose-400 text-sm mt-4 inline-flex items-center gap-1 group-hover:underline">
                             Voir les détails du produit →
                           </p>
                         </div>
 
-                        {/* Prix et quantité */}
+                        {/* Prix */}
                         <div className="text-right text-sm whitespace-nowrap">
                           <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
                           <p className="text-zinc-500 mt-1">Qté : {item.quantity || 1}</p>
