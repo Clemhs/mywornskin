@@ -22,19 +22,38 @@ export async function POST(req: Request) {
     try {
       const supabase = await createClient();
 
+      const lineItemsData = await stripe.checkout.sessions.listLineItems(session.id);
+      const lineItems = lineItemsData.data || [];
+
+      // Extraction du product_id depuis Stripe
+      let productId: any = null;
+      if (lineItems.length > 0) {
+        const firstItem = lineItems[0];
+        productId = firstItem.price?.metadata?.product_id || 
+                    firstItem.metadata?.product_id || 
+                    null;
+      }
+
+      const items = lineItems.map((item: any) => ({
+        title: item.description || "Produit",
+        price: item.price?.unit_amount ? item.price.unit_amount / 100 : 0,
+        quantity: item.quantity || 1,
+        images: [], // on garde vide pour l'instant
+      }));
+
       const { error } = await supabase.from('orders').insert({
         user_id: session.metadata?.user_id,
-        product_id: 1,
+        product_id: productId || null,           // ← Important : on sauve le vrai ID
         stripe_session_id: session.id,
         amount: session.amount_total || 0,
         status: 'paid',
         customer_email: session.customer_email,
         customer_name: session.customer_details?.name || '',
-        items: [{ title: "Commande Stripe", price: session.amount_total ? session.amount_total / 100 : 0, quantity: 1 }]
+        items: items
       });
 
       if (error) console.error("❌ INSERT ERROR:", error);
-      else console.log("✅ COMMANDE ENREGISTRÉE (minimal)");
+      else console.log(`✅ Commande enregistrée avec product_id = ${productId}`);
 
     } catch (err: any) {
       console.error("💥 Erreur webhook:", err);
