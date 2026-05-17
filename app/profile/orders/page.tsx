@@ -33,40 +33,36 @@ export default async function OrdersPage() {
           </div>
         ) : (
           <div className="space-y-10">
-            {orders.map((order: any) => (
-              <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-                <div className="flex justify-between items-start mb-8">
-                  <div>
-                    <p className="text-sm text-zinc-500">Commande #{order.id.slice(0, 8).toUpperCase()}</p>
-                    <p className="text-3xl font-light mt-1">
-                      {(order.amount / 100).toFixed(2)} €
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="inline-block px-5 py-2 bg-green-500/10 text-green-400 text-sm rounded-2xl">
-                      Payée
-                    </span>
-                    <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
-                      <Clock size={16} />
-                      {new Date(order.created_at).toLocaleString('fr-FR', { 
-                        timeZone: 'Europe/Paris',
-                        day: '2-digit', 
-                        month: '2-digit', 
-                        year: 'numeric', 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
-                    </p>
-                  </div>
-                </div>
+            {orders.map((order: any) => {
+              const productId = order.product_id || 1;
+              const productLink = `/product/${productId}`;
 
-                <div className="space-y-4">
-                  {(order.items || []).map((item: any, index: number) => {
-                    // Meilleure récupération du product_id
-                    const productId = order.product_id || item.product_id || item.id || 1;
-                    const productLink = `/product/${productId}`;
+              return (
+                <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+                  <div className="flex justify-between items-start mb-8">
+                    <div>
+                      <p className="text-sm text-zinc-500">Commande #{order.id.slice(0, 8).toUpperCase()}</p>
+                      <p className="text-3xl font-light mt-1">
+                        {(order.amount / 100).toFixed(2)} €
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="inline-block px-5 py-2 bg-green-500/10 text-green-400 text-sm rounded-2xl">
+                        Payée
+                      </span>
+                      <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
+                        <Clock size={16} />
+                        {new Date(order.created_at).toLocaleString('fr-FR', { 
+                          timeZone: 'Europe/Paris',
+                          day: '2-digit', month: '2-digit', year: 'numeric', 
+                          hour: '2-digit', minute: '2-digit' 
+                        })}
+                      </p>
+                    </div>
+                  </div>
 
-                    return (
+                  <div className="space-y-4">
+                    {(order.items || []).map((item: any, index: number) => (
                       <Link 
                         key={index} 
                         href={productLink}
@@ -74,7 +70,7 @@ export default async function OrdersPage() {
                       >
                         <div className="flex justify-between items-center">
                           <div>
-                            <h3 className="text-lg font-medium group-hover:text-rose-400 transition-colors">
+                            <h3 className="text-lg font-medium group-hover:text-rose-400">
                               {item.title || "Produit"}
                             </h3>
                             <p className="text-sm text-zinc-400 mt-1">
@@ -89,17 +85,17 @@ export default async function OrdersPage() {
                           </div>
                         </div>
                       </Link>
-                    );
-                  })}
-                </div>
-
-                {order.stripe_session_id && (
-                  <div className="mt-8 pt-6 border-t border-zinc-800 text-xs text-zinc-500">
-                    Payé via Stripe • {order.stripe_session_id}
+                    ))}
                   </div>
-                )}
-              </div>
-            ))}
+
+                  {order.stripe_session_id && (
+                    <div className="mt-8 pt-6 border-t border-zinc-800 text-xs text-zinc-500">
+                      Payé via Stripe • {order.stripe_session_id}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
