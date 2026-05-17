@@ -23,21 +23,17 @@ export default async function OrdersPage() {
         items.map(async (item: any) => {
           let product = null;
 
-          // 1. Essayer de trouver par titre exact
+          // Recherche par titre (plus souple)
           if (item.title) {
             const { data } = await supabase
               .from('products')
-              .select('title, description, images, creator:profiles!creator_id (full_name, username)')
-              .eq('title', item.title)
-              .single();
-            product = data;
-          }
-
-          // 2. Si pas trouvé, fallback sur le premier produit de la commande (approximation)
-          if (!product && items.length === 1) {
-            const { data } = await supabase
-              .from('products')
-              .select('title, description, images, creator:profiles!creator_id (full_name, username)')
+              .select(`
+                title, 
+                description, 
+                images,
+                creator:profiles!creator_id (full_name, username)
+              `)
+              .ilike('title', `%${item.title}%`)  // recherche partielle
               .limit(1)
               .single();
             product = data;
@@ -45,6 +41,7 @@ export default async function OrdersPage() {
 
           return {
             ...item,
+            title: product?.title || item.title || "Produit",
             description: product?.description || item.description || "Pas de description disponible",
             images: product?.images || item.images || [],
             creator_name: product?.creator?.[0]?.full_name || "Créatrice",
@@ -90,10 +87,7 @@ export default async function OrdersPage() {
                     </span>
                     <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
                       <Clock size={16} />
-                      {new Date(order.created_at).toLocaleString('fr-FR', { 
-                        day: '2-digit', month: '2-digit', year: 'numeric', 
-                        hour: '2-digit', minute: '2-digit' 
-                      })}
+                      {new Date(order.created_at).toLocaleString('fr-FR')}
                     </p>
                   </div>
                 </div>
@@ -101,6 +95,7 @@ export default async function OrdersPage() {
                 <div className="space-y-6">
                   {(order.items || []).map((item: any, index: number) => (
                     <div key={index} className="flex gap-6 bg-zinc-950 rounded-2xl p-6">
+                      {/* Photo */}
                       <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
                         <img 
                           src={item.images?.[0] || '/default-avatar.png'} 
@@ -109,16 +104,23 @@ export default async function OrdersPage() {
                         />
                       </div>
 
+                      {/* Infos */}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-medium">{item.title}</h3>
                         <p className="text-sm text-zinc-400 mt-2 line-clamp-3">
                           {item.description || "Pas de description disponible"}
                         </p>
-                        <p className="text-sm text-rose-400 mt-3">
-                          par {item.creator_name || "Créatrice"}
-                        </p>
+                        {item.creatorSlug && (
+                          <Link 
+                            href={`/creators/${item.creatorSlug}`}
+                            className="text-rose-400 hover:underline text-sm inline-flex items-center gap-1 mt-2"
+                          >
+                            par {item.creator_name || "Créatrice"}
+                          </Link>
+                        )}
                       </div>
 
+                      {/* Prix */}
                       <div className="text-right text-sm whitespace-nowrap">
                         <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
                         <p className="text-zinc-500 mt-1">Qté : {item.quantity || 1}</p>
