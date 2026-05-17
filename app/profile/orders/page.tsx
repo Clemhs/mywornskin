@@ -15,7 +15,7 @@ export default async function OrdersPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
-  // Enrichissement amélioré
+  // Enrichissement plus robuste
   const enrichedOrders = await Promise.all(
     (orders || []).map(async (order: any) => {
       const items = order.items || [];
@@ -23,7 +23,7 @@ export default async function OrdersPage() {
         items.map(async (item: any) => {
           let product = null;
 
-          // Recherche par titre (plus souple)
+          // Recherche plus souple par titre (partiel)
           if (item.title) {
             const { data } = await supabase
               .from('products')
@@ -33,7 +33,7 @@ export default async function OrdersPage() {
                 images,
                 creator:profiles!creator_id (full_name, username)
               `)
-              .ilike('title', `%${item.title}%`)  // recherche partielle
+              .ilike('title', `%${item.title.substring(0, 30)}%`) // recherche souple
               .limit(1)
               .single();
             product = data;
@@ -87,7 +87,9 @@ export default async function OrdersPage() {
                     </span>
                     <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
                       <Clock size={16} />
-                      {new Date(order.created_at).toLocaleString('fr-FR')}
+                      {new Date(order.created_at).toLocaleString('fr-FR', { 
+                        timeZone: 'Europe/Paris' 
+                      })}
                     </p>
                   </div>
                 </div>
@@ -113,7 +115,7 @@ export default async function OrdersPage() {
                         {item.creatorSlug && (
                           <Link 
                             href={`/creators/${item.creatorSlug}`}
-                            className="text-rose-400 hover:underline text-sm inline-flex items-center gap-1 mt-2"
+                            className="text-rose-400 hover:underline text-sm mt-2 inline-block"
                           >
                             par {item.creator_name || "Créatrice"}
                           </Link>
