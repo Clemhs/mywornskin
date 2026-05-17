@@ -19,29 +19,17 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
 
-    console.log("📦 Session ID:", session.id);
-    console.log("🔑 Metadata user_id:", session.metadata?.user_id);
-
     try {
       const supabase = await createClient();
 
       const lineItemsData = await stripe.checkout.sessions.listLineItems(session.id);
       const lineItems = lineItemsData.data || [];
 
-      console.log(`🛍️ ${lineItems.length} line item(s)`);
-
-      let productId: any = null;
+      let productId = null;
       if (lineItems.length > 0) {
         const item = lineItems[0];
-        console.log("📋 Line Item:", JSON.stringify(item, null, 2));
-
-        productId = 
-          item.price?.metadata?.product_id ||
-          (item.price?.product as any)?.metadata?.product_id ||
-          null;
+        productId = item.price?.metadata?.product_id || null;
       }
-
-      console.log("🆔 Product ID extrait :", productId);
 
       const items = lineItems.map((item: any) => ({
         title: item.description || "Produit",
@@ -51,7 +39,7 @@ export async function POST(req: Request) {
 
       const { error } = await supabase.from('orders').insert({
         user_id: session.metadata?.user_id,
-        product_id: productId || null,
+        product_id: productId,
         stripe_session_id: session.id,
         amount: session.amount_total || 0,
         status: 'paid',
@@ -61,7 +49,7 @@ export async function POST(req: Request) {
       });
 
       if (error) console.error("❌ INSERT ERROR:", error);
-      else console.log("✅ COMMANDE ENREGISTRÉE avec product_id =", productId);
+      else console.log(`✅ Commande OK - product_id = ${productId}`);
 
     } catch (err: any) {
       console.error("💥 Erreur webhook:", err);
