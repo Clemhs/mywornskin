@@ -34,6 +34,7 @@ export default async function OrdersPage() {
         ) : (
           <div className="space-y-10">
             {orders.map((order: any) => {
+              // On prend le vrai product_id s'il existe, sinon fallback
               const productId = order.product_id || 1;
               const productLink = `/product/${productId}`;
 
