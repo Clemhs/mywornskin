@@ -62,7 +62,8 @@ export default async function OrdersPage() {
 
                 <div className="space-y-4">
                   {(order.items || []).map((item: any, index: number) => {
-                    const productId = order.product_id || 1;
+                    // Meilleure récupération du product_id
+                    const productId = order.product_id || item.product_id || item.id || 1;
                     const productLink = `/product/${productId}`;
 
                     return (
@@ -82,7 +83,7 @@ export default async function OrdersPage() {
                           </div>
                           <div className="text-right">
                             <p className="font-medium text-lg">€{(item.price || 0).toFixed(2)}</p>
-                            <p className="text-rose-400 text-sm mt-2 group-hover:underline">
+                            <p className="text-rose-400 text-sm mt-3 group-hover:underline">
                               Voir le produit →
                             </p>
                           </div>
