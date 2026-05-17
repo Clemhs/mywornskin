@@ -60,7 +60,7 @@ export default async function OrdersPage() {
                   </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {(order.items || []).map((item: any, index: number) => {
                     const productId = order.product_id || 1;
                     const productLink = `/product/${productId}`;
@@ -69,38 +69,23 @@ export default async function OrdersPage() {
                       <Link 
                         key={index} 
                         href={productLink}
-                        className="flex gap-6 bg-zinc-950 rounded-2xl p-6 hover:bg-zinc-900 transition-all group"
+                        className="block bg-zinc-950 hover:bg-zinc-900 rounded-2xl p-6 transition-all group"
                       >
-                        {/* Photo avec plusieurs fallbacks */}
-                        <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
-                          <img 
-                            src={
-                              item.images?.[0] || 
-                              item.image || 
-                              '/default-avatar.png'
-                            } 
-                            alt={item.title || "Produit"}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                          />
-                        </div>
-
-                        {/* Infos */}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-medium group-hover:text-rose-400">
-                            {item.title || "Produit"}
-                          </h3>
-                          <p className="text-sm text-zinc-400 mt-2 line-clamp-3">
-                            {item.description || ""}
-                          </p>
-                          <p className="text-rose-400 text-sm mt-4 inline-flex items-center gap-1 group-hover:underline">
-                            Voir les détails du produit →
-                          </p>
-                        </div>
-
-                        {/* Prix */}
-                        <div className="text-right text-sm whitespace-nowrap">
-                          <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
-                          <p className="text-zinc-500 mt-1">Qté : {item.quantity || 1}</p>
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-lg font-medium group-hover:text-rose-400 transition-colors">
+                              {item.title || "Produit"}
+                            </h3>
+                            <p className="text-sm text-zinc-400 mt-1">
+                              Qté : {item.quantity || 1}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium text-lg">€{(item.price || 0).toFixed(2)}</p>
+                            <p className="text-rose-400 text-sm mt-2 group-hover:underline">
+                              Voir le produit →
+                            </p>
+                          </div>
                         </div>
                       </Link>
                     );
