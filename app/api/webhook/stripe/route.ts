@@ -29,9 +29,13 @@ export async function POST(req: Request) {
       let productId: string | number | null = null;
       if (lineItems.length > 0) {
         const firstItem = lineItems[0];
+        
+        // Plusieurs façons possibles selon Stripe
         productId = 
-          firstItem.price?.metadata?.product_id ||
-          firstItem.price?.product?.metadata?.product_id || 
+          (firstItem.price?.metadata as any)?.product_id ||
+          (typeof firstItem.price?.product === 'object' 
+            ? (firstItem.price.product as any)?.metadata?.product_id 
+            : null) ||
           null;
       }
 
