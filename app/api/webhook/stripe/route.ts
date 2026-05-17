@@ -25,25 +25,26 @@ export async function POST(req: Request) {
       const lineItemsData = await stripe.checkout.sessions.listLineItems(session.id);
       const lineItems = lineItemsData.data || [];
 
-      // Extraction du product_id depuis Stripe
-      let productId: any = null;
+      // Extraction sécurisée du product_id
+      let productId: string | number | null = null;
       if (lineItems.length > 0) {
         const firstItem = lineItems[0];
-        productId = firstItem.price?.metadata?.product_id || 
-                    firstItem.metadata?.product_id || 
-                    null;
+        productId = 
+          firstItem.price?.metadata?.product_id ||
+          firstItem.price?.product?.metadata?.product_id || 
+          null;
       }
 
       const items = lineItems.map((item: any) => ({
         title: item.description || "Produit",
         price: item.price?.unit_amount ? item.price.unit_amount / 100 : 0,
         quantity: item.quantity || 1,
-        images: [], // on garde vide pour l'instant
+        images: [],
       }));
 
       const { error } = await supabase.from('orders').insert({
         user_id: session.metadata?.user_id,
-        product_id: productId || null,           // ← Important : on sauve le vrai ID
+        product_id: productId || null,
         stripe_session_id: session.id,
         amount: session.amount_total || 0,
         status: 'paid',
@@ -52,8 +53,11 @@ export async function POST(req: Request) {
         items: items
       });
 
-      if (error) console.error("❌ INSERT ERROR:", error);
-      else console.log(`✅ Commande enregistrée avec product_id = ${productId}`);
+      if (error) {
+        console.error("❌ INSERT ERROR:", error);
+      } else {
+        console.log(`✅ Commande enregistrée - product_id = ${productId}`);
+      }
 
     } catch (err: any) {
       console.error("💥 Erreur webhook:", err);
