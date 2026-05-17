@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Package, Clock, CreditCard } from 'lucide-react';
+import { ArrowLeft, Package, Clock } from 'lucide-react';
 
 export default async function OrdersPage() {
   const supabase = await createClient();
@@ -15,46 +15,6 @@ export default async function OrdersPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
-  // Enrichissement amélioré
-  const enrichedOrders = await Promise.all(
-    (orders || []).map(async (order: any) => {
-      const items = order.items || [];
-      const enrichedItems = await Promise.all(
-        items.map(async (item: any) => {
-          let product = null;
-
-          if (item.title) {
-            const { data } = await supabase
-              .from('products')
-              .select('title, description, images, creator:profiles!creator_id (full_name, username)')
-              .eq('title', item.title)
-              .single();
-            product = data;
-          }
-
-          if (!product && items.length === 1) {
-            const { data } = await supabase
-              .from('products')
-              .select('title, description, images, creator:profiles!creator_id (full_name, username)')
-              .limit(1)
-              .single();
-            product = data;
-          }
-
-          return {
-            ...item,
-            description: product?.description || item.description || "Pas de description disponible",
-            images: product?.images || item.images || [],
-            creator_name: product?.creator?.[0]?.full_name || "Créatrice",
-            creatorSlug: product?.creator?.[0]?.username || "",
-          };
-        })
-      );
-
-      return { ...order, items: enrichedItems };
-    })
-  );
-
   return (
     <main className="min-h-screen bg-zinc-950 text-white pt-20 pb-20">
       <div className="max-w-4xl mx-auto px-6">
@@ -65,7 +25,7 @@ export default async function OrdersPage() {
           <h1 className="text-4xl font-light">Mes Commandes</h1>
         </div>
 
-        {!enrichedOrders || enrichedOrders.length === 0 ? (
+        {!orders || orders.length === 0 ? (
           <div className="text-center py-32">
             <Package className="w-24 h-24 mx-auto text-zinc-700 mb-6" />
             <h2 className="text-3xl font-light mb-4">Aucune commande pour le moment</h2>
@@ -73,7 +33,7 @@ export default async function OrdersPage() {
           </div>
         ) : (
           <div className="space-y-10">
-            {enrichedOrders.map((order: any) => (
+            {orders.map((order: any) => (
               <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
                 <div className="flex justify-between items-start mb-8">
                   <div>
@@ -101,39 +61,46 @@ export default async function OrdersPage() {
                 </div>
 
                 <div className="space-y-6">
-                  {(order.items || []).map((item: any, index: number) => (
-                    <div key={index} className="flex gap-6 bg-zinc-950 rounded-2xl p-6">
-                      <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
-                        <img 
-                          src={item.images?.[0] || '/default-avatar.png'} 
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+                  {(order.items || []).map((item: any, index: number) => {
+                    const productId = order.product_id || item.product_id;
+                    const productLink = productId ? `/product/${productId}` : '#';
 
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-medium">{item.title}</h3>
-                        <p className="text-sm text-zinc-400 mt-2 line-clamp-3">
-                          {item.description || "Pas de description disponible"}
-                        </p>
-                        {item.creatorSlug ? (
-                          <Link 
-                            href={`/creators/${item.creatorSlug}`}
-                            className="text-rose-400 hover:underline text-sm mt-2 inline-block"
-                          >
-                            par {item.creator_name || "Créatrice"}
-                          </Link>
-                        ) : (
-                          <p className="text-sm text-rose-400 mt-2">par Créatrice</p>
-                        )}
-                      </div>
+                    return (
+                      <Link 
+                        key={index} 
+                        href={productLink}
+                        className="flex gap-6 bg-zinc-950 rounded-2xl p-6 hover:bg-zinc-900 transition-colors group"
+                      >
+                        {/* Photo */}
+                        <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
+                          <img 
+                            src={item.images?.[0] || '/default-avatar.png'} 
+                            alt={item.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        </div>
 
-                      <div className="text-right text-sm whitespace-nowrap">
-                        <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
-                        <p className="text-zinc-500 mt-1">Qté : {item.quantity || 1}</p>
-                      </div>
-                    </div>
-                  ))}
+                        {/* Infos */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-medium group-hover:text-rose-400 transition-colors">
+                            {item.title || "Produit"}
+                          </h3>
+                          <p className="text-sm text-zinc-400 mt-1 line-clamp-2">
+                            {item.description || "Pas de description disponible"}
+                          </p>
+                          <p className="text-sm text-rose-400 mt-3">
+                            Voir les détails du produit →
+                          </p>
+                        </div>
+
+                        {/* Prix */}
+                        <div className="text-right text-sm whitespace-nowrap">
+                          <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
+                          <p className="text-zinc-500 mt-1">Qté : {item.quantity || 1}</p>
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
 
                 {order.stripe_session_id && (
