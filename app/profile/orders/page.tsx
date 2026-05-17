@@ -15,7 +15,7 @@ export default async function OrdersPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
-  // Enrichissement plus robuste
+  // Enrichissement
   const enrichedOrders = await Promise.all(
     (orders || []).map(async (order: any) => {
       const items = order.items || [];
@@ -23,7 +23,6 @@ export default async function OrdersPage() {
         items.map(async (item: any) => {
           let product = null;
 
-          // Recherche plus souple par titre (partiel)
           if (item.title) {
             const { data } = await supabase
               .from('products')
@@ -33,7 +32,7 @@ export default async function OrdersPage() {
                 images,
                 creator:profiles!creator_id (full_name, username)
               `)
-              .ilike('title', `%${item.title.substring(0, 30)}%`) // recherche souple
+              .ilike('title', `%${item.title.substring(0, 30)}%`)
               .limit(1)
               .single();
             product = data;
@@ -87,9 +86,7 @@ export default async function OrdersPage() {
                     </span>
                     <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
                       <Clock size={16} />
-                      {new Date(order.created_at).toLocaleString('fr-FR', { 
-                        timeZone: 'Europe/Paris' 
-                      })}
+                      {new Date(order.created_at).toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}
                     </p>
                   </div>
                 </div>
@@ -97,7 +94,6 @@ export default async function OrdersPage() {
                 <div className="space-y-6">
                   {(order.items || []).map((item: any, index: number) => (
                     <div key={index} className="flex gap-6 bg-zinc-950 rounded-2xl p-6">
-                      {/* Photo */}
                       <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
                         <img 
                           src={item.images?.[0] || '/default-avatar.png'} 
@@ -106,7 +102,6 @@ export default async function OrdersPage() {
                         />
                       </div>
 
-                      {/* Infos */}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-medium">{item.title}</h3>
                         <p className="text-sm text-zinc-400 mt-2 line-clamp-3">
@@ -122,7 +117,6 @@ export default async function OrdersPage() {
                         )}
                       </div>
 
-                      {/* Prix */}
                       <div className="text-right text-sm whitespace-nowrap">
                         <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
                         <p className="text-zinc-500 mt-1">Qté : {item.quantity || 1}</p>
