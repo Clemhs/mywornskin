@@ -33,69 +33,82 @@ export default async function OrdersPage() {
           </div>
         ) : (
           <div className="space-y-10">
-            {orders.map((order: any) => {
-              const productId = order.product_id || 1;
-              const productLink = `/product/${productId}`;
-
-              return (
-                <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-                  <div className="flex justify-between items-start mb-8">
-                    <div>
-                      <p className="text-sm text-zinc-500">Commande #{order.id.slice(0, 8).toUpperCase()}</p>
-                      <p className="text-3xl font-light mt-1">
-                        {(order.amount / 100).toFixed(2)} €
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span className="inline-block px-5 py-2 bg-green-500/10 text-green-400 text-sm rounded-2xl">
-                        Payée
-                      </span>
-                      <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
-                        <Clock size={16} />
-                        {new Date(order.created_at).toLocaleString('fr-FR', { 
-                          timeZone: 'Europe/Paris',
-                          day: '2-digit', month: '2-digit', year: 'numeric', 
-                          hour: '2-digit', minute: '2-digit' 
-                        })}
-                      </p>
-                    </div>
+            {orders.map((order: any) => (
+              <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+                <div className="flex justify-between items-start mb-8">
+                  <div>
+                    <p className="text-sm text-zinc-500">Commande #{order.id.slice(0, 8).toUpperCase()}</p>
+                    <p className="text-3xl font-light mt-1">
+                      {(order.amount / 100).toFixed(2)} €
+                    </p>
                   </div>
+                  <div className="text-right">
+                    <span className="inline-block px-5 py-2 bg-green-500/10 text-green-400 text-sm rounded-2xl">
+                      Payée
+                    </span>
+                    <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
+                      <Clock size={16} />
+                      {new Date(order.created_at).toLocaleString('fr-FR', { 
+                        timeZone: 'Europe/Paris',
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </p>
+                  </div>
+                </div>
 
-                  <div className="space-y-4">
-                    {(order.items || []).map((item: any, index: number) => (
+                <div className="space-y-6">
+                  {(order.items || []).map((item: any, index: number) => {
+                    const productId = order.product_id || 1;
+                    const productLink = `/product/${productId}`;
+
+                    return (
                       <Link 
                         key={index} 
                         href={productLink}
-                        className="block bg-zinc-950 hover:bg-zinc-900 rounded-2xl p-6 transition-all group"
+                        className="flex gap-6 bg-zinc-950 rounded-2xl p-6 hover:bg-zinc-900 transition-all group"
                       >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-lg font-medium group-hover:text-rose-400">
-                              {item.title || "Produit"}
-                            </h3>
-                            <p className="text-sm text-zinc-400 mt-1">
-                              Qté : {item.quantity || 1}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-medium text-lg">€{(item.price || 0).toFixed(2)}</p>
-                            <p className="text-rose-400 text-sm mt-3 group-hover:underline">
-                              Voir le produit →
-                            </p>
-                          </div>
+                        {/* Photo */}
+                        <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
+                          <img 
+                            src={item.images?.[0] || '/default-avatar.png'} 
+                            alt={item.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        </div>
+
+                        {/* Infos */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-medium group-hover:text-rose-400">
+                            {item.title || "Produit"}
+                          </h3>
+                          <p className="text-sm text-zinc-400 mt-2 line-clamp-3">
+                            {item.description || ""}
+                          </p>
+                          <p className="text-rose-400 text-sm mt-4 group-hover:underline">
+                            Voir les détails du produit →
+                          </p>
+                        </div>
+
+                        <div className="text-right text-sm whitespace-nowrap">
+                          <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
+                          <p className="text-zinc-500 mt-1">Qté : {item.quantity || 1}</p>
                         </div>
                       </Link>
-                    ))}
-                  </div>
-
-                  {order.stripe_session_id && (
-                    <div className="mt-8 pt-6 border-t border-zinc-800 text-xs text-zinc-500">
-                      Payé via Stripe • {order.stripe_session_id}
-                    </div>
-                  )}
+                    );
+                  })}
                 </div>
-              );
-            })}
+
+                {order.stripe_session_id && (
+                  <div className="mt-8 pt-6 border-t border-zinc-800 text-xs text-zinc-500">
+                    Payé via Stripe • {order.stripe_session_id}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>
