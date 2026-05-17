@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Package, Calendar, Clock, CreditCard } from 'lucide-react';
+import { ArrowLeft, Package, Clock, CreditCard } from 'lucide-react';
 
 export default async function OrdersPage() {
   const supabase = await createClient();
@@ -23,7 +23,6 @@ export default async function OrdersPage() {
         items.map(async (item: any) => {
           let product = null;
 
-          // 1. Essayer de trouver par titre exact
           if (item.title) {
             const { data } = await supabase
               .from('products')
@@ -33,7 +32,6 @@ export default async function OrdersPage() {
             product = data;
           }
 
-          // 2. Si pas trouvé, fallback sur le premier produit de la commande (approximation)
           if (!product && items.length === 1) {
             const { data } = await supabase
               .from('products')
@@ -91,8 +89,12 @@ export default async function OrdersPage() {
                     <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
                       <Clock size={16} />
                       {new Date(order.created_at).toLocaleString('fr-FR', { 
-                        day: '2-digit', month: '2-digit', year: 'numeric', 
-                        hour: '2-digit', minute: '2-digit' 
+                        timeZone: 'Europe/Paris',
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
                       })}
                     </p>
                   </div>
@@ -114,9 +116,16 @@ export default async function OrdersPage() {
                         <p className="text-sm text-zinc-400 mt-2 line-clamp-3">
                           {item.description || "Pas de description disponible"}
                         </p>
-                        <p className="text-sm text-rose-400 mt-3">
-                          par {item.creator_name || "Créatrice"}
-                        </p>
+                        {item.creatorSlug ? (
+                          <Link 
+                            href={`/creators/${item.creatorSlug}`}
+                            className="text-rose-400 hover:underline text-sm mt-2 inline-block"
+                          >
+                            par {item.creator_name || "Créatrice"}
+                          </Link>
+                        ) : (
+                          <p className="text-sm text-rose-400 mt-2">par Créatrice</p>
+                        )}
                       </div>
 
                       <div className="text-right text-sm whitespace-nowrap">
