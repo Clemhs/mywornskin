@@ -62,14 +62,15 @@ export default async function OrdersPage() {
 
                 <div className="space-y-6">
                   {(order.items || []).map((item: any, index: number) => {
-                    const productId = order.product_id || item.product_id;
-                    const productLink = productId ? `/product/${productId}` : '#';
+                    // Lien vers le produit (priorité à product_id, sinon fallback)
+                    const productId = order.product_id || item.product_id || 1;
+                    const productLink = `/product/${productId}`;
 
                     return (
                       <Link 
                         key={index} 
                         href={productLink}
-                        className="flex gap-6 bg-zinc-950 rounded-2xl p-6 hover:bg-zinc-900 transition-colors group"
+                        className="flex gap-6 bg-zinc-950 rounded-2xl p-6 hover:bg-zinc-900 transition-all group"
                       >
                         {/* Photo */}
                         <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
@@ -82,18 +83,18 @@ export default async function OrdersPage() {
 
                         {/* Infos */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-medium group-hover:text-rose-400 transition-colors">
+                          <h3 className="text-lg font-medium group-hover:text-rose-400">
                             {item.title || "Produit"}
                           </h3>
-                          <p className="text-sm text-zinc-400 mt-1 line-clamp-2">
-                            {item.description || "Pas de description disponible"}
+                          <p className="text-sm text-zinc-400 mt-2 line-clamp-3">
+                            {item.description || ""}
                           </p>
-                          <p className="text-sm text-rose-400 mt-3">
+                          <p className="text-rose-400 text-sm mt-3 inline-flex items-center gap-1 group-hover:underline">
                             Voir les détails du produit →
                           </p>
                         </div>
 
-                        {/* Prix */}
+                        {/* Prix et quantité */}
                         <div className="text-right text-sm whitespace-nowrap">
                           <p className="font-medium">€{(item.price || 0).toFixed(2)}</p>
                           <p className="text-zinc-500 mt-1">Qté : {item.quantity || 1}</p>
